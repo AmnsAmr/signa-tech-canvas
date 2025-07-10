@@ -3,8 +3,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
+import SEOHead from '@/components/SEOHead';
 import { 
   Phone, 
   Mail, 
@@ -13,12 +17,157 @@ import {
   Send,
   MessageCircle,
   Zap,
-  Heart
+  Heart,
+  Settings,
+  LucideIcon
 } from 'lucide-react';
+import { useState } from 'react';
 
-const Contact = () => {
+interface FormData {
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  project: string;
+  message: string;
+  // Detailed specifications
+  serviceType: string;
+  material: string;
+  size: string;
+  quantity: string;
+  indoorOutdoor: string;
+  finishing: string;
+  artworkReady: string;
+  thickness: string;
+  colors: string;
+  cuttingApplication: string;
+  designReady: string;
+  cncFinishing: string;
+  jobType: string;
+  detailLevel: string;
+}
+
+interface ContactCardProps {
+  icon: LucideIcon;
+  title: string;
+  value: string;
+}
+
+const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) => (
+  <Card className="group hover:shadow-glow transition-all duration-300 border-border/50">
+    <CardContent className="p-6">
+      <div className="flex items-center space-x-4">
+        <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+          <Icon className="h-6 w-6 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-foreground">{title}</h3>
+          <p className="text-muted-foreground">{value}</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const Contact: React.FC = () => {
+  const { t } = useLanguage();
+  
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    company: '',
+    email: '',
+    phone: '',
+    project: '',
+    message: '',
+    serviceType: '',
+    material: '',
+    size: '',
+    quantity: '',
+    indoorOutdoor: '',
+    finishing: '',
+    artworkReady: '',
+    thickness: '',
+    colors: '',
+    cuttingApplication: '',
+    designReady: '',
+    cncFinishing: '',
+    jobType: '',
+    detailLevel: ''
+  });
+
+  const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
+
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+  // Handle input changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmissionStatus('submitting');
+
+    // Replace with your backend server URL
+    const backendUrl = 'http://localhost:5000/send-email'; 
+
+    try {
+      const response = await fetch(backendUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmissionStatus('success');
+        setFormData({
+          name: '',
+          company: '',
+          email: '',
+          phone: '',
+          project: '',
+          message: '',
+          serviceType: '',
+          material: '',
+          size: '',
+          quantity: '',
+          indoorOutdoor: '',
+          finishing: '',
+          artworkReady: '',
+          thickness: '',
+          colors: '',
+          cuttingApplication: '',
+          designReady: '',
+          cncFinishing: '',
+          jobType: '',
+          detailLevel: ''
+        });
+        alert(result.message);
+      } else {
+        setSubmissionStatus('error');
+        alert(result.message || 'Failed to send message.');
+      }
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setSubmissionStatus('error');
+      alert('Failed to send message. Please try again later.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title={t('contact.hero.title1') + ' ' + t('contact.hero.title2') + ' - Signa Tech'}
+        description={t('contact.hero.subtitle')}
+        path="/contact"
+      />
       <Header />
       
       {/* Hero Section */}
@@ -33,16 +182,16 @@ const Contact = () => {
           <div className="text-center text-primary-foreground max-w-4xl mx-auto">
             <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-8 text-lg px-8 py-3">
               <Heart className="mr-2 h-5 w-5" />
-              Parlons Création
+              {t('contact.hero.badge')}
             </Badge>
             <h1 className="text-6xl lg:text-8xl font-black mb-8 leading-tight">
-              CONNECTONS
+              {t('contact.hero.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
-                NOS ÉNERGIES
+                {t('contact.hero.title2')}
               </span>
             </h1>
             <p className="text-2xl lg:text-3xl leading-relaxed font-light">
-              Prêt à transformer vos idées en réalité visuelle ? Contactez-nous !
+              {t('contact.hero.subtitle')}
             </p>
           </div>
         </div>
@@ -58,30 +207,36 @@ const Contact = () => {
               <CardContent className="p-12 relative z-10">
                 <div className="mb-8">
                   <h2 className="text-3xl font-black text-foreground mb-4">
-                    Démarrons Votre Projet
+                    {t('contact.form.title')}
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Partagez-nous votre vision et nous la transformerons en chef-d'œuvre visuel.
+                    {t('contact.form.subtitle')}
                   </p>
                 </div>
 
-                <form className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6"> {/* Add onSubmit handler */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Nom complet *
+                        {t('contact.form.name.label')} *
                       </label>
                       <Input 
-                        placeholder="Votre nom"
+                        name="name" // Add name attribute
+                        value={formData.name} // Bind value to state
+                        onChange={handleChange} // Add onChange handler
+                        placeholder={t('contact.form.name.placeholder')}
                         className="border-border/50 focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Entreprise
+                        {t('contact.form.company.label')}
                       </label>
                       <Input 
-                        placeholder="Nom de votre entreprise"
+                        name="company" // Add name attribute
+                        value={formData.company} // Bind value to state
+                        onChange={handleChange} // Add onChange handler
+                        placeholder={t('contact.form.company.placeholder')}
                         className="border-border/50 focus:border-primary transition-colors"
                       />
                     </div>
@@ -90,20 +245,26 @@ const Contact = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Email *
+                        {t('contact.form.email.label')} *
                       </label>
                       <Input 
                         type="email"
-                        placeholder="votre@email.com"
+                        name="email" // Add name attribute
+                        value={formData.email} // Bind value to state
+                        onChange={handleChange} // Add onChange handler
+                        placeholder={t('contact.form.email.placeholder')}
                         className="border-border/50 focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Téléphone
+                        {t('contact.form.phone.label')}
                       </label>
                       <Input 
-                        placeholder="+212 X XX XX XX XX"
+                        name="phone" // Add name attribute
+                        value={formData.phone} // Bind value to state
+                        onChange={handleChange} // Add onChange handler
+                        placeholder={t('contact.form.phone.placeholder')}
                         className="border-border/50 focus:border-primary transition-colors"
                       />
                     </div>
@@ -111,36 +272,332 @@ const Contact = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Type de projet
+                      {t('contact.form.project.label')}
                     </label>
-                    <select className="w-full p-3 border border-border/50 rounded-lg focus:border-primary transition-colors bg-background">
-                      <option>Sélectionnez votre besoin</option>
-                      <option>Conception & Développement</option>
-                      <option>Produits PLV Retail</option>
-                      <option>Fournitures Saisonnières</option>
-                      <option>Habillage & Signalétique</option>
-                      <option>Autre projet créatif</option>
+                    <select 
+                      name="project" // Add name attribute
+                      value={formData.project} // Bind value to state
+                      onChange={handleChange} // Add onChange handler
+                      className="w-full p-3 border border-border/50 rounded-lg focus:border-primary transition-colors bg-background"
+                    >
+                      <option value="">{t('contact.form.project.placeholder')}</option> {/* Add value attribute */}
+                      <option value="option1">{t('contact.form.project.option1')}</option>
+                      <option value="option2">{t('contact.form.project.option2')}</option>
+                      <option value="option3">{t('contact.form.project.option3')}</option>
+                      <option value="option4">{t('contact.form.project.option4')}</option>
+                      <option value="option5">{t('contact.form.project.option5')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Décrivez votre vision *
+                      {t('contact.form.message.label')} *
                     </label>
                     <Textarea 
-                      placeholder="Partagez-nous votre idée, vos objectifs, votre budget approximatif..."
-                      rows={5}
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder={t('contact.form.message.placeholder')}
+                      rows={6}
                       className="border-border/50 focus:border-primary transition-colors resize-none"
                     />
                   </div>
 
+                  {/* Toggle for Detailed Specifications */}
+                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
+                    <Switch 
+                      checked={showDetailedSpecs}
+                      onCheckedChange={setShowDetailedSpecs}
+                      className="data-[state=checked]:bg-gradient-primary"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <Settings className="h-4 w-4 text-primary" />
+                      <label className="text-sm font-medium text-foreground cursor-pointer" onClick={() => setShowDetailedSpecs(!showDetailedSpecs)}>
+                        {t('contact.form.toggle')}
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Detailed Specifications Section */}
+                  <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                    showDetailedSpecs ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    <div className="p-6 bg-gradient-subtle rounded-lg border border-border/30 space-y-6">
+                      <div className="text-center mb-6">
+                        <h3 className="text-lg font-semibold text-foreground mb-2">Spécifications Détaillées</h3>
+                        <p className="text-sm text-muted-foreground">Aidez-nous à mieux comprendre vos besoins spécifiques</p>
+                      </div>
+
+                      {/* Service Type Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          {t('contact.form.service.type')}
+                        </label>
+                        <Select value={formData.serviceType} onValueChange={(value) => setFormData(prev => ({ ...prev, serviceType: value }))}>
+                          <SelectTrigger className="border-border/50 focus:border-primary">
+                            <SelectValue placeholder="Sélectionnez un service" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="printing">{t('contact.form.service.printing')}</SelectItem>
+                            <SelectItem value="cutting">{t('contact.form.service.cutting')}</SelectItem>
+                            <SelectItem value="cnc">{t('contact.form.service.cnc')}</SelectItem>
+                            <SelectItem value="laser">{t('contact.form.service.laser')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Dynamic Fields Based on Service Type */}
+                      {formData.serviceType && (
+                        <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
+                          {/* Material Slider */}
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-3">
+                              {t('contact.form.material')}
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {(() => {
+                                const materials = {
+                                  printing: ['Forex', 'Alucobond' ,'Plexiglass','Vinyle', 'Bâche', 'Toile'],
+                                  cutting: ['Vinyle','Flex'],
+                                  cnc: ['Forex', 'Plexiglass' , 'Aluminum', 'Bois'],
+                                  laser: [ 'Plexiglass','Bois']
+                                };
+                                return materials[formData.serviceType as keyof typeof materials]?.map((material) => (
+                                  <button
+                                    key={material}
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ 
+                                      ...prev, 
+                                      material: prev.material === material ? '' : material 
+                                    }))}
+                                    className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                                      formData.material === material
+                                        ? 'bg-gradient-primary text-white border-primary shadow-glow'
+                                        : 'bg-background border-border/50 hover:border-primary/50 hover:bg-primary/5'
+                                    }`}
+                                  >
+                                    {material}
+                                  </button>
+                                ));
+                              })()}
+                            </div>
+                          </div>
+
+                          {/* Common Fields */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-2">
+                                {t('contact.form.size')}
+                              </label>
+                              <Input 
+                                name="size"
+                                value={formData.size}
+                                onChange={handleChange}
+                                placeholder="ex: 100cm × 70cm"
+                                className="border-border/50 focus:border-primary transition-colors"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-2">
+                                {t('contact.form.quantity')}
+                              </label>
+                              <Input 
+                                name="quantity"
+                                value={formData.quantity}
+                                onChange={handleChange}
+                                placeholder="ex: 10 pièces"
+                                className="border-border/50 focus:border-primary transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Thickness field for cutting, cnc, and laser */}
+                          {(formData.serviceType === 'cutting' || formData.serviceType === 'cnc' || formData.serviceType === 'laser') && (
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-2">
+                                {t('contact.form.thickness')}
+                              </label>
+                              <Input 
+                                name="thickness"
+                                value={formData.thickness}
+                                onChange={handleChange}
+                                placeholder="ex: 3mm"
+                                className="border-border/50 focus:border-primary transition-colors"
+                              />
+                            </div>
+                          )}
+
+                          {/* Service-Specific Fields */}
+                          {formData.serviceType === 'printing' && (
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-foreground mb-2">
+                                  {t('contact.form.cutting_application')}
+                                </label>
+                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
+                                  <SelectTrigger className="border-border/50 focus:border-primary">
+                                    <SelectValue placeholder="Sélectionnez" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="printing_only">Impression uniquement</SelectItem>
+                                    <SelectItem value="printing_installation">Impression + Installation</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-foreground mb-2">
+                                  {t('contact.form.finishing')}
+                                </label>
+                                <Input 
+                                  name="finishing"
+                                  value={formData.finishing}
+                                  onChange={handleChange}
+                                  placeholder="Mat, brillant, laminé, monté..."
+                                  className="border-border/50 focus:border-primary transition-colors"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {formData.serviceType === 'cutting' && (
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-foreground mb-2">
+                                  {t('contact.form.colors')}
+                                </label>
+                                <Input 
+                                  name="colors"
+                                  value={formData.colors}
+                                  onChange={handleChange}
+                                  placeholder="Rouge, bleu, blanc..."
+                                  className="border-border/50 focus:border-primary transition-colors"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-foreground mb-2">
+                                  {t('contact.form.cutting_application')}
+                                </label>
+                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
+                                  <SelectTrigger className="border-border/50 focus:border-primary">
+                                    <SelectValue placeholder="Sélectionnez" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="cutting_only">{t('contact.form.cutting_only')}</SelectItem>
+                                    <SelectItem value="cutting_application">{t('contact.form.cutting_application_both')}</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+
+                          {formData.serviceType === 'cnc' && (
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-foreground mb-2">
+                                  {t('contact.form.cutting_application')}
+                                </label>
+                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
+                                  <SelectTrigger className="border-border/50 focus:border-primary">
+                                    <SelectValue placeholder="Sélectionnez" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="cnc_only">CNC uniquement</SelectItem>
+                                    <SelectItem value="cnc_installation">CNC + Installation</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-foreground mb-2">
+                                    {t('contact.form.design_ready')}
+                                  </label>
+                                  <Select value={formData.designReady} onValueChange={(value) => setFormData(prev => ({ ...prev, designReady: value }))}>
+                                    <SelectTrigger className="border-border/50 focus:border-primary">
+                                      <SelectValue placeholder="Sélectionnez" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="yes">{t('contact.form.yes')}</SelectItem>
+                                      <SelectItem value="no">{t('contact.form.no')}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-foreground mb-2">
+                                    {t('contact.form.cnc_finishing')}
+                                  </label>
+                                  <Input 
+                                    name="cncFinishing"
+                                    value={formData.cncFinishing}
+                                    onChange={handleChange}
+                                    placeholder="Peint, brut, assemblé..."
+                                    className="border-border/50 focus:border-primary transition-colors"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {formData.serviceType === 'laser' && (
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-foreground mb-2">
+                                  {t('contact.form.cutting_application')}
+                                </label>
+                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
+                                  <SelectTrigger className="border-border/50 focus:border-primary">
+                                    <SelectValue placeholder="Sélectionnez" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="laser_only">Laser uniquement</SelectItem>
+                                    <SelectItem value="laser_installation">Laser + Installation</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-foreground mb-2">
+                                    {t('contact.form.job_type')}
+                                  </label>
+                                  <Select value={formData.jobType} onValueChange={(value) => setFormData(prev => ({ ...prev, jobType: value }))}>
+                                    <SelectTrigger className="border-border/50 focus:border-primary">
+                                      <SelectValue placeholder="Sélectionnez" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="cutting">{t('contact.form.cutting')}</SelectItem>
+                                      <SelectItem value="engraving">{t('contact.form.engraving')}</SelectItem>
+                                      <SelectItem value="both">{t('contact.form.both')}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-foreground mb-2">
+                                    {t('contact.form.detail_level')}
+                                  </label>
+                                  <Select value={formData.detailLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, detailLevel: value }))}>
+                                    <SelectTrigger className="border-border/50 focus:border-primary">
+                                      <SelectValue placeholder="Sélectionnez" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="standard">{t('contact.form.standard')}</SelectItem>
+                                      <SelectItem value="high_resolution">{t('contact.form.high_resolution')}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <Button 
-                    size="lg" 
-                    className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-pink transition-all text-lg py-6 transform hover:scale-105"
+                    type="submit" 
+                    className="w-full bg-gradient-primary hover:opacity-90 text-white font-semibold py-4 text-lg transition-all duration-300 group"
+                    disabled={submissionStatus === 'submitting'}
                   >
-                    <Send className="mr-3 h-5 w-5" />
-                    Envoyer ma demande
-                    <Zap className="ml-3 h-5 w-5" />
+                    <Send className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    {submissionStatus === 'submitting' ? t('contact.form.sending') : t('contact.form.send')}
                   </Button>
                 </form>
               </CardContent>
@@ -148,95 +605,43 @@ const Contact = () => {
 
             {/* Contact Info */}
             <div className="space-y-8">
-              {/* Contact Cards */}
-              <div className="space-y-6">
-                <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-glow transition-all duration-500 transform hover:-translate-y-1">
-                  <CardContent className="p-8">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:shadow-glow transition-all">
-                        <Phone className="h-6 w-6 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Téléphone</h3>
-                        <p className="text-muted-foreground mb-2">Appellez-nous directement</p>
-                        <a 
-                          href="tel:+212539403133" 
-                          className="text-primary hover:text-accent font-medium transition-colors"
-                        >
-                          +212 5 39 40 31 33
-                        </a>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-glow transition-all duration-500 transform hover:-translate-y-1">
-                  <CardContent className="p-8">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:shadow-glow transition-all">
-                        <Mail className="h-6 w-6 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Email</h3>
-                        <p className="text-muted-foreground mb-2">Écrivez-nous</p>
-                        <a 
-                          href="mailto:contact@signatech.ma" 
-                          className="text-primary hover:text-accent font-medium transition-colors"
-                        >
-                          contact@signatech.ma
-                        </a>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-glow transition-all duration-500 transform hover:-translate-y-1">
-                  <CardContent className="p-8">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:shadow-glow transition-all">
-                        <MapPin className="h-6 w-6 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Adresse</h3>
-                        <p className="text-muted-foreground mb-2">Visitez notre atelier</p>
-                        <p className="text-foreground">
-                          Zone Industrielle Gzenaya<br />
-                          Lot 376, Tanger<br />
-                          Maroc
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-glow transition-all duration-500 transform hover:-translate-y-1">
-                  <CardContent className="p-8">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0 group-hover:shadow-glow transition-all">
-                        <Clock className="h-6 w-6 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Horaires</h3>
-                        <p className="text-muted-foreground mb-2">Nos heures d'ouverture</p>
-                        <div className="text-foreground text-sm space-y-1">
-                          <p>Lun - Ven: 8h00 - 18h00</p>
-                          <p>Samedi: 8h00 - 13h00</p>
-                          <p>Dimanche: Fermé</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <div>
+                <h2 className="text-3xl font-black text-foreground mb-8">
+                  {t('contact.info.title')}
+                </h2>
+                <p className="text-muted-foreground leading-relaxed mb-8">
+                  {t('contact.info.subtitle')}
+                </p>
               </div>
 
-              {/* WhatsApp Button */}
-              <Button 
+              <div className="space-y-6">
+                <ContactCard 
+                  icon={Phone} 
+                  title={t('contact.info.phone.title')} 
+                  value={t('contact.info.phone.value')} 
+                />
+                <ContactCard 
+                  icon={Mail} 
+                  title={t('contact.info.email.title')} 
+                  value={t('contact.info.email.value')} 
+                />
+                <ContactCard 
+                  icon={MapPin} 
+                  title={t('contact.info.address.title')} 
+                  value={t('contact.info.address.value')} 
+                />
+                <ContactCard 
+                  icon={Clock} 
+                  title={t('contact.info.hours.title')} 
+                  value={t('contact.info.hours.value')} 
+                />
+                 <Button 
                 asChild
                 size="lg" 
                 className="w-full bg-green-500 hover:bg-green-600 text-white shadow-glow hover:shadow-strong transition-all text-lg py-6 transform hover:scale-105"
               >
                 <a 
-                  href="https://wa.me/212539403133"
+                  href="https://wa.me/212623537445"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -244,12 +649,11 @@ const Contact = () => {
                   Chatter sur WhatsApp
                 </a>
               </Button>
+              </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Map Section */}
       <section className="py-24 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -258,15 +662,17 @@ const Contact = () => {
           </div>
           
           <Card className="overflow-hidden border-0 shadow-strong">
-            <div className="aspect-[16/10] bg-muted flex items-center justify-center">
-              {/* Placeholder for Google Maps */}
-              <div className="text-center">
-                <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  Carte Google Maps à intégrer<br />
-                  Zone Industrielle Gzenaya, Lot 376, Tanger
-                </p>
-              </div>
+            <div className="aspect-[16/10]">
+              <iframe
+               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2505.6213869187595!2d-5.902106889775268!3d35.71167407246298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd0b897d4f10addf%3A0x750ef0252561ca92!2sSIGNATECH!5e1!3m2!1sen!2sma!4v1752152038428!5m2!1sen!2sma" 
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Signa Tech Location"
+              ></iframe>
             </div>
           </Card>
         </div>

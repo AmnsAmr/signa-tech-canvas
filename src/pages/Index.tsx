@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import SEOHead from '@/components/SEOHead';
 import { 
   ArrowRight, 
   Award, 
@@ -28,63 +30,66 @@ import plvImage from '@/assets/plv-displays.jpg';
 import teamImage from '@/assets/team-work.jpg';
 
 const Index = () => {
+  const { t } = useLanguage();
+  
   const services = [
     {
       icon: Palette,
-      title: "Conception & Développement",
-      description: "Création sur mesure de vos supports de communication et PLV avec notre équipe de designers expérimentés.",
-      features: ["Design personnalisé", "Prototypage", "Validation client"]
+      title: t('services.design.title'),
+      description: t('services.design.desc'),
+      features: [t('services.design.feature1'), t('services.design.feature2'), t('services.design.feature3')]
     },
     {
       icon: Store,
-      title: "Produits PLV Retail",
-      description: "Solutions complètes pour vos points de vente : présentoirs, displays, mobilier commercial.",
-      features: ["Présentoirs sur mesure", "Mobilier retail", "Displays interactifs"]
+      title: t('services.retail.title'),
+      description: t('services.retail.desc'),
+      features: [t('services.retail.feature1'), t('services.retail.feature2'), t('services.retail.feature3')]
     },
     {
       icon: Sparkles,
-      title: "Fournitures Saisonnières",
-      description: "Campagnes promotionnelles et supports temporaires pour vos événements spéciaux.",
-      features: ["Campagnes événementielles", "Supports temporaires", "Décoration saisonnière"]
+      title: t('services.seasonal.title'),
+      description: t('services.seasonal.desc'),
+      features: [t('services.seasonal.feature1'), t('services.seasonal.feature2'), t('services.seasonal.feature3')]
     },
     {
       icon: Building,
-      title: "Habillage & Signalétique",
-      description: "Transformation complète de vos façades et espaces avec notre expertise en signalétique.",
-      features: ["Habillage façades", "Enseignes lumineuses", "Signalétique directionnelle"]
+      title: t('services.signage.title'),
+      description: t('services.signage.desc'),
+      features: [t('services.signage.feature1'), t('services.signage.feature2'), t('services.signage.feature3')]
     }
   ];
 
   const testimonials = [
     {
       name: "Coca-Cola Bottling",
-      role: "Responsable Marketing",
-      content: "Signa Tech a transformé nos points de vente avec des solutions PLV exceptionnelles. Leur créativité et professionnalisme sont remarquables.",
+      role: t('testimonials.cocacola.role'),
+      content: t('testimonials.cocacola.content'),
       rating: 5
     },
     {
       name: "Juver",
-      role: "Directeur Commercial",
-      content: "Un partenaire de confiance depuis plusieurs années. La qualité de leurs réalisations et le respect des délais sont exemplaires.",
+      role: t('testimonials.juver.role'),
+      content: t('testimonials.juver.content'),
       rating: 5
     },
     {
       name: "Expleo Group",
-      role: "Chef de Projet",
-      content: "L'expertise technique et l'innovation de Signa Tech ont considérablement amélioré notre visibilité commerciale.",
+      role: t('testimonials.expleo.role'),
+      content: t('testimonials.expleo.content'),
       rating: 5
     }
   ];
 
   const stats = [
-    { number: "15+", label: "Années d'expérience", icon: Clock },
-    { number: "500+", label: "Projets réalisés", icon: Award },
-    { number: "200+", label: "Clients satisfaits", icon: Users },
-    { number: "100%", label: "Solutions sur mesure", icon: CheckCircle }
+    { number: "15+", label: t('stats.experience'), icon: Clock },
+    { number: "500+", label: t('stats.projects'), icon: Award },
+    { number: "200+", label: t('stats.clients'), icon: Users },
+    { number: "100%", label: t('stats.solutions'), icon: CheckCircle }
   ];
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <SEOHead />
       <Header />
       
       {/* Hero Section - Bold Creative Design */}
@@ -103,19 +108,19 @@ const Index = () => {
           <div className="max-w-5xl mx-auto text-center text-primary-foreground">
             <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-8 animate-fade-in text-lg px-6 py-2">
               <Sparkles className="mr-2 h-5 w-5" />
-              15+ années de créativité pure
+              {t('hero.badge')}
             </Badge>
             
             <h1 className="text-6xl lg:text-8xl font-black mb-8 animate-fade-in leading-tight">
-              CRÉATIVITÉ
+              {t('hero.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
-                SANS LIMITES
+                {t('hero.title2')}
               </span>
             </h1>
             
             <p className="text-2xl lg:text-3xl mb-12 text-white/90 animate-slide-in-right leading-relaxed max-w-4xl mx-auto font-light">
-              Nous transformons vos idées en 
-              <span className="font-bold text-accent"> œuvres visuelles exceptionnelles</span> qui marquent les esprits
+              {t('hero.subtitle')} 
+              <span className="font-bold text-accent"> {t('hero.subtitle.highlight')}</span> {t('hero.subtitle.end')}
             </p>
             
             <div className="flex flex-col lg:flex-row gap-6 justify-center items-center animate-fade-in">
@@ -126,7 +131,7 @@ const Index = () => {
               >
                 <Link to="/contact">
                   <Zap className="mr-3 h-6 w-6" />
-                  Créons ensemble
+                  {t('hero.cta.primary')}
                   <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
@@ -139,7 +144,7 @@ const Index = () => {
               >
                 <Link to="/portfolio">
                   <Play className="mr-3 h-6 w-6" />
-                  Découvrir nos créations
+                  {t('hero.cta.secondary')}
                 </Link>
               </Button>
             </div>
@@ -182,14 +187,14 @@ const Index = () => {
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3 rounded-full shadow-glow">
               <Lightbulb className="mr-2 h-5 w-5" />
-              Nos Super-pouvoirs
+              {t('services.badge')}
             </Badge>
             <h2 className="text-5xl lg:text-7xl font-black text-foreground mb-8 leading-tight">
-              SERVICES
-              <span className="block text-transparent bg-clip-text bg-gradient-primary">EXTRAORDINAIRES</span>
+              {t('services.title1')}
+              <span className="block text-transparent bg-clip-text bg-gradient-primary">{t('services.title2')}</span>
             </h2>
             <p className="text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-              Chaque projet est une nouvelle aventure créative où nous repoussons les limites du possible
+              {t('services.subtitle')}
             </p>
           </div>
 
@@ -230,7 +235,7 @@ const Index = () => {
             <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-pink transition-all text-xl px-16 py-6 rounded-2xl transform hover:scale-110">
               <Link to="/services">
                 <TrendingUp className="mr-3 h-6 w-6" />
-                Explorer nos talents
+                {t('services.cta')}
                 <ArrowRight className="ml-3 h-6 w-6" />
               </Link>
             </Button>
@@ -245,14 +250,14 @@ const Index = () => {
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3 rounded-full shadow-glow">
               <Star className="mr-2 h-5 w-5" />
-              Portfolio Extraordinaire
+              {t('portfolio.badge')}
             </Badge>
             <h2 className="text-5xl lg:text-7xl font-black text-foreground mb-8 leading-tight">
-              CRÉATIONS
-              <span className="block text-transparent bg-clip-text bg-gradient-primary">LÉGENDAIRES</span>
+              {t('portfolio.title1')}
+              <span className="block text-transparent bg-clip-text bg-gradient-primary">{t('portfolio.title2')}</span>
             </h2>
             <p className="text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-              Chaque projet raconte une histoire unique où l'art rencontre la stratégie commerciale
+              {t('portfolio.subtitle')}
             </p>
           </div>
 
@@ -269,8 +274,8 @@ const Index = () => {
                 </div>
               </div>
               <CardContent className="p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-500">
-                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">Façade Révolutionnaire</h3>
-                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">Une transformation spectaculaire qui redéfinit l'identité visuelle urbaine.</p>
+                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">{t('portfolio.facade.title')}</h3>
+                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">{t('portfolio.facade.desc')}</p>
               </CardContent>
             </Card>
 
@@ -286,8 +291,8 @@ const Index = () => {
                 </div>
               </div>
               <CardContent className="p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-500">
-                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">PLV Révolutionnaire</h3>
-                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">Des expériences d'achat immersives qui transforment chaque visite en aventure.</p>
+                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">{t('portfolio.plv.title')}</h3>
+                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">{t('portfolio.plv.desc')}</p>
               </CardContent>
             </Card>
 
@@ -303,8 +308,8 @@ const Index = () => {
                 </div>
               </div>
               <CardContent className="p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-500">
-                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">Maîtrise Artisanale</h3>
-                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">L'expertise technique au service de visions créatives audacieuses.</p>
+                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">{t('portfolio.craft.title')}</h3>
+                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">{t('portfolio.craft.desc')}</p>
               </CardContent>
             </Card>
           </div>
@@ -313,7 +318,7 @@ const Index = () => {
             <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-pink transition-all text-xl px-16 py-6 rounded-2xl transform hover:scale-110">
               <Link to="/portfolio">
                 <Sparkles className="mr-3 h-6 w-6" />
-                Explorer toutes nos œuvres
+                {t('portfolio.cta')}
                 <ArrowRight className="ml-3 h-6 w-6" />
               </Link>
             </Button>
@@ -328,14 +333,14 @@ const Index = () => {
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3 rounded-full shadow-glow">
               <Users className="mr-2 h-5 w-5" />
-              Clients Enchantés
+              {t('testimonials.badge')}
             </Badge>
             <h2 className="text-5xl lg:text-7xl font-black text-foreground mb-8 leading-tight">
-              ILS NOUS
-              <span className="block text-transparent bg-clip-text bg-gradient-primary">ADORENT</span>
+              {t('testimonials.title1')}
+              <span className="block text-transparent bg-clip-text bg-gradient-primary">{t('testimonials.title2')}</span>
             </h2>
             <p className="text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-              Découvrez ce que disent nos clients sur nos créations qui transforment leur business
+              {t('testimonials.subtitle')}
             </p>
           </div>
 
@@ -380,14 +385,14 @@ const Index = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center text-primary-foreground max-w-5xl mx-auto">
             <h2 className="text-6xl lg:text-8xl font-black mb-8 leading-tight">
-              TRANSFORMONS
+              {t('cta.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white via-accent-light to-white">
-                L'IMPOSSIBLE
+                {t('cta.title2')}
               </span>
-              <span className="block text-4xl lg:text-5xl font-light mt-4">en réalité visuelle</span>
+              <span className="block text-4xl lg:text-5xl font-light mt-4">{t('cta.title3')}</span>
             </h2>
             <p className="text-2xl lg:text-3xl mb-16 text-white/90 max-w-4xl mx-auto leading-relaxed font-light">
-              Prêt à créer quelque chose d'<span className="font-bold text-accent">extraordinaire</span> ensemble ?
+              {t('cta.subtitle')}<span className="font-bold text-accent">{t('cta.subtitle.highlight')}</span> {t('cta.subtitle.end')}
             </p>
             <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
               <Button 
@@ -397,7 +402,7 @@ const Index = () => {
               >
                 <Link to="/contact">
                   <Zap className="mr-4 h-8 w-8" />
-                  Créons le futur
+                  {t('cta.primary')}
                   <ArrowRight className="ml-4 h-8 w-8" />
                 </Link>
               </Button>
@@ -409,7 +414,7 @@ const Index = () => {
               >
                 <a href="tel:+212539403133">
                   <Phone className="mr-4 h-8 w-8" />
-                  Parlons maintenant
+                  {t('cta.secondary')}
                 </a>
               </Button>
             </div>

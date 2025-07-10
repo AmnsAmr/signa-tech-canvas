@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import SEOHead from '@/components/SEOHead';
 import { 
   Palette, 
   Building, 
@@ -18,67 +20,74 @@ import {
 } from 'lucide-react';
 
 const Services = () => {
+  const { t } = useLanguage();
+  
   const services = [
     {
       icon: Palette,
-      title: "Conception & Développement",
-      subtitle: "Créativité sur mesure",
-      description: "Notre équipe de designers expérimentés transforme vos idées en créations visuelles exceptionnelles, du concept initial à la réalisation finale.",
+      title: t('services.design.title'),
+      subtitle: t('services.design.subtitle'),
+      description: t('services.design.desc_detailed'),
       features: [
-        "Design graphique personnalisé",
-        "Prototypage et validation",
-        "Développement créatif",
+        t('services.design.feature1'),
+        t('services.design.feature2'),
+        t('services.design.feature3'),
         "Consultation stratégique",
         "Recherche et tendances"
       ],
-      highlight: "15+ années d'expertise créative"
+      highlight: t('services.design.highlight')
     },
     {
       icon: Store,
-      title: "Produits PLV Retail",
-      subtitle: "Expériences d'achat immersives",
-      description: "Solutions complètes pour optimiser vos points de vente avec des présentoirs, displays et mobilier commercial qui captent l'attention et stimulent les ventes.",
+      title: t('services.retail.title'),
+      subtitle: t('services.retail.subtitle'),
+      description: t('services.retail.desc_detailed'),
       features: [
-        "Présentoirs sur mesure",
-        "Mobilier retail innovant",
-        "Displays interactifs",
+        t('services.retail.feature1'),
+        t('services.retail.feature2'),
+        t('services.retail.feature3'),
         "Solutions modulaires",
         "Aménagement d'espaces"
       ],
-      highlight: "500+ projets retail réalisés"
+      highlight: t('services.retail.highlight')
     },
     {
       icon: Sparkles,
-      title: "Fournitures Saisonnières",
-      subtitle: "Campagnes événementielles",
-      description: "Supports promotionnels temporaires et décorations saisonnières qui créent l'événement et marquent les esprits lors de vos campagnes spéciales.",
+      title: t('services.seasonal.title'),
+      subtitle: t('services.seasonal.subtitle'),
+      description: t('services.seasonal.desc_detailed'),
       features: [
-        "Campagnes promotionnelles",
-        "Supports temporaires",
-        "Décoration saisonnière",
+        t('services.seasonal.feature1'),
+        t('services.seasonal.feature2'),
+        t('services.seasonal.feature3'),
         "Événements spéciaux",
         "Installation express"
       ],
-      highlight: "Réactivité 24h/48h"
+      highlight: t('services.seasonal.highlight')
     },
     {
       icon: Building,
-      title: "Habillage & Signalétique",
-      subtitle: "Transformation d'espaces",
-      description: "Métamorphose complète de vos façades et espaces avec notre expertise en signalétique, enseignes lumineuses et habillage architectural.",
+      title: t('services.signage.title'),
+      subtitle: t('services.signage.subtitle'),
+      description: t('services.signage.desc_detailed'),
       features: [
-        "Habillage façades",
-        "Enseignes lumineuses LED",
-        "Signalétique directionnelle",
+        t('services.signage.feature1'),
+        t('services.signage.feature2'),
+        t('services.signage.feature3'),
         "Totems et pylônes",
         "Marquage au sol"
       ],
-      highlight: "Garantie 5 ans sur nos installations"
+      highlight: t('services.signage.highlight')
     }
   ];
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title={t('services.hero.title1') + ' ' + t('services.hero.title2') + ' - Signa Tech'}
+        description={t('services.hero.subtitle')}
+        path="/services"
+      />
       <Header />
       
       {/* Hero Section */}
@@ -93,16 +102,16 @@ const Services = () => {
           <div className="text-center text-primary-foreground max-w-5xl mx-auto">
             <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-8 text-lg px-8 py-3">
               <Lightbulb className="mr-2 h-5 w-5" />
-              Nos Super-pouvoirs
+              {t('services.hero.badge')}
             </Badge>
             <h1 className="text-6xl lg:text-8xl font-black mb-8 leading-tight">
-              SERVICES
+              {t('services.hero.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
-                EXTRAORDINAIRES
+                {t('services.hero.title2')}
               </span>
             </h1>
             <p className="text-2xl lg:text-3xl leading-relaxed font-light max-w-4xl mx-auto">
-              Chaque service est une nouvelle aventure créative où nous repoussons les limites du possible
+              {t('services.hero.subtitle')}
             </p>
           </div>
         </div>
@@ -177,20 +186,20 @@ const Services = () => {
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3">
               <Eye className="mr-2 h-5 w-5" />
-              Notre Processus Créatif
+              {t('services.process.badge')}
             </Badge>
             <h2 className="text-5xl lg:text-6xl font-black text-foreground mb-8 leading-tight">
-              DE L'IDÉE À LA
-              <span className="block text-transparent bg-clip-text bg-gradient-primary">RÉALISATION</span>
+              {t('services.process.title1')}
+              <span className="block text-transparent bg-clip-text bg-gradient-primary">{t('services.process.title2')}</span>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { step: "01", title: "Écoute & Analyse", desc: "Compréhension approfondie de vos besoins et objectifs" },
-              { step: "02", title: "Conception Créative", desc: "Développement de concepts innovants et sur mesure" },
-              { step: "03", title: "Validation & Prototype", desc: "Tests et ajustements pour garantir la perfection" },
-              { step: "04", title: "Réalisation & Livraison", desc: "Production et installation avec suivi qualité" }
+              { step: "01", title: t('services.process.step1.title'), desc: t('services.process.step1.desc') },
+              { step: "02", title: t('services.process.step2.title'), desc: t('services.process.step2.desc') },
+              { step: "03", title: t('services.process.step3.title'), desc: t('services.process.step3.desc') },
+              { step: "04", title: t('services.process.step4.title'), desc: t('services.process.step4.desc') }
             ].map((phase, index) => (
               <Card key={index} className="group relative overflow-hidden border-0 shadow-medium hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2">
                 <CardContent className="p-8 text-center">
@@ -216,13 +225,13 @@ const Services = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center text-primary-foreground max-w-4xl mx-auto">
             <h2 className="text-5xl lg:text-6xl font-black mb-8 leading-tight">
-              CRÉONS VOTRE
+              {t('services.cta.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
-                CHEF-D'ŒUVRE
+                {t('services.cta.title2')}
               </span>
             </h2>
             <p className="text-2xl mb-12 text-white/90 leading-relaxed font-light">
-              Quel que soit votre défi créatif, nous avons la solution pour le transformer en succès
+              {t('services.cta.subtitle')}
             </p>
             <div className="flex flex-col lg:flex-row gap-6 justify-center">
               <Button 
@@ -232,7 +241,7 @@ const Services = () => {
               >
                 <Link to="/contact">
                   <Zap className="mr-3 h-6 w-6" />
-                  Discutons de votre projet
+                  {t('services.cta.button')}
                   <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>

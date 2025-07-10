@@ -15,32 +15,41 @@ import {
   Eye,
   ArrowRight
 } from 'lucide-react';
-import teamImage from '@/assets/team-work.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
+import SEOHead from '@/components/SEOHead';
+import teamImage from '@/assets/main_pic.jpg';
 
 const About = () => {
+  const { t } = useLanguage();
+  
   const values = [
     {
       icon: Award,
-      title: "Excellence Qualité",
-      description: "Nous nous engageons à livrer des créations d'une qualité irréprochable, dépassant systématiquement les attentes de nos clients.",
+      title: t('about.values.quality.title'),
+      description: t('about.values.quality.desc'),
       color: "from-primary to-accent"
     },
     {
       icon: Shield,
-      title: "Confidentialité Absolue", 
-      description: "Vos projets et idées sont protégés avec le plus grand soin. La discrétion est au cœur de notre relation client.",
+      title: t('about.values.confidentiality.title'), 
+      description: t('about.values.confidentiality.desc'),
       color: "from-accent to-primary"
     },
     {
       icon: Lightbulb,
-      title: "Innovation Audacieuse",
-      description: "Nous repoussons constamment les limites créatives pour concevoir des solutions qui marquent et transforment.",
+      title: t('about.values.innovation.title'),
+      description: t('about.values.innovation.desc'),
       color: "from-primary to-accent"
     }
   ];
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title={t('about.hero.title1') + ' ' + t('about.hero.title2') + ' - Signa Tech'}
+        description={t('about.hero.subtitle')}
+        path="/about"
+      />
       <Header />
       
       {/* Hero Section */}
@@ -55,16 +64,16 @@ const About = () => {
           <div className="text-center text-primary-foreground max-w-4xl mx-auto">
             <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-8 text-lg px-8 py-3">
               <Users className="mr-2 h-5 w-5" />
-              Notre Histoire
+              {t('about.hero.badge')}
             </Badge>
             <h1 className="text-6xl lg:text-7xl font-black mb-8 leading-tight">
-              PASSIONNÉS DE
+              {t('about.hero.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
-                CRÉATION
+                {t('about.hero.title2')}
               </span>
             </h1>
             <p className="text-2xl lg:text-3xl leading-relaxed font-light">
-              15+ années dédiées à transformer l'impossible en réalité visuelle
+              {t('about.hero.subtitle')}
             </p>
           </div>
         </div>
@@ -76,25 +85,20 @@ const About = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-6 py-2">
-                Notre Épopée
+                {t('about.story.badge')}
               </Badge>
               <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-8 leading-tight">
-                Une Aventure Créative Commencée il y a Plus de 15 Ans
+                {t('about.story.title')}
               </h2>
               <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
                 <p>
-                  Fondée avec une vision audacieuse, <span className="font-bold text-primary">Signa Tech</span> est née 
-                  de la passion de transformer chaque espace en une œuvre d'art fonctionnelle. Depuis nos débuts 
-                  à Tanger, nous avons révolutionné l'approche de la communication visuelle au Maroc.
+                  {t('about.story.p1')}
                 </p>
                 <p>
-                  Nos créations ne sont pas de simples supports publicitaires, mais des expériences immersives 
-                  qui racontent l'histoire de votre marque avec une intensité émotionnelle unique.
+                  {t('about.story.p2')}
                 </p>
                 <p>
-                  Avec plus de <span className="font-bold text-accent">500 projets réalisés</span> et la confiance 
-                  de clients prestigieux comme Coca-Cola, Juver et Expleo Group, nous continuons d'innover 
-                  pour repousser les frontières du possible.
+                  {t('about.story.p3')}
                 </p>
               </div>
             </div>
@@ -116,11 +120,11 @@ const About = () => {
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3">
               <Heart className="mr-2 h-5 w-5" />
-              Nos Valeurs Fondamentales
+              {t('about.values.badge')}
             </Badge>
             <h2 className="text-5xl lg:text-6xl font-black text-foreground mb-8 leading-tight">
-              CE QUI NOUS
-              <span className="block text-transparent bg-clip-text bg-gradient-primary">DÉFINIT</span>
+              {t('about.values.title1')}
+              <span className="block text-transparent bg-clip-text bg-gradient-primary">{t('about.values.title2')}</span>
             </h2>
           </div>
 
@@ -159,13 +163,11 @@ const About = () => {
                 <div className="flex items-center mb-8">
                   <Target className="h-12 w-12 text-primary group-hover:text-white mr-4 transition-colors duration-500" />
                   <h3 className="text-3xl font-bold text-foreground group-hover:text-white transition-colors duration-500">
-                    Notre Mission
+                    {t('about.mission.title')}
                   </h3>
                 </div>
                 <p className="text-lg text-muted-foreground group-hover:text-white/90 leading-relaxed transition-colors duration-500">
-                  Transformer chaque projet en une expérience visuelle exceptionnelle qui dépasse les attentes, 
-                  en alliant créativité audacieuse, innovation technique et excellence artisanale pour donner 
-                  vie aux visions les plus ambitieuses de nos clients.
+                  {t('about.mission.desc')}
                 </p>
               </CardContent>
             </Card>
@@ -176,13 +178,11 @@ const About = () => {
                 <div className="flex items-center mb-8">
                   <Eye className="h-12 w-12 text-primary group-hover:text-white mr-4 transition-colors duration-500" />
                   <h3 className="text-3xl font-bold text-foreground group-hover:text-white transition-colors duration-500">
-                    Notre Vision
+                    {t('about.vision.title')}
                   </h3>
                 </div>
                 <p className="text-lg text-muted-foreground group-hover:text-white/90 leading-relaxed transition-colors duration-500">
-                  Devenir la référence incontournable en communication visuelle au Maroc et en Afrique, 
-                  reconnue pour notre capacité à révolutionner l'art de la signalétique et à créer 
-                  des œuvres qui marquent durablement les esprits.
+                  {t('about.vision.desc')}
                 </p>
               </CardContent>
             </Card>
@@ -200,13 +200,13 @@ const About = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center text-primary-foreground max-w-4xl mx-auto">
             <h2 className="text-5xl lg:text-6xl font-black mb-8 leading-tight">
-              CRÉONS ENSEMBLE
+              {t('about.cta.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
-                VOTRE LÉGENDE
+                {t('about.cta.title2')}
               </span>
             </h2>
             <p className="text-2xl mb-12 text-white/90 leading-relaxed font-light">
-              Rejoignez l'aventure créative et découvrez ce que nous pouvons accomplir ensemble
+              {t('about.cta.subtitle')}
             </p>
             <div className="flex flex-col lg:flex-row gap-6 justify-center">
               <Button 
@@ -216,7 +216,7 @@ const About = () => {
               >
                 <Link to="/contact">
                   <Zap className="mr-3 h-6 w-6" />
-                  Démarrons votre projet
+                  {t('about.cta.button')}
                   <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
