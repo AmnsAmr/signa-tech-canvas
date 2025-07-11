@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import AuthModal from '@/components/Auth/AuthModal';
 import SEOHead from '@/components/SEOHead';
 import { 
   Phone, 
@@ -19,6 +21,7 @@ import {
   Zap,
   Heart,
   Settings,
+  User,
   LucideIcon
 } from 'lucide-react';
 import { useState } from 'react';
@@ -71,12 +74,26 @@ const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) =
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+
   
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    company: '',
-    email: '',
-    phone: '',
+    name: isAuthenticated ? user?.name || '' : '',
+    company: isAuthenticated ? user?.company || '' : '',
+    email: isAuthenticated ? user?.email || '' : '',
+    phone: isAuthenticated ? user?.phone || '' : '',
     project: '',
     message: '',
     serviceType: '',
@@ -110,15 +127,30 @@ const Contact: React.FC = () => {
     e.preventDefault();
     setSubmissionStatus('submitting');
 
-    // Replace with your backend server URL
-    const backendUrl = 'http://localhost:5000/send-email'; 
+    // Validation for non-authenticated users
+    if (!isAuthenticated) {
+      if (!formData.name || !formData.phone || !formData.message) {
+        alert('Nom, téléphone et message sont requis.');
+        setSubmissionStatus('idle');
+        return;
+      }
+    }
+
+    const token = localStorage.getItem('token');
+    const backendUrl = isAuthenticated ? 'http://localhost:5000/api/contact/submit' : 'http://localhost:5000/api/contact/guest-submit';
 
     try {
+      const headers: any = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (isAuthenticated && token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(backendUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(formData),
       });
 
@@ -126,11 +158,12 @@ const Contact: React.FC = () => {
 
       if (response.ok) {
         setSubmissionStatus('success');
+        // Reset form but keep user data for authenticated users
         setFormData({
-          name: '',
-          company: '',
-          email: '',
-          phone: '',
+          name: isAuthenticated ? user?.name || '' : '',
+          company: isAuthenticated ? user?.company || '' : '',
+          email: isAuthenticated ? user?.email || '' : '',
+          phone: isAuthenticated ? user?.phone || '' : '',
           project: '',
           message: '',
           serviceType: '',
@@ -214,61 +247,74 @@ const Contact: React.FC = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6"> {/* Add onSubmit handler */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('contact.form.name.label')} *
-                      </label>
-                      <Input 
-                        name="name" // Add name attribute
-                        value={formData.name} // Bind value to state
-                        onChange={handleChange} // Add onChange handler
-                        placeholder={t('contact.form.name.placeholder')}
-                        className="border-border/50 focus:border-primary transition-colors"
-                      />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {isAuthenticated ? (
+                    // Authenticated user form - pre-filled with user data
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
+                      <p className="text-sm text-green-700 mb-2">Connecté en tant que: <strong>{user?.name}</strong></p>
+                      <p className="text-xs text-green-600">Vos informations sont pré-remplies</p>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('contact.form.company.label')}
-                      </label>
-                      <Input 
-                        name="company" // Add name attribute
-                        value={formData.company} // Bind value to state
-                        onChange={handleChange} // Add onChange handler
-                        placeholder={t('contact.form.company.placeholder')}
-                        className="border-border/50 focus:border-primary transition-colors"
-                      />
-                    </div>
-                  </div>
+                  ) : (
+                    // Non-authenticated user form
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            {t('contact.form.name.label')} *
+                          </label>
+                          <Input 
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder={t('contact.form.name.placeholder')}
+                            className="border-border/50 focus:border-primary transition-colors"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            {t('contact.form.company.label')}
+                          </label>
+                          <Input 
+                            name="company"
+                            value={formData.company}
+                            onChange={handleChange}
+                            placeholder={t('contact.form.company.placeholder')}
+                            className="border-border/50 focus:border-primary transition-colors"
+                          />
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('contact.form.email.label')} *
-                      </label>
-                      <Input 
-                        type="email"
-                        name="email" // Add name attribute
-                        value={formData.email} // Bind value to state
-                        onChange={handleChange} // Add onChange handler
-                        placeholder={t('contact.form.email.placeholder')}
-                        className="border-border/50 focus:border-primary transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        {t('contact.form.phone.label')}
-                      </label>
-                      <Input 
-                        name="phone" // Add name attribute
-                        value={formData.phone} // Bind value to state
-                        onChange={handleChange} // Add onChange handler
-                        placeholder={t('contact.form.phone.placeholder')}
-                        className="border-border/50 focus:border-primary transition-colors"
-                      />
-                    </div>
-                  </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Email
+                          </label>
+                          <Input 
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="votre@email.com (optionnel)"
+                            className="border-border/50 focus:border-primary transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            {t('contact.form.phone.label')} *
+                          </label>
+                          <Input 
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder={t('contact.form.phone.placeholder')}
+                            className="border-border/50 focus:border-primary transition-colors"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
@@ -590,6 +636,17 @@ const Contact: React.FC = () => {
                       )}
                     </div>
                   </div>
+
+                  {!isAuthenticated && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700 mb-2">
+                        💡 <strong>Conseil:</strong> Créez un compte pour une expérience plus rapide!
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        Les utilisateurs connectés n'ont pas besoin de ressaisir leurs informations.
+                      </p>
+                    </div>
+                  )}
 
                   <Button 
                     type="submit" 

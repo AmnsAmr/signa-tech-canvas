@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Phone, Mail } from 'lucide-react';
+import { Menu, X, Phone, Mail, User, LogOut, Shield } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import AuthModal from './Auth/AuthModal';
 import Logo from '@/assets/Logo.png';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const location = useLocation();
   const { t } = useLanguage();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -70,7 +74,46 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`font-medium transition-colors hover:text-primary flex items-center ${
+                  isActive('/admin') 
+                    ? 'text-primary border-b-2 border-primary pb-1' 
+                    : 'text-foreground'
+                }`}
+              >
+                <Shield className="h-4 w-4 mr-1" />
+                Admin
+              </Link>
+            )}
             <LanguageSwitcher />
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <User className="h-4 w-4 mr-1" />
+                  {user?.name}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={logout}
+                  className="flex items-center"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center"
+              >
+                <User className="h-4 w-4 mr-1" />
+                Login
+              </Button>
+            )}
             <Button asChild className="bg-gradient-moroccan shadow-medium hover:shadow-strong transition-all">
               <Link to="/contact">{t('nav.quote')}</Link>
             </Button>
@@ -103,6 +146,50 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className={`font-medium transition-colors flex items-center ${
+                    isActive('/admin') ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin
+                </Link>
+              )}
+              {isAuthenticated ? (
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    {user?.name}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center w-fit"
+                  >
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowAuthModal(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center w-fit"
+                >
+                  <User className="h-4 w-4 mr-1" />
+                  Login
+                </Button>
+              )}
               <div className="flex items-center justify-between">
                 <Button asChild className="bg-gradient-moroccan shadow-medium w-fit">
                   <Link to="/contact" onClick={() => setIsMenuOpen(false)}>
@@ -115,6 +202,11 @@ const Header = () => {
           </div>
         )}
       </div>
+      
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
+      )}
     </header>
   );
 };

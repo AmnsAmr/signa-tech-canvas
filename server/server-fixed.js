@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sqlite3 = require('sqlite3').verbose();
 const { body, validationResult } = require('express-validator');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -17,24 +16,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// Nodemailer transporter setup
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// Verify transporter configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('Email transporter error:', error);
-  } else {
-    console.log('Email server is ready to send messages');
-  }
-});
 
 // Database setup
 const db = new sqlite3.Database('signatech.db', (err) => {
@@ -63,10 +44,10 @@ db.serialize(() => {
 
   db.run(`CREATE TABLE IF NOT EXISTS contact_submissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
+    user_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     company TEXT,
-    email TEXT,
+    email TEXT NOT NULL,
     phone TEXT,
     project TEXT,
     message TEXT NOT NULL,
@@ -78,7 +59,6 @@ db.serialize(() => {
     colors TEXT,
     finishing TEXT,
     cutting_application TEXT,
-    status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
   )`, (err) => {
@@ -117,12 +97,19 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Test route
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is working', timestamp: new Date().toISOString() });
+});
+
 // Auth Routes
 app.post('/api/auth/register', [
   body('name').notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
+  console.log('Register endpoint hit:', req.body);
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ message: errors.array()[0].msg });
@@ -133,6 +120,7 @@ app.post('/api/auth/register', [
   try {
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, row) => {
       if (err) {
+        console.error('Database error:', err);
         return res.status(500).json({ message: 'Database error' });
       }
       
@@ -145,6 +133,7 @@ app.post('/api/auth/register', [
       db.run("INSERT INTO users (name, email, password, company, phone) VALUES (?, ?, ?, ?, ?)",
         [name, email, hashedPassword, company || null, phone || null], function(err) {
           if (err) {
+            console.error('Insert error:', err);
             return res.status(500).json({ message: 'Registration failed' });
           }
 
@@ -161,6 +150,7 @@ app.post('/api/auth/register', [
         });
     });
   } catch (error) {
+    console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -169,6 +159,8 @@ app.post('/api/auth/login', [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
+  console.log('Login endpoint hit:', req.body.email);
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ message: errors.array()[0].msg });
@@ -179,6 +171,7 @@ app.post('/api/auth/login', [
   try {
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
       if (err) {
+        console.error('Database error:', err);
         return res.status(500).json({ message: 'Database error' });
       }
       
@@ -210,6 +203,7 @@ app.post('/api/auth/login', [
       });
     });
   } catch (error) {
+    console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -226,10 +220,10 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
   });
 });
 
-// Guest contact submission endpoint
-app.post('/api/contact/guest-submit', [
+// Contact submission endpoint
+app.post('/api/contact/submit', authenticateToken, [
   body('name').notEmpty().withMessage('Name is required'),
-  body('phone').notEmpty().withMessage('Phone is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
   body('message').notEmpty().withMessage('Message is required')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -250,127 +244,20 @@ app.post('/api/contact/guest-submit', [
       finishing, cutting_application
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        null, name, company, email, phone, project, message,
+        req.user.id, name, company, email, phone, project, message,
         serviceType, material, size, quantity, thickness, colors,
         finishing, cuttingApplication
       ], function(err) {
         if (err) {
+          console.error('Submission error:', err);
           return res.status(500).json({ message: 'Failed to save submission' });
         }
-        
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: 'amraniaamine@gmail.com',
-          subject: `Nouvelle demande de contact de ${name}`,
-          html: `
-            <h2>Nouvelle demande de contact (Invité)</h2>
-            <p><strong>Nom:</strong> ${name}</p>
-            <p><strong>Entreprise:</strong> ${company || 'N/A'}</p>
-            <p><strong>Email:</strong> ${email || 'N/A'}</p>
-            <p><strong>Téléphone:</strong> ${phone}</p>
-            <p><strong>Type de projet:</strong> ${project || 'N/A'}</p>
-            <p><strong>Message:</strong> ${message}</p>
-            ${serviceType ? `
-              <h3>Spécifications détaillées:</h3>
-              <p><strong>Type de service:</strong> ${serviceType}</p>
-              <p><strong>Matériau:</strong> ${material || 'N/A'}</p>
-              <p><strong>Taille:</strong> ${size || 'N/A'}</p>
-              <p><strong>Quantité:</strong> ${quantity || 'N/A'}</p>
-              <p><strong>Épaisseur:</strong> ${thickness || 'N/A'}</p>
-              <p><strong>Couleurs:</strong> ${colors || 'N/A'}</p>
-              <p><strong>Finition:</strong> ${finishing || 'N/A'}</p>
-              <p><strong>Application:</strong> ${cuttingApplication || 'N/A'}</p>
-            ` : ''}
-          `,
-        };
-
-        transporter.sendMail(mailOptions, (emailErr, info) => {
-          if (emailErr) {
-            console.error('Email sending failed:', emailErr);
-            return res.status(500).json({ message: 'Failed to send email notification' });
-          }
-          console.log('Email sent successfully:', info.response);
-          res.json({ message: 'Votre demande a été envoyée avec succès!' });
-        });
+        res.json({ message: 'Submission received successfully!' });
       });
   } catch (error) {
+    console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
-
-// Authenticated contact submission endpoint
-app.post('/api/contact/submit', authenticateToken, [
-  body('message').notEmpty().withMessage('Message is required')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ message: errors.array()[0].msg });
-  }
-
-  const {
-    project, message, serviceType, material, size, quantity, 
-    thickness, colors, finishing, cuttingApplication
-  } = req.body;
-
-  db.get("SELECT * FROM users WHERE id = ?", [req.user.id], (err, user) => {
-    if (err || !user) {
-      return res.status(500).json({ message: 'User not found' });
-    }
-
-    try {
-      db.run(`INSERT INTO contact_submissions (
-        user_id, name, company, email, phone, project, message,
-        service_type, material, size, quantity, thickness, colors,
-        finishing, cutting_application
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          req.user.id, user.name, user.company, user.email, user.phone, project, message,
-          serviceType, material, size, quantity, thickness, colors,
-          finishing, cuttingApplication
-        ], function(err) {
-          if (err) {
-            return res.status(500).json({ message: 'Failed to save submission' });
-          }
-          
-          const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: 'amraniaamine@gmail.com',
-            subject: `Nouvelle demande de contact de ${user.name}`,
-            html: `
-              <h2>Nouvelle demande de contact (Utilisateur connecté)</h2>
-              <p><strong>Nom:</strong> ${user.name}</p>
-              <p><strong>Entreprise:</strong> ${user.company || 'N/A'}</p>
-              <p><strong>Email:</strong> ${user.email}</p>
-              <p><strong>Téléphone:</strong> ${user.phone || 'N/A'}</p>
-              <p><strong>Type de projet:</strong> ${project || 'N/A'}</p>
-              <p><strong>Message:</strong> ${message}</p>
-              ${serviceType ? `
-                <h3>Spécifications détaillées:</h3>
-                <p><strong>Type de service:</strong> ${serviceType}</p>
-                <p><strong>Matériau:</strong> ${material || 'N/A'}</p>
-                <p><strong>Taille:</strong> ${size || 'N/A'}</p>
-                <p><strong>Quantité:</strong> ${quantity || 'N/A'}</p>
-                <p><strong>Épaisseur:</strong> ${thickness || 'N/A'}</p>
-                <p><strong>Couleurs:</strong> ${colors || 'N/A'}</p>
-                <p><strong>Finition:</strong> ${finishing || 'N/A'}</p>
-                <p><strong>Application:</strong> ${cuttingApplication || 'N/A'}</p>
-              ` : ''}
-            `,
-          };
-
-          transporter.sendMail(mailOptions, (emailErr, info) => {
-            if (emailErr) {
-              console.error('Email sending failed:', emailErr);
-              return res.status(500).json({ message: 'Failed to send email notification' });
-            }
-            console.log('Email sent successfully:', info.response);
-            res.json({ message: 'Votre demande a été envoyée avec succès!' });
-          });
-        });
-    } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-    }
-  });
 });
 
 // Admin Routes
@@ -393,19 +280,10 @@ app.get('/api/admin/submissions', authenticateToken, (req, res) => {
   }
   
   db.all(`
-    SELECT 
-      cs.*,
-      CASE 
-        WHEN cs.user_id IS NULL THEN 'Invité'
-        ELSE u.name 
-      END as user_name,
-      CASE 
-        WHEN cs.user_id IS NULL THEN 'Non inscrit'
-        ELSE u.email 
-      END as user_email
+    SELECT cs.*, u.name as user_name, u.email as user_email 
     FROM contact_submissions cs 
-    LEFT JOIN users u ON cs.user_id = u.id 
-    ORDER BY cs.created_at ASC
+    JOIN users u ON cs.user_id = u.id 
+    ORDER BY cs.created_at DESC
   `, (err, submissions) => {
     if (err) {
       return res.status(500).json({ message: 'Failed to fetch submissions' });
@@ -414,43 +292,15 @@ app.get('/api/admin/submissions', authenticateToken, (req, res) => {
   });
 });
 
-// Update submission status
-app.patch('/api/admin/submissions/:id/status', authenticateToken, (req, res) => {
-  console.log('Status update endpoint hit:', req.params.id, req.body);
-  
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Admin access required' });
-  }
-  
-  const { id } = req.params;
-  const { status } = req.body;
-  
-  if (!['pending', 'done'].includes(status)) {
-    return res.status(400).json({ message: 'Invalid status' });
-  }
-  
-  db.run('UPDATE contact_submissions SET status = ? WHERE id = ?', [status, id], function(err) {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ message: 'Failed to update status' });
-    }
-    if (this.changes === 0) {
-      return res.status(404).json({ message: 'Submission not found' });
-    }
-    console.log('Status updated successfully for ID:', id);
-    res.json({ message: 'Status updated successfully' });
-  });
-});
-
-// Add status column if it doesn't exist
-db.run('ALTER TABLE contact_submissions ADD COLUMN status TEXT DEFAULT "pending"', (err) => {
-  if (err && !err.message.includes('duplicate column')) {
-    console.log('Status column already exists or other error:', err.message);
-  }
-});
-
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  console.log('Routes registered successfully');
+  console.log('Routes registered:');
+  console.log('- GET /test');
+  console.log('- POST /api/auth/register');
+  console.log('- POST /api/auth/login');
+  console.log('- GET /api/auth/me');
+  console.log('- POST /api/contact/submit');
+  console.log('- GET /api/admin/users');
+  console.log('- GET /api/admin/submissions');
 });
