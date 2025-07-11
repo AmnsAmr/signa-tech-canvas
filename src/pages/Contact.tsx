@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,7 +26,7 @@ import {
   User,
   LucideIcon
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface FormData {
   name: string;
@@ -56,38 +58,68 @@ interface ContactCardProps {
   value: string;
 }
 
-const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) => (
-  <Card className="group hover:shadow-glow transition-all duration-300 border-border/50">
-    <CardContent className="p-6">
-      <div className="flex items-center space-x-4">
-        <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-          <Icon className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">{title}</h3>
-          <p className="text-muted-foreground">{value}</p>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) => {
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  
+  const handleEmailClick = () => {
+    if (title.toLowerCase().includes('email') || title.toLowerCase().includes('e-mail')) {
+      setShowEmailDialog(true);
+    }
+  };
+  
+  const handleEmailConfirm = () => {
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${value}`, '_blank');
+    setShowEmailDialog(false);
+  };
+  
+  return (
+    <>
+      <Card className="group hover:shadow-glow transition-all duration-300 border-border/50">
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+              <Icon className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">{title}</h3>
+              <p 
+                className={`text-muted-foreground ${
+                  title.toLowerCase().includes('email') || title.toLowerCase().includes('e-mail') 
+                    ? 'cursor-pointer hover:text-primary transition-colors' 
+                    : ''
+                }`}
+                onClick={handleEmailClick}
+              >
+                {value}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <AlertDialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ouvrir Gmail</AlertDialogTitle>
+            <AlertDialogDescription>
+              Voulez-vous ouvrir Gmail pour continuer la conversation à l'adresse {value} ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleEmailConfirm}>Ouvrir Gmail</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
-
+  const { toast } = useToast();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     name: isAuthenticated ? user?.name || '' : '',
@@ -113,8 +145,29 @@ const Contact: React.FC = () => {
   });
 
   const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
-
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+  // Add timeout for loading state
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 5000); // 5 second timeout
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  if (loading && !loadingTimeout) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,7 +183,11 @@ const Contact: React.FC = () => {
     // Validation for non-authenticated users
     if (!isAuthenticated) {
       if (!formData.name || !formData.phone || !formData.message) {
-        alert('Nom, téléphone et message sont requis.');
+        toast({
+          title: "Champs requis",
+          description: "Nom, téléphone et message sont requis.",
+          variant: "destructive"
+        });
         setSubmissionStatus('idle');
         return;
       }
@@ -181,16 +238,27 @@ const Contact: React.FC = () => {
           jobType: '',
           detailLevel: ''
         });
-        alert(result.message);
+        toast({
+          title: "Message envoyé",
+          description: result.message
+        });
       } else {
         setSubmissionStatus('error');
-        alert(result.message || 'Failed to send message.');
+        toast({
+          title: "Erreur",
+          description: result.message || "Échec de l'envoi du message.",
+          variant: "destructive"
+        });
       }
 
     } catch (error) {
       console.error('Error submitting form:', error);
       setSubmissionStatus('error');
-      alert('Failed to send message. Please try again later.');
+      toast({
+        title: "Erreur",
+        description: "Échec de l'envoi du message. Veuillez réessayer plus tard.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -721,7 +789,7 @@ const Contact: React.FC = () => {
           <Card className="overflow-hidden border-0 shadow-strong">
             <div className="aspect-[16/10]">
               <iframe
-               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2505.6213869187595!2d-5.902106889775268!3d35.71167407246298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd0b897d4f10addf%3A0x750ef0252561ca92!2sSIGNATECH!5e1!3m2!1sen!2sma!4v1752152038428!5m2!1sen!2sma" 
+               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2505.6213869187595!2d-5.902106889775268!3d35.71167407246298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd0b897d4f10addf%3A0x750ef0252561ca92!2sSIGNATECH!5e0!3m2!1sen!2sma!4v1752152038428!5m2!1sen!2sma" 
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}

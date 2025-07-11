@@ -35,15 +35,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     checkAuthStatus();
+    handleGoogleCallback();
   }, []);
+
+  const handleGoogleCallback = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      await checkAuthStatus();
+    }
+  };
 
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+        
         const response = await fetch('http://localhost:5000/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
@@ -53,6 +73,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      // If server is not available, remove invalid token
+      if (error.name === 'AbortError' || error.message.includes('fetch')) {
+        localStorage.removeItem('token');
+      }
     } finally {
       setLoading(false);
     }
