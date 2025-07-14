@@ -28,6 +28,22 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+interface ServiceSpec {
+  id: string;
+  serviceType: string;
+  material: string;
+  size: string;
+  quantity: string;
+  thickness: string;
+  colors: string;
+  finishing: string;
+  cuttingApplication: string;
+  designReady: string;
+  cncFinishing: string;
+  jobType: string;
+  detailLevel: string;
+}
+
 interface FormData {
   name: string;
   company: string;
@@ -35,21 +51,7 @@ interface FormData {
   phone: string;
   project: string;
   message: string;
-  // Detailed specifications
-  serviceType: string;
-  material: string;
-  size: string;
-  quantity: string;
-  indoorOutdoor: string;
-  finishing: string;
-  artworkReady: string;
-  thickness: string;
-  colors: string;
-  cuttingApplication: string;
-  designReady: string;
-  cncFinishing: string;
-  jobType: string;
-  detailLevel: string;
+  services: ServiceSpec[];
 }
 
 interface ContactCardProps {
@@ -128,23 +130,26 @@ const Contact: React.FC = () => {
     phone: isAuthenticated ? user?.phone || '' : '',
     project: '',
     message: '',
+    services: []
+  });
+
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [currentService, setCurrentService] = useState<ServiceSpec>({
+    id: '',
     serviceType: '',
     material: '',
     size: '',
     quantity: '',
-    indoorOutdoor: '',
-    finishing: '',
-    artworkReady: '',
     thickness: '',
     colors: '',
+    finishing: '',
     cuttingApplication: '',
     designReady: '',
     cncFinishing: '',
     jobType: '',
     detailLevel: ''
   });
-
-  const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
   // Add timeout for loading state
@@ -223,20 +228,7 @@ const Contact: React.FC = () => {
           phone: isAuthenticated ? user?.phone || '' : '',
           project: '',
           message: '',
-          serviceType: '',
-          material: '',
-          size: '',
-          quantity: '',
-          indoorOutdoor: '',
-          finishing: '',
-          artworkReady: '',
-          thickness: '',
-          colors: '',
-          cuttingApplication: '',
-          designReady: '',
-          cncFinishing: '',
-          jobType: '',
-          detailLevel: ''
+          services: []
         });
         toast({
           title: "Message envoyé",
@@ -417,293 +409,89 @@ const Contact: React.FC = () => {
                     />
                   </div>
 
-                  {/* Toggle for Detailed Specifications */}
-                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
-                    <Switch 
-                      checked={showDetailedSpecs}
-                      onCheckedChange={setShowDetailedSpecs}
-                      className="data-[state=checked]:bg-gradient-primary"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <Settings className="h-4 w-4 text-primary" />
-                      <label className="text-sm font-medium text-foreground cursor-pointer" onClick={() => setShowDetailedSpecs(!showDetailedSpecs)}>
-                        {t('contact.form.toggle')}
-                      </label>
+                  {/* Service Management Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-foreground">Services Requis</h3>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setCurrentService({
+                            id: Date.now().toString(),
+                            serviceType: '',
+                            material: '',
+                            size: '',
+                            quantity: '',
+                            thickness: '',
+                            colors: '',
+                            finishing: '',
+                            cuttingApplication: '',
+                            designReady: '',
+                            cncFinishing: '',
+                            jobType: '',
+                            detailLevel: ''
+                          });
+                          setEditingServiceId(null);
+                          setShowServiceModal(true);
+                        }}
+                        className="bg-gradient-primary hover:opacity-90"
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Ajouter un Service
+                      </Button>
                     </div>
+
+                    {/* Display Added Services */}
+                    {formData.services.length > 0 && (
+                      <div className="space-y-3">
+                        {formData.services.map((service, index) => (
+                          <Card key={service.id} className="p-4 bg-gradient-subtle border border-primary/20">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-foreground mb-1">
+                                  Service {index + 1}: {service.serviceType || 'Non spécifié'}
+                                </h4>
+                                <div className="text-sm text-muted-foreground space-y-1">
+                                  {service.material && <p>Matériau: {service.material}</p>}
+                                  {service.size && <p>Taille: {service.size}</p>}
+                                  {service.quantity && <p>Quantité: {service.quantity}</p>}
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setCurrentService(service);
+                                    setEditingServiceId(service.id);
+                                    setShowServiceModal(true);
+                                  }}
+                                >
+                                  Modifier
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      services: prev.services.filter(s => s.id !== service.id)
+                                    }));
+                                  }}
+                                >
+                                  Supprimer
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Detailed Specifications Section */}
-                  <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                    showDetailedSpecs ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-                  }`}>
-                    <div className="p-6 bg-gradient-subtle rounded-lg border border-border/30 space-y-6">
-                      <div className="text-center mb-6">
-                        <h3 className="text-lg font-semibold text-foreground mb-2">Spécifications Détaillées</h3>
-                        <p className="text-sm text-muted-foreground">Aidez-nous à mieux comprendre vos besoins spécifiques</p>
-                      </div>
 
-                      {/* Service Type Selection */}
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          {t('contact.form.service.type')}
-                        </label>
-                        <Select value={formData.serviceType} onValueChange={(value) => setFormData(prev => ({ ...prev, serviceType: value }))}>
-                          <SelectTrigger className="border-border/50 focus:border-primary">
-                            <SelectValue placeholder="Sélectionnez un service" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="printing">{t('contact.form.service.printing')}</SelectItem>
-                            <SelectItem value="cutting">{t('contact.form.service.cutting')}</SelectItem>
-                            <SelectItem value="cnc">{t('contact.form.service.cnc')}</SelectItem>
-                            <SelectItem value="laser">{t('contact.form.service.laser')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Dynamic Fields Based on Service Type */}
-                      {formData.serviceType && (
-                        <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
-                          {/* Material Slider */}
-                          <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
-                              {t('contact.form.material')}
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                              {(() => {
-                                const materials = {
-                                  printing: ['Forex', 'Alucobond' ,'Plexiglass','Vinyle', 'Bâche', 'Toile'],
-                                  cutting: ['Vinyle','Flex'],
-                                  cnc: ['Forex', 'Plexiglass' , 'Aluminum', 'Bois'],
-                                  laser: [ 'Plexiglass','Bois']
-                                };
-                                return materials[formData.serviceType as keyof typeof materials]?.map((material) => (
-                                  <button
-                                    key={material}
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ 
-                                      ...prev, 
-                                      material: prev.material === material ? '' : material 
-                                    }))}
-                                    className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
-                                      formData.material === material
-                                        ? 'bg-gradient-primary text-white border-primary shadow-glow'
-                                        : 'bg-background border-border/50 hover:border-primary/50 hover:bg-primary/5'
-                                    }`}
-                                  >
-                                    {material}
-                                  </button>
-                                ));
-                              })()}
-                            </div>
-                          </div>
-
-                          {/* Common Fields */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                {t('contact.form.size')}
-                              </label>
-                              <Input 
-                                name="size"
-                                value={formData.size}
-                                onChange={handleChange}
-                                placeholder="ex: 100cm × 70cm"
-                                className="border-border/50 focus:border-primary transition-colors"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                {t('contact.form.quantity')}
-                              </label>
-                              <Input 
-                                name="quantity"
-                                value={formData.quantity}
-                                onChange={handleChange}
-                                placeholder="ex: 10 pièces"
-                                className="border-border/50 focus:border-primary transition-colors"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Thickness field for cutting, cnc, and laser */}
-                          {(formData.serviceType === 'cutting' || formData.serviceType === 'cnc' || formData.serviceType === 'laser') && (
-                            <div>
-                              <label className="block text-sm font-medium text-foreground mb-2">
-                                {t('contact.form.thickness')}
-                              </label>
-                              <Input 
-                                name="thickness"
-                                value={formData.thickness}
-                                onChange={handleChange}
-                                placeholder="ex: 3mm"
-                                className="border-border/50 focus:border-primary transition-colors"
-                              />
-                            </div>
-                          )}
-
-                          {/* Service-Specific Fields */}
-                          {formData.serviceType === 'printing' && (
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
-                                  {t('contact.form.cutting_application')}
-                                </label>
-                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
-                                  <SelectTrigger className="border-border/50 focus:border-primary">
-                                    <SelectValue placeholder="Sélectionnez" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="printing_only">Impression uniquement</SelectItem>
-                                    <SelectItem value="printing_installation">Impression + Installation</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
-                                  {t('contact.form.finishing')}
-                                </label>
-                                <Input 
-                                  name="finishing"
-                                  value={formData.finishing}
-                                  onChange={handleChange}
-                                  placeholder="Mat, brillant, laminé, monté..."
-                                  className="border-border/50 focus:border-primary transition-colors"
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {formData.serviceType === 'cutting' && (
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
-                                  {t('contact.form.colors')}
-                                </label>
-                                <Input 
-                                  name="colors"
-                                  value={formData.colors}
-                                  onChange={handleChange}
-                                  placeholder="Rouge, bleu, blanc..."
-                                  className="border-border/50 focus:border-primary transition-colors"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
-                                  {t('contact.form.cutting_application')}
-                                </label>
-                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
-                                  <SelectTrigger className="border-border/50 focus:border-primary">
-                                    <SelectValue placeholder="Sélectionnez" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="cutting_only">{t('contact.form.cutting_only')}</SelectItem>
-                                    <SelectItem value="cutting_application">{t('contact.form.cutting_application_both')}</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          )}
-
-                          {formData.serviceType === 'cnc' && (
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
-                                  {t('contact.form.cutting_application')}
-                                </label>
-                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
-                                  <SelectTrigger className="border-border/50 focus:border-primary">
-                                    <SelectValue placeholder="Sélectionnez" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="cnc_only">CNC uniquement</SelectItem>
-                                    <SelectItem value="cnc_installation">CNC + Installation</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-sm font-medium text-foreground mb-2">
-                                    {t('contact.form.design_ready')}
-                                  </label>
-                                  <Select value={formData.designReady} onValueChange={(value) => setFormData(prev => ({ ...prev, designReady: value }))}>
-                                    <SelectTrigger className="border-border/50 focus:border-primary">
-                                      <SelectValue placeholder="Sélectionnez" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="yes">{t('contact.form.yes')}</SelectItem>
-                                      <SelectItem value="no">{t('contact.form.no')}</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-foreground mb-2">
-                                    {t('contact.form.cnc_finishing')}
-                                  </label>
-                                  <Input 
-                                    name="cncFinishing"
-                                    value={formData.cncFinishing}
-                                    onChange={handleChange}
-                                    placeholder="Peint, brut, assemblé..."
-                                    className="border-border/50 focus:border-primary transition-colors"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {formData.serviceType === 'laser' && (
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-foreground mb-2">
-                                  {t('contact.form.cutting_application')}
-                                </label>
-                                <Select value={formData.cuttingApplication} onValueChange={(value) => setFormData(prev => ({ ...prev, cuttingApplication: value }))}>
-                                  <SelectTrigger className="border-border/50 focus:border-primary">
-                                    <SelectValue placeholder="Sélectionnez" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="laser_only">Laser uniquement</SelectItem>
-                                    <SelectItem value="laser_installation">Laser + Installation</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-sm font-medium text-foreground mb-2">
-                                    {t('contact.form.job_type')}
-                                  </label>
-                                  <Select value={formData.jobType} onValueChange={(value) => setFormData(prev => ({ ...prev, jobType: value }))}>
-                                    <SelectTrigger className="border-border/50 focus:border-primary">
-                                      <SelectValue placeholder="Sélectionnez" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="cutting">{t('contact.form.cutting')}</SelectItem>
-                                      <SelectItem value="engraving">{t('contact.form.engraving')}</SelectItem>
-                                      <SelectItem value="both">{t('contact.form.both')}</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-foreground mb-2">
-                                    {t('contact.form.detail_level')}
-                                  </label>
-                                  <Select value={formData.detailLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, detailLevel: value }))}>
-                                    <SelectTrigger className="border-border/50 focus:border-primary">
-                                      <SelectValue placeholder="Sélectionnez" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="standard">{t('contact.form.standard')}</SelectItem>
-                                      <SelectItem value="high_resolution">{t('contact.form.high_resolution')}</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
                   {!isAuthenticated && (
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -802,6 +590,221 @@ const Contact: React.FC = () => {
           </Card>
         </div>
       </section>
+
+      {/* Service Modal */}
+      {showServiceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Don't close modal on backdrop click - preserve user input
+            }}
+          />
+          
+          {/* Modal Content */}
+          <Card className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 shadow-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-foreground">
+                  {editingServiceId ? 'Modifier le Service' : 'Ajouter un Service'}
+                </h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowServiceModal(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Service Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Type de Service *
+                  </label>
+                  <Select 
+                    value={currentService.serviceType} 
+                    onValueChange={(value) => setCurrentService(prev => ({ ...prev, serviceType: value }))}
+                  >
+                    <SelectTrigger className="border-border/50 focus:border-primary">
+                      <SelectValue placeholder="Sélectionnez un service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="printing">Impression</SelectItem>
+                      <SelectItem value="cutting">Découpe</SelectItem>
+                      <SelectItem value="cnc">CNC</SelectItem>
+                      <SelectItem value="laser">Laser</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Dynamic Fields Based on Service Type */}
+                {currentService.serviceType && (
+                  <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
+                    {/* Material Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-3">
+                        Matériau
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {(() => {
+                          const materials = {
+                            printing: ['Forex', 'Alucobond', 'Plexiglass', 'Vinyle', 'Bâche', 'Toile'],
+                            cutting: ['Vinyle', 'Flex'],
+                            cnc: ['Forex', 'Plexiglass', 'Aluminum', 'Bois'],
+                            laser: ['Plexiglass', 'Bois']
+                          };
+                          return materials[currentService.serviceType as keyof typeof materials]?.map((material) => (
+                            <button
+                              key={material}
+                              type="button"
+                              onClick={() => setCurrentService(prev => ({ 
+                                ...prev, 
+                                material: prev.material === material ? '' : material 
+                              }))}
+                              className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                                currentService.material === material
+                                  ? 'bg-gradient-primary text-white border-primary shadow-glow'
+                                  : 'bg-background border-border/50 hover:border-primary/50 hover:bg-primary/5'
+                              }`}
+                            >
+                              {material}
+                            </button>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Common Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Taille
+                        </label>
+                        <Input 
+                          value={currentService.size}
+                          onChange={(e) => setCurrentService(prev => ({ ...prev, size: e.target.value }))}
+                          placeholder="ex: 100cm × 70cm"
+                          className="border-border/50 focus:border-primary transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Quantité
+                        </label>
+                        <Input 
+                          value={currentService.quantity}
+                          onChange={(e) => setCurrentService(prev => ({ ...prev, quantity: e.target.value }))}
+                          placeholder="ex: 10 pièces"
+                          className="border-border/50 focus:border-primary transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Service-Specific Fields */}
+                    {(currentService.serviceType === 'cutting' || currentService.serviceType === 'cnc' || currentService.serviceType === 'laser') && (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Épaisseur
+                        </label>
+                        <Input 
+                          value={currentService.thickness}
+                          onChange={(e) => setCurrentService(prev => ({ ...prev, thickness: e.target.value }))}
+                          placeholder="ex: 3mm"
+                          className="border-border/50 focus:border-primary transition-colors"
+                        />
+                      </div>
+                    )}
+
+                    {currentService.serviceType === 'cutting' && (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Couleurs
+                        </label>
+                        <Input 
+                          value={currentService.colors}
+                          onChange={(e) => setCurrentService(prev => ({ ...prev, colors: e.target.value }))}
+                          placeholder="Rouge, bleu, blanc..."
+                          className="border-border/50 focus:border-primary transition-colors"
+                        />
+                      </div>
+                    )}
+
+                    {currentService.serviceType === 'printing' && (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Finition
+                        </label>
+                        <Input 
+                          value={currentService.finishing}
+                          onChange={(e) => setCurrentService(prev => ({ ...prev, finishing: e.target.value }))}
+                          placeholder="Mat, brillant, laminé, monté..."
+                          className="border-border/50 focus:border-primary transition-colors"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Modal Actions */}
+                <div className="flex justify-end space-x-3 pt-6 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowServiceModal(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (!currentService.serviceType) {
+                        toast({
+                          title: "Erreur",
+                          description: "Veuillez sélectionner un type de service",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      if (editingServiceId) {
+                        // Update existing service
+                        setFormData(prev => ({
+                          ...prev,
+                          services: prev.services.map(s => 
+                            s.id === editingServiceId ? currentService : s
+                          )
+                        }));
+                      } else {
+                        // Add new service
+                        setFormData(prev => ({
+                          ...prev,
+                          services: [...prev.services, currentService]
+                        }));
+                      }
+
+                      setShowServiceModal(false);
+                      toast({
+                        title: "Service ajouté",
+                        description: "Le service a été ajouté à votre demande"
+                      });
+                    }}
+                    className="bg-gradient-primary hover:opacity-90"
+                    disabled={!currentService.serviceType}
+                  >
+                    {editingServiceId ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Footer />
     </div>

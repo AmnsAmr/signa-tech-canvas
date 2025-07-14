@@ -172,7 +172,18 @@ const Admin = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Gestion des Images</CardTitle>
+              <Image className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">Actif</div>
+              <p className="text-xs text-blue-100">Cliquez sur l'onglet Images</p>
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -232,11 +243,14 @@ const Admin = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList>
+        <Tabs defaultValue="images" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="images" className="flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Gestion des Images
+            </TabsTrigger>
             <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
             <TabsTrigger value="submissions">Submissions ({filteredSubmissions.length})</TabsTrigger>
-            <TabsTrigger value="images">Images</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
