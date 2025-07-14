@@ -127,7 +127,7 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
                     <Star key={star} className={`h-5 w-5 ${
                       star <= rating.rating
                         ? 'fill-accent text-accent group-hover:fill-white group-hover:text-white'
-                        : 'text-gray-300'
+                        : 'text-gray-300 group-hover:text-white/30'
                     } transition-colors duration-500`} />
                   ))}
                 </div>

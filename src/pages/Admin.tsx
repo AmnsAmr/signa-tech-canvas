@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ImageManager from '@/components/Admin/ImageManager';
+import AdminRatings from '@/components/Admin/AdminRatings';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image } from 'lucide-react';
 
 interface User {
@@ -244,11 +245,12 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="images" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="images" className="flex items-center gap-2">
               <Image className="h-4 w-4" />
-              Gestion des Images
+              Images
             </TabsTrigger>
+            <TabsTrigger value="ratings">Avis</TabsTrigger>
             <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
             <TabsTrigger value="submissions">Submissions ({filteredSubmissions.length})</TabsTrigger>
           </TabsList>
@@ -324,6 +326,10 @@ const Admin = () => {
 
           <TabsContent value="images">
             <ImageManager />
+          </TabsContent>
+
+          <TabsContent value="ratings">
+            <AdminRatings />
           </TabsContent>
 
           <TabsContent value="submissions">

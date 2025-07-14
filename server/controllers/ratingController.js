@@ -93,9 +93,11 @@ class RatingController {
       
       if (featured === 'true') {
         query += " AND is_featured = 1";
+        query += " ORDER BY created_at DESC";
+      } else {
+        // For homepage, show top ratings first
+        query += " ORDER BY rating DESC, created_at DESC";
       }
-      
-      query += " ORDER BY created_at DESC";
       
       const ratings = await new Promise((resolve, reject) => {
         db.all(query, params, (err, rows) => {
@@ -154,6 +156,28 @@ class RatingController {
     } catch (error) {
       console.error('Get rating stats error:', error);
       res.status(500).json({ message: 'Failed to fetch rating stats' });
+    }
+  }
+
+  async deleteUserRating(req, res) {
+    try {
+      const userId = req.user.id;
+      
+      const result = await new Promise((resolve, reject) => {
+        db.run("DELETE FROM ratings WHERE user_id = ?", [userId], function(err) {
+          if (err) reject(err);
+          else resolve(this.changes);
+        });
+      });
+      
+      if (result === 0) {
+        return res.status(404).json({ message: 'Aucun avis trouvé' });
+      }
+      
+      res.json({ message: 'Votre avis a été supprimé avec succès' });
+    } catch (error) {
+      console.error('Delete user rating error:', error);
+      res.status(500).json({ message: 'Failed to delete rating' });
     }
   }
 

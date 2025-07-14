@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import RatingForm from '@/components/RatingSystem/RatingForm';
+import { useToast } from '@/hooks/use-toast';
 import { FileText, Star, BarChart3, MessageSquare, Clock, CheckCircle } from 'lucide-react';
 
 interface UserSubmission {
@@ -34,6 +36,7 @@ interface UserStats {
 
 const UserDashboard: React.FC = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
   const [ratings, setRatings] = useState<UserRating[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -248,7 +251,38 @@ const UserDashboard: React.FC = () => {
                         {new Date(rating.created_at).toLocaleDateString()}
                       </div>
                     </div>
-                    <p className="text-gray-700">{rating.comment}</p>
+                    <p className="text-gray-700 mb-4">{rating.comment}</p>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={async () => {
+                        if (confirm('Êtes-vous sûr de vouloir supprimer votre avis ?')) {
+                          try {
+                            const token = localStorage.getItem('token');
+                            const response = await fetch('http://localhost:5000/api/ratings/my-rating', {
+                              method: 'DELETE',
+                              headers: { Authorization: `Bearer ${token}` }
+                            });
+                            
+                            if (response.ok) {
+                              fetchUserData(); // Refresh data
+                              toast({
+                                title: "Avis supprimé",
+                                description: "Votre avis a été supprimé avec succès"
+                              });
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "Erreur",
+                              description: "Impossible de supprimer l'avis",
+                              variant: "destructive"
+                            });
+                          }
+                        }
+                      }}
+                    >
+                      Supprimer mon avis
+                    </Button>
                   </CardContent>
                 </Card>
               ))}

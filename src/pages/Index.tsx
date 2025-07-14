@@ -326,8 +326,8 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Dynamic Ratings Display - Top 3 Featured */}
-          <RatingDisplay featured={true} limit={3} />
+          {/* Dynamic Ratings Display - Top 3 by Rating */}
+          <RatingDisplay featured={false} limit={3} />
           
           <div className="text-center mt-12">
             <Button asChild variant="outline" size="lg" className="text-xl px-12 py-4 rounded-2xl">

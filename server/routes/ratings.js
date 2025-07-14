@@ -24,6 +24,7 @@ router.get('/stats', ratingController.getRatingStats);
 // Protected routes
 router.get('/can-rate', authenticateToken, ratingController.canUserRate);
 router.post('/submit', authenticateToken, ratingValidation, ratingController.submitRating);
+router.delete('/my-rating', authenticateToken, ratingController.deleteUserRating);
 
 // Guest rating submission
 router.post('/guest-submit', guestRatingValidation, (req, res) => {
