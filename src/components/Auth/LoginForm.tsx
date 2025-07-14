@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,11 +8,13 @@ import { Mail, Lock, LogIn } from 'lucide-react';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
+  onSwitchToForgotPassword?: () => void;
   onSuccess?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSuccess }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToForgotPassword, onSuccess }) => {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,9 +61,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSuccess }) 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Mot de passe
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-foreground">
+                Mot de passe
+              </label>
+              <button
+                type="button"
+                onClick={onSwitchToForgotPassword || (() => navigate('/forgot-password'))}
+                className="text-sm text-primary hover:underline"
+              >
+                Mot de passe oublié ?
+              </button>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input

@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter } from 'lucide-react';
+import ImageManager from '@/components/Admin/ImageManager';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image } from 'lucide-react';
 
 interface User {
   id: number;
@@ -235,6 +236,7 @@ const Admin = () => {
           <TabsList>
             <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
             <TabsTrigger value="submissions">Submissions ({filteredSubmissions.length})</TabsTrigger>
+            <TabsTrigger value="images">Images</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
@@ -304,6 +306,10 @@ const Admin = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="images">
+            <ImageManager />
           </TabsContent>
 
           <TabsContent value="submissions">

@@ -3,13 +3,14 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import ForgotPasswordForm from './ForgotPasswordForm';
 
 interface AuthModalProps {
   onClose?: () => void;
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<'login' | 'register' | 'forgot'>('login');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative">
@@ -23,10 +24,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           <X className="h-4 w-4" />
         </Button>
       )}
-      {isLogin ? (
-        <LoginForm onSwitchToRegister={() => setIsLogin(false)} onSuccess={onClose} />
-      ) : (
-        <RegisterForm onSwitchToLogin={() => setIsLogin(true)} onSuccess={onClose} />
+      {view === 'login' && (
+        <LoginForm 
+          onSwitchToRegister={() => setView('register')} 
+          onSwitchToForgotPassword={() => setView('forgot')}
+          onSuccess={onClose} 
+        />
+      )}
+      {view === 'register' && (
+        <RegisterForm onSwitchToLogin={() => setView('login')} onSuccess={onClose} />
+      )}
+      {view === 'forgot' && (
+        <ForgotPasswordForm onBackToLogin={() => setView('login')} />
       )}
     </div>
   );
