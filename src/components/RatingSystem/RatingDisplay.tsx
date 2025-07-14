@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, ChevronDown, ChevronUp, Quote } from 'lucide-react';
 
 interface Rating {
   id: number;
@@ -64,34 +64,75 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
   const displayedRatings = limit && !showAll ? ratings.slice(0, limit) : ratings;
   const hasMore = limit && ratings.length > limit;
 
+  const isHomepage = featured && limit === 3;
+
   return (
-    <div className="space-y-4">
-      {displayedRatings.map((rating) => (
-        <Card key={rating.id} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <h4 className="font-medium">{rating.name}</h4>
-                <div className="flex items-center gap-1 mt-1">
+    <div className={isHomepage ? "grid grid-cols-1 md:grid-cols-3 gap-8" : "space-y-4"}>
+      {displayedRatings.map((rating, index) => (
+        <Card key={rating.id} className={isHomepage 
+          ? `group relative border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform ${
+              index === 1 ? 'md:-translate-y-8' : ''
+            } hover:scale-105 hover:rotate-2`
+          : "hover:shadow-md transition-shadow"
+        }>
+          {isHomepage && (
+            <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"></div>
+          )}
+          <CardContent className={isHomepage 
+            ? "p-10 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500 rounded-lg"
+            : "p-4"
+          }>
+            {isHomepage && (
+              <Quote className="h-12 w-12 text-primary group-hover:text-white mb-6 transition-colors duration-500" />
+            )}
+            
+            {!isHomepage && (
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h4 className="font-medium">{rating.name}</h4>
+                  <div className="flex items-center gap-1 mt-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= rating.rating
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {new Date(rating.created_at).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+            
+            <p className={isHomepage 
+              ? "text-muted-foreground group-hover:text-white/90 mb-8 leading-relaxed text-lg italic transition-colors duration-500"
+              : "text-gray-700 text-sm leading-relaxed"
+            }>
+              {isHomepage ? `"${rating.comment}"` : rating.comment}
+            </p>
+            
+            {isHomepage && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-foreground group-hover:text-white text-lg transition-colors duration-500">{rating.name}</div>
+                  <div className="text-muted-foreground group-hover:text-white/80 transition-colors duration-500">Client SignaTech</div>
+                </div>
+                <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-4 w-4 ${
-                        star <= rating.rating
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
-                      }`}
-                    />
+                    <Star key={star} className={`h-5 w-5 ${
+                      star <= rating.rating
+                        ? 'fill-accent text-accent group-hover:fill-white group-hover:text-white'
+                        : 'text-gray-300'
+                    } transition-colors duration-500`} />
                   ))}
                 </div>
               </div>
-              <div className="text-xs text-gray-500">
-                {new Date(rating.created_at).toLocaleDateString()}
-              </div>
-            </div>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              {rating.comment}
-            </p>
+            )}
           </CardContent>
         </Card>
       ))}

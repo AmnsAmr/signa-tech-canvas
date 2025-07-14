@@ -16,9 +16,33 @@ class RatingController {
       
       let name, email;
       if (req.user) {
-        // Authenticated user
-        name = req.user.name;
+        // Authenticated user - check restrictions
+        name = req.user.name || 'Utilisateur';
         email = req.user.email;
+        
+        // Check if user already has a rating
+        const existingRating = await new Promise((resolve, reject) => {
+          db.get("SELECT id FROM ratings WHERE user_id = ?", [userId], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
+        });
+        
+        if (existingRating) {
+          return res.status(400).json({ message: 'Vous avez déjà donné votre avis' });
+        }
+        
+        // Check if user has at least one completed submission
+        const completedSubmission = await new Promise((resolve, reject) => {
+          db.get("SELECT id FROM contact_submissions WHERE user_id = ? AND status = 'done' LIMIT 1", [userId], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
+        });
+        
+        if (!completedSubmission) {
+          return res.status(400).json({ message: 'Vous devez avoir au moins une demande terminée pour donner un avis' });
+        }
       } else {
         // Guest user
         name = req.body.name;
@@ -28,8 +52,10 @@ class RatingController {
         }
       }
 
+      console.log('Submitting rating:', { userId, name, email, rating, comment });
+
       const ratingId = await new Promise((resolve, reject) => {
-        db.run("INSERT INTO ratings (user_id, name, email, rating, comment) VALUES (?, ?, ?, ?, ?)",
+        db.run("INSERT INTO ratings (user_id, name, email, rating, comment, is_approved) VALUES (?, ?, ?, ?, ?, 1)",
           [userId, name, email, rating, comment],
           function(err) {
             if (err) {
@@ -42,19 +68,14 @@ class RatingController {
       });
 
       res.json({ 
-        message: 'Merci pour votre avis! Il sera publié après modération.',
+        message: 'Merci pour votre avis! Il a été publié avec succès.',
         id: ratingId 
       });
     } catch (error) {
       console.error('Submit rating error:', error);
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack,
-        userId,
-        name,
-        email,
-        rating,
-        comment
+        stack: error.stack
       });
       res.status(500).json({ 
         message: 'Failed to submit rating',
@@ -133,6 +154,45 @@ class RatingController {
     } catch (error) {
       console.error('Get rating stats error:', error);
       res.status(500).json({ message: 'Failed to fetch rating stats' });
+    }
+  }
+
+  async canUserRate(req, res) {
+    try {
+      if (!req.user) {
+        return res.json({ canRate: true, reason: 'guest' });
+      }
+
+      const userId = req.user.id;
+      
+      // Check if user already has a rating
+      const existingRating = await new Promise((resolve, reject) => {
+        db.get("SELECT id FROM ratings WHERE user_id = ?", [userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (existingRating) {
+        return res.json({ canRate: false, reason: 'already_rated' });
+      }
+      
+      // Check if user has at least one completed submission
+      const completedSubmission = await new Promise((resolve, reject) => {
+        db.get("SELECT id FROM contact_submissions WHERE user_id = ? AND status = 'done' LIMIT 1", [userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (!completedSubmission) {
+        return res.json({ canRate: false, reason: 'no_completed_submission' });
+      }
+
+      res.json({ canRate: true, reason: 'eligible' });
+    } catch (error) {
+      console.error('Check user rating eligibility error:', error);
+      res.status(500).json({ message: 'Failed to check rating eligibility' });
     }
   }
 

@@ -24,6 +24,7 @@ import {
   Lightbulb,
   Phone
 } from 'lucide-react';
+import RatingDisplay from '@/components/RatingSystem/RatingDisplay';
 import heroImage from '@/assets/hero-workshop.jpg';
 import facadeImage from '@/assets/facade-project.jpg';
 import plvImage from '@/assets/plv-displays.jpg';
@@ -59,26 +60,7 @@ const Index = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Coca-Cola Bottling",
-      role: t('testimonials.cocacola.role'),
-      content: t('testimonials.cocacola.content'),
-      rating: 5
-    },
-    {
-      name: "Juver",
-      role: t('testimonials.juver.role'),
-      content: t('testimonials.juver.content'),
-      rating: 5
-    },
-    {
-      name: "Expleo Group",
-      role: t('testimonials.expleo.role'),
-      content: t('testimonials.expleo.content'),
-      rating: 5
-    }
-  ];
+  // Testimonials are now loaded dynamically from the database
 
   const stats = [
     { number: "15+", label: t('stats.experience'), icon: Clock },
@@ -344,31 +326,17 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className={`group relative border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform ${
-                index === 1 ? 'md:-translate-y-8' : ''
-              } hover:scale-105 hover:rotate-2`}>
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"></div>
-                <CardContent className="p-10 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500 rounded-lg">
-                  <Quote className="h-12 w-12 text-primary group-hover:text-white mb-6 transition-colors duration-500" />
-                  <p className="text-muted-foreground group-hover:text-white/90 mb-8 leading-relaxed text-lg italic transition-colors duration-500">
-                    "{testimonial.content}"
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-foreground group-hover:text-white text-lg transition-colors duration-500">{testimonial.name}</div>
-                      <div className="text-muted-foreground group-hover:text-white/80 transition-colors duration-500">{testimonial.role}</div>
-                    </div>
-                    <div className="flex space-x-1">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-5 w-5 fill-accent text-accent group-hover:fill-white group-hover:text-white transition-colors duration-500" />
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Dynamic Ratings Display - Top 3 Featured */}
+          <RatingDisplay featured={true} limit={3} />
+          
+          <div className="text-center mt-12">
+            <Button asChild variant="outline" size="lg" className="text-xl px-12 py-4 rounded-2xl">
+              <Link to="/ratings">
+                <Star className="mr-3 h-6 w-6" />
+                Voir tous les avis
+                <ArrowRight className="ml-3 h-6 w-6" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

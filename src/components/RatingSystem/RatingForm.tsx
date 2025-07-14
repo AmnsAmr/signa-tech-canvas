@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Send } from 'lucide-react';
+import { Star, Send, Clock } from 'lucide-react';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,6 +17,34 @@ const RatingForm: React.FC = () => {
   const [name, setName] = useState(isAuthenticated ? user?.name || '' : '');
   const [email, setEmail] = useState(isAuthenticated ? user?.email || '' : '');
   const [loading, setLoading] = useState(false);
+  const [canRate, setCanRate] = useState(true);
+  const [ratingReason, setRatingReason] = useState('');
+  const [checkingEligibility, setCheckingEligibility] = useState(isAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkRatingEligibility();
+    }
+  }, [isAuthenticated]);
+
+  const checkRatingEligibility = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/ratings/can-rate', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCanRate(data.canRate);
+        setRatingReason(data.reason);
+      }
+    } catch (error) {
+      console.error('Failed to check rating eligibility:', error);
+    } finally {
+      setCheckingEligibility(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +97,9 @@ const RatingForm: React.FC = () => {
         if (!isAuthenticated) {
           setName('');
           setEmail('');
+        } else {
+          // Refresh eligibility for authenticated users
+          checkRatingEligibility();
         }
       } else {
         toast({
@@ -86,6 +118,43 @@ const RatingForm: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (checkingEligibility) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardContent className="p-6 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Vérification...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isAuthenticated && !canRate) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Avis client</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          {ratingReason === 'already_rated' && (
+            <>
+              <Star className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
+              <h3 className="font-semibold mb-2">Merci pour votre avis!</h3>
+              <p className="text-gray-600">Vous avez déjà donné votre avis. Un seul avis par client est autorisé.</p>
+            </>
+          )}
+          {ratingReason === 'no_completed_submission' && (
+            <>
+              <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="font-semibold mb-2">Pas encore éligible</h3>
+              <p className="text-gray-600">Vous pourrez donner votre avis une fois qu'une de vos demandes sera terminée.</p>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md">

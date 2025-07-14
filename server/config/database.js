@@ -131,23 +131,7 @@ class Database {
       }
     });
 
-    // Seed sample ratings
-    this.db.get("SELECT COUNT(*) as count FROM ratings", (err, row) => {
-      if (!err && row.count === 0) {
-        const sampleRatings = [
-          { name: 'Ahmed Benali', rating: 5, comment: 'Service exceptionnel! Qualité parfaite et livraison rapide.', is_approved: 1, is_featured: 1 },
-          { name: 'Fatima Zahra', rating: 5, comment: 'Très professionnel, je recommande vivement SignaTech.', is_approved: 1, is_featured: 1 },
-          { name: 'Omar Alami', rating: 4, comment: 'Bon travail, équipe réactive et prix compétitifs.', is_approved: 1, is_featured: 1 },
-          { name: 'Laila Mansouri', rating: 5, comment: 'Excellent service client et résultats impeccables.', is_approved: 1 },
-          { name: 'Youssef Tazi', rating: 4, comment: 'Très satisfait du résultat final, merci!', is_approved: 1 }
-        ];
-        
-        sampleRatings.forEach(rating => {
-          this.db.run("INSERT INTO ratings (name, rating, comment, is_approved, is_featured) VALUES (?, ?, ?, ?, ?)",
-            [rating.name, rating.rating, rating.comment, rating.is_approved, rating.is_featured || 0]);
-        });
-      }
-    });
+    // No sample ratings - only real user ratings will be displayed
 
     // Migrate existing contact submissions to new format
     this.db.all("SELECT * FROM contact_submissions WHERE services IS NULL", (err, rows) => {

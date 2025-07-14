@@ -22,6 +22,7 @@ router.get('/', ratingController.getPublicRatings);
 router.get('/stats', ratingController.getRatingStats);
 
 // Protected routes
+router.get('/can-rate', authenticateToken, ratingController.canUserRate);
 router.post('/submit', authenticateToken, ratingValidation, ratingController.submitRating);
 
 // Guest rating submission
