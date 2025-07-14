@@ -40,4 +40,8 @@ router.post('/forgot-password', forgotPasswordValidation, authController.forgotP
 router.post('/verify-reset-code', verifyCodeValidation, authController.verifyResetCode);
 router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
 
+// Google OAuth routes
+router.get('/google', authController.googleAuth);
+router.get('/google/callback', authController.googleCallback);
+
 module.exports = router;

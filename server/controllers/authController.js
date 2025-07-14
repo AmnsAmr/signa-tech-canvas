@@ -1,9 +1,16 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library');
 const database = require('../config/database');
-const { JWT_SECRET, RESET_CODE_EXPIRY } = require('../config/constants');
+const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/constants');
 const { sendResetEmail } = require('../utils/emailService');
+
+const googleClient = new OAuth2Client(
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  'http://localhost:5000/api/auth/google/callback'
+);
 
 const db = database.getDb();
 
@@ -233,6 +240,67 @@ class AuthController {
     } catch (error) {
       console.error('Reset password error:', error);
       res.status(500).json({ message: 'Failed to reset password' });
+    }
+  }
+
+  async googleAuth(req, res) {
+    try {
+      const authUrl = googleClient.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['profile', 'email']
+      });
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error('Google auth error:', error);
+      res.status(500).json({ message: 'Google authentication failed' });
+    }
+  }
+
+  async googleCallback(req, res) {
+    try {
+      const { code } = req.query;
+      const { tokens } = await googleClient.getToken(code);
+      googleClient.setCredentials(tokens);
+      
+      const ticket = await googleClient.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: GOOGLE_CLIENT_ID
+      });
+      
+      const payload = ticket.getPayload();
+      const { email, name } = payload;
+      
+      // Check if user exists
+      const existingUser = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE email = ?", [email], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      let user;
+      if (existingUser) {
+        user = existingUser;
+      } else {
+        // Create new user
+        const userId = await new Promise((resolve, reject) => {
+          db.run("INSERT INTO users (name, email, oauth_provider, role) VALUES (?, ?, 'google', 'client')",
+            [name, email], function(err) {
+              if (err) reject(err);
+              else resolve(this.lastID);
+            });
+        });
+        
+        user = { id: userId, name, email, role: 'client', oauth_provider: 'google' };
+      }
+      
+      const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+      
+      // Redirect to frontend with token
+      res.redirect(`http://localhost:8080?token=${token}`);
+    } catch (error) {
+      console.error('Google callback error:', error);
+      res.redirect('http://localhost:8080?error=auth_failed');
     }
   }
 }

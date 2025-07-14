@@ -12,7 +12,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ImageManager from '@/components/Admin/ImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield } from 'lucide-react';
 
 interface User {
   id: number;
@@ -21,6 +21,13 @@ interface User {
   company?: string;
   phone?: string;
   role: string;
+  created_at: string;
+}
+
+interface Admin {
+  id: number;
+  name: string;
+  email: string;
   created_at: string;
 }
 
@@ -49,7 +56,10 @@ interface Submission {
 const Admin = () => {
   const { user, isAdmin } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [admins, setAdmins] = useState<Admin[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
+  const [showCreateAdmin, setShowCreateAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -66,16 +76,44 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Token:', token ? 'Present' : 'Missing');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [usersRes, submissionsRes] = await Promise.all([
+      console.log('Fetching admin data...');
+      const [usersRes, adminsRes, submissionsRes] = await Promise.all([
         fetch('http://localhost:5000/api/admin/users', { headers }),
+        fetch('http://localhost:5000/api/admin/admins', { headers }),
         fetch('http://localhost:5000/api/admin/submissions', { headers })
       ]);
 
-      if (usersRes.ok && submissionsRes.ok) {
-        setUsers(await usersRes.json());
-        setSubmissions(await submissionsRes.json());
+      console.log('Response statuses:', {
+        users: usersRes.status,
+        admins: adminsRes.status,
+        submissions: submissionsRes.status
+      });
+
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        console.log('Users data:', usersData);
+        setUsers(usersData);
+      } else {
+        console.error('Users fetch failed:', await usersRes.text());
+      }
+
+      if (adminsRes.ok) {
+        const adminsData = await adminsRes.json();
+        console.log('Admins data:', adminsData);
+        setAdmins(adminsData);
+      } else {
+        console.error('Admins fetch failed:', await adminsRes.text());
+      }
+
+      if (submissionsRes.ok) {
+        const submissionsData = await submissionsRes.json();
+        console.log('Submissions data:', submissionsData);
+        setSubmissions(submissionsData);
+      } else {
+        console.error('Submissions fetch failed:', await submissionsRes.text());
       }
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
@@ -118,6 +156,33 @@ const Admin = () => {
       }
     } catch (error) {
       console.error('Failed to update status:', error);
+    }
+  };
+
+  const createAdmin = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/admin/admins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(newAdmin)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setAdmins(prev => [...prev, result.admin]);
+        setNewAdmin({ name: '', email: '', password: '' });
+        setShowCreateAdmin(false);
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to create admin');
+      }
+    } catch (error) {
+      console.error('Failed to create admin:', error);
+      alert('Failed to create admin');
     }
   };
 
@@ -208,11 +273,11 @@ const Admin = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
-              <Badge variant="secondary">{users.filter(u => u.role === 'admin').length}</Badge>
+              <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.filter(u => u.role === 'client').length}</div>
-              <p className="text-xs text-muted-foreground">Client users</p>
+              <div className="text-2xl font-bold">{admins.length}</div>
+              <p className="text-xs text-muted-foreground">Total admins</p>
             </CardContent>
           </Card>
         </div>
@@ -245,10 +310,14 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="images" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="images" className="flex items-center gap-2">
               <Image className="h-4 w-4" />
               Images
+            </TabsTrigger>
+            <TabsTrigger value="admins" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Admins ({admins.length})
             </TabsTrigger>
             <TabsTrigger value="ratings">Avis</TabsTrigger>
             <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
@@ -326,6 +395,51 @@ const Admin = () => {
 
           <TabsContent value="images">
             <ImageManager />
+          </TabsContent>
+
+          <TabsContent value="admins">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Admin Management</CardTitle>
+                <Button onClick={() => setShowCreateAdmin(true)} className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Create Admin
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Created</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {admins.map((admin) => (
+                      <TableRow key={admin.id}>
+                        <TableCell className="font-medium flex items-center">
+                          <Shield className="h-4 w-4 mr-2 text-primary" />
+                          {admin.name}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                            {admin.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                            {new Date(admin.created_at).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="ratings">
@@ -485,6 +599,52 @@ const Admin = () => {
                 </Card>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Admin Modal */}
+      <Dialog open={showCreateAdmin} onOpenChange={setShowCreateAdmin}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Admin</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={newAdmin.name}
+                onChange={(e) => setNewAdmin(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Admin name"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                type="email"
+                value={newAdmin.email}
+                onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="admin@example.com"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Password</label>
+              <Input
+                type="password"
+                value={newAdmin.password}
+                onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="Minimum 6 characters"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateAdmin(false)}>
+                Cancel
+              </Button>
+              <Button onClick={createAdmin} disabled={!newAdmin.name || !newAdmin.email || !newAdmin.password}>
+                Create Admin
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

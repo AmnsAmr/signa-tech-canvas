@@ -1,5 +1,8 @@
 const nodemailer = require('nodemailer');
 const { EMAIL_USER, EMAIL_PASS } = require('../config/constants');
+const database = require('../config/database');
+
+const db = database.getDb();
 
 class EmailService {
   constructor() {
@@ -29,6 +32,11 @@ class EmailService {
   }
 
   async sendContactNotification({ name, company, email, phone, message, services, isGuest }) {
+    if (!EMAIL_USER || !EMAIL_PASS) {
+      console.warn('Email service not configured, skipping notification');
+      return;
+    }
+    
     const servicesHtml = services && services.length > 0 
       ? `
         <h3>Services demandés:</h3>
@@ -46,9 +54,22 @@ class EmailService {
       `
       : '';
 
+    // Get all admin emails
+    const adminEmails = await new Promise((resolve, reject) => {
+      db.all("SELECT email FROM users WHERE role = 'admin'", (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows.map(row => row.email));
+      });
+    });
+    
+    if (adminEmails.length === 0) {
+      console.warn('No admin emails found for notifications');
+      return;
+    }
+
     const mailOptions = {
       from: EMAIL_USER,
-      to: 'amraniaamine@gmail.com',
+      to: adminEmails.join(', '),
       subject: `Nouvelle demande de contact de ${name}`,
       html: `
         <h2>Nouvelle demande de contact ${isGuest ? '(Invité)' : '(Utilisateur connecté)'}</h2>

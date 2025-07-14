@@ -27,15 +27,20 @@ class ContactController {
       });
 
       // Send notification email
-      await sendContactNotification({
-        name,
-        company,
-        email,
-        phone,
-        message,
-        services,
-        isGuest: true
-      });
+      try {
+        await sendContactNotification({
+          name,
+          company,
+          email,
+          phone,
+          message,
+          services,
+          isGuest: true
+        });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Continue without failing the request
+      }
       
       res.json({ message: 'Votre demande a été envoyée avec succès!' });
     } catch (error) {
@@ -77,15 +82,20 @@ class ContactController {
       });
 
       // Send notification email
-      await sendContactNotification({
-        name: user.name,
-        company: user.company,
-        email: user.email,
-        phone: user.phone,
-        message,
-        services,
-        isGuest: false
-      });
+      try {
+        await sendContactNotification({
+          name: user.name,
+          company: user.company,
+          email: user.email,
+          phone: user.phone,
+          message,
+          services,
+          isGuest: false
+        });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Continue without failing the request
+      }
       
       res.json({ message: 'Votre demande a été envoyée avec succès!' });
     } catch (error) {

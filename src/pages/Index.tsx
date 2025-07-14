@@ -24,7 +24,7 @@ import {
   Lightbulb,
   Phone
 } from 'lucide-react';
-import RatingDisplay from '@/components/RatingSystem/RatingDisplay';
+import HomepageTestimonials from '@/components/RatingSystem/HomepageTestimonials';
 import heroImage from '@/assets/hero-workshop.jpg';
 import facadeImage from '@/assets/facade-project.jpg';
 import plvImage from '@/assets/plv-displays.jpg';
@@ -327,7 +327,7 @@ const Index = () => {
           </div>
 
           {/* Dynamic Ratings Display - Top 3 by Rating */}
-          <RatingDisplay featured={false} limit={3} />
+          <HomepageTestimonials />
           
           <div className="text-center mt-12">
             <Button asChild variant="outline" size="lg" className="text-xl px-12 py-4 rounded-2xl">

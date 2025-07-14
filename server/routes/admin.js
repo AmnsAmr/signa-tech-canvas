@@ -1,4 +1,5 @@
 const express = require('express');
+const { body } = require('express-validator');
 const adminController = require('../controllers/adminController');
 const imageController = require('../controllers/imageController');
 const ratingController = require('../controllers/ratingController');
@@ -11,7 +12,15 @@ const router = express.Router();
 router.use(authenticateToken);
 router.use(requireAdmin);
 
-// Admin routes
+// Admin management routes
+router.get('/admins', adminController.getAdmins);
+router.post('/admins', [
+  body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], adminController.createAdmin);
+
+// User routes
 router.get('/users', adminController.getUsers);
 router.get('/submissions', adminController.getSubmissions);
 router.patch('/submissions/:id/status', adminController.updateSubmissionStatus);
