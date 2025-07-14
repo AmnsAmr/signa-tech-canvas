@@ -90,10 +90,15 @@ const Header = () => {
             <LanguageSwitcher />
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground flex items-center">
+                <Link
+                  to="/dashboard"
+                  className={`text-sm flex items-center transition-colors hover:text-primary ${
+                    isActive('/dashboard') ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                >
                   <User className="h-4 w-4 mr-1" />
                   {user?.name}
-                </span>
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
@@ -160,10 +165,16 @@ const Header = () => {
               )}
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground flex items-center">
+                  <Link
+                    to="/dashboard"
+                    className={`text-sm flex items-center transition-colors ${
+                      isActive('/dashboard') ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     <User className="h-4 w-4 mr-1" />
-                    {user?.name}
-                  </div>
+                    {user?.name} - Dashboard
+                  </Link>
                   <Button
                     variant="outline"
                     size="sm"

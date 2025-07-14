@@ -47,6 +47,11 @@ class Database {
         FOREIGN KEY (user_id) REFERENCES users (id)
       )`);
 
+      // Migrate old contact_submissions structure
+      this.db.run("ALTER TABLE contact_submissions ADD COLUMN services TEXT", (err) => {
+        // Ignore error if column already exists
+      });
+
       // Password resets table
       this.db.run(`CREATE TABLE IF NOT EXISTS password_resets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -140,6 +145,31 @@ class Database {
         sampleRatings.forEach(rating => {
           this.db.run("INSERT INTO ratings (name, rating, comment, is_approved, is_featured) VALUES (?, ?, ?, ?, ?)",
             [rating.name, rating.rating, rating.comment, rating.is_approved, rating.is_featured || 0]);
+        });
+      }
+    });
+
+    // Migrate existing contact submissions to new format
+    this.db.all("SELECT * FROM contact_submissions WHERE services IS NULL", (err, rows) => {
+      if (!err && rows && rows.length > 0) {
+        rows.forEach(row => {
+          const services = [];
+          if (row.service_type) {
+            const service = {
+              serviceType: row.service_type,
+              material: row.material || '',
+              size: row.size || '',
+              quantity: row.quantity || '',
+              thickness: row.thickness || '',
+              colors: row.colors || '',
+              finishing: row.finishing || '',
+              cuttingApplication: row.cutting_application || ''
+            };
+            services.push(service);
+          }
+          
+          this.db.run("UPDATE contact_submissions SET services = ? WHERE id = ?",
+            [JSON.stringify(services), row.id]);
         });
       }
     });
