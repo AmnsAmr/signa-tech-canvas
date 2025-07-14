@@ -33,7 +33,7 @@ interface UserStats {
 }
 
 const UserDashboard: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
   const [ratings, setRatings] = useState<UserRating[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -42,8 +42,10 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchUserData();
+    } else if (!authLoading) {
+      setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, authLoading]);
 
   const fetchUserData = async () => {
     try {
@@ -72,6 +74,17 @@ const UserDashboard: React.FC = () => {
     }
   };
 
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background">
@@ -81,17 +94,6 @@ const UserDashboard: React.FC = () => {
           <p className="text-muted-foreground">Vous devez être connecté pour accéder à cette page.</p>
         </div>
         <Footer />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement...</p>
-        </div>
       </div>
     );
   }

@@ -13,19 +13,31 @@ class RatingController {
 
       const { rating, comment } = req.body;
       const userId = req.user?.id || null;
-      const name = req.user?.name || req.body.name;
-      const email = req.user?.email || req.body.email;
-
-      if (!name) {
-        return res.status(400).json({ message: 'Name is required' });
+      
+      let name, email;
+      if (req.user) {
+        // Authenticated user
+        name = req.user.name;
+        email = req.user.email;
+      } else {
+        // Guest user
+        name = req.body.name;
+        email = req.body.email;
+        if (!name) {
+          return res.status(400).json({ message: 'Name is required' });
+        }
       }
 
       const ratingId = await new Promise((resolve, reject) => {
         db.run("INSERT INTO ratings (user_id, name, email, rating, comment) VALUES (?, ?, ?, ?, ?)",
           [userId, name, email, rating, comment],
           function(err) {
-            if (err) reject(err);
-            else resolve(this.lastID);
+            if (err) {
+              console.error('Database error inserting rating:', err);
+              reject(err);
+            } else {
+              resolve(this.lastID);
+            }
           });
       });
 
@@ -35,7 +47,19 @@ class RatingController {
       });
     } catch (error) {
       console.error('Submit rating error:', error);
-      res.status(500).json({ message: 'Failed to submit rating' });
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        userId,
+        name,
+        email,
+        rating,
+        comment
+      });
+      res.status(500).json({ 
+        message: 'Failed to submit rating',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 
