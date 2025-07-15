@@ -139,4 +139,39 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Custom styles for collapsible cards */
+  details > summary {
+    list-style: none;
+    position: relative;
+    cursor: pointer;
+  }
+  
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+  
+  /* No custom button needed since we're using SVG icons */
+  
+  /* Smooth transition for expanding content */
+  details .message-content {
+    max-height: 3em;
+    overflow: hidden;
+    transition: all 0.5s ease;
+    position: relative;
+  }
+  
+  details[open] .message-content {
+    max-height: 1000px;
+  }
+  
+  /* Card hover effect */
+  .card-hover-effect {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover-effect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
 }

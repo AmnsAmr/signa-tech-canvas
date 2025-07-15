@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:backup": "node db-maintenance.js",
+    "db:init": "node init-db.js",
+    "db:health": "node db-health-check.js",
+    "test:email": "node test-email.js"
   },
   "keywords": [],
   "author": "",

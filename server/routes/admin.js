@@ -25,6 +25,10 @@ router.get('/users', adminController.getUsers);
 router.get('/submissions', adminController.getSubmissions);
 router.patch('/submissions/:id/status', adminController.updateSubmissionStatus);
 
+// Notification settings
+router.post('/notifications/toggle', adminController.toggleNotifications);
+router.get('/notifications/status', adminController.getNotificationStatus);
+
 // Image management routes
 router.get('/images', imageController.getImages);
 router.post('/images/upload', uploadMiddleware.single('image'), imageController.uploadImage);

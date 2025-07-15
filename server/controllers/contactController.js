@@ -14,12 +14,13 @@ class ContactController {
 
       const { name, company, email, phone, project, message, services } = req.body;
       const servicesJson = JSON.stringify(services || []);
+      const submissionGroup = `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       const submissionId = await new Promise((resolve, reject) => {
         db.run(`INSERT INTO contact_submissions (
-          user_id, name, company, email, phone, project, message, services
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [null, name, company, email, phone, project, message, servicesJson],
+          user_id, name, company, email, phone, project, message, services, submission_group
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [null, name, company, email, phone, project, message, servicesJson, submissionGroup],
           function(err) {
             if (err) reject(err);
             else resolve(this.lastID);
@@ -33,6 +34,7 @@ class ContactController {
           company,
           email,
           phone,
+          project,
           message,
           services,
           isGuest: true
@@ -58,6 +60,7 @@ class ContactController {
 
       const { project, message, services } = req.body;
       const servicesJson = JSON.stringify(services || []);
+      const submissionGroup = `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       const user = await new Promise((resolve, reject) => {
         db.get("SELECT * FROM users WHERE id = ?", [req.user.id], (err, row) => {
@@ -72,9 +75,9 @@ class ContactController {
 
       const submissionId = await new Promise((resolve, reject) => {
         db.run(`INSERT INTO contact_submissions (
-          user_id, name, company, email, phone, project, message, services
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [req.user.id, user.name, user.company, user.email, user.phone, project, message, servicesJson],
+          user_id, name, company, email, phone, project, message, services, submission_group
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [req.user.id, user.name, user.company, user.email, user.phone, project, message, servicesJson, submissionGroup],
           function(err) {
             if (err) reject(err);
             else resolve(this.lastID);
@@ -88,6 +91,7 @@ class ContactController {
           company: user.company,
           email: user.email,
           phone: user.phone,
+          project,
           message,
           services,
           isGuest: false

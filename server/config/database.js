@@ -28,6 +28,7 @@ class Database {
         phone TEXT,
         role TEXT DEFAULT 'client',
         oauth_provider TEXT,
+        email_notifications BOOLEAN DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`);
 
@@ -43,12 +44,21 @@ class Database {
         message TEXT NOT NULL,
         services TEXT,
         status TEXT DEFAULT 'pending',
+        submission_group TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
       )`);
 
-      // Migrate old contact_submissions structure
+      // Add new columns for existing tables
+      this.db.run("ALTER TABLE users ADD COLUMN email_notifications BOOLEAN DEFAULT 1", (err) => {
+        // Ignore error if column already exists
+      });
+      
       this.db.run("ALTER TABLE contact_submissions ADD COLUMN services TEXT", (err) => {
+        // Ignore error if column already exists
+      });
+      
+      this.db.run("ALTER TABLE contact_submissions ADD COLUMN submission_group TEXT", (err) => {
         // Ignore error if column already exists
       });
 
@@ -94,12 +104,12 @@ class Database {
 
   seedDefaultData() {
     // Create admin user
-    this.db.get("SELECT * FROM users WHERE email = 'admin@signatech.com'", (err, row) => {
+    this.db.get("SELECT * FROM users WHERE email = 'contact@signatech.ma'", (err, row) => {
       if (!row) {
         const bcrypt = require('bcryptjs');
         const hashedPassword = bcrypt.hashSync('admin123', 10);
         this.db.run("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)", 
-          ['Admin', 'admin@signatech.com', hashedPassword, 'admin']);
+          ['Admin', 'contact@signatech.ma', hashedPassword, 'admin']);
       }
     });
 
@@ -152,15 +162,63 @@ class Database {
             services.push(service);
           }
           
-          this.db.run("UPDATE contact_submissions SET services = ? WHERE id = ?",
-            [JSON.stringify(services), row.id]);
+          this.db.run("UPDATE contact_submissions SET services = ?, submission_group = ? WHERE id = ?",
+            [JSON.stringify(services), `group_${row.id}`, row.id]);
         });
       }
     });
+    
+    // Update existing submissions without submission_group
+    setTimeout(() => {
+      this.db.all("SELECT * FROM contact_submissions WHERE submission_group IS NULL", (err, rows) => {
+        if (!err && rows && rows.length > 0) {
+          rows.forEach(row => {
+            this.db.run("UPDATE contact_submissions SET submission_group = ? WHERE id = ?",
+              [`group_${row.id}`, row.id]);
+          });
+        }
+      });
+    }, 1000);
   }
 
   getDb() {
     return this.db;
+  }
+  
+  async backup(backupPath) {
+    return new Promise((resolve, reject) => {
+      const backupDb = new sqlite3.Database(backupPath || `signatech_backup_${Date.now()}.db`);
+      
+      this.db.backup(backupDb)
+        .then(() => {
+          console.log(`Backup completed to ${backupPath || `signatech_backup_${Date.now()}.db`}`);
+          backupDb.close();
+          resolve(true);
+        })
+        .catch(err => {
+          console.error('Backup failed:', err);
+          backupDb.close();
+          reject(err);
+        });
+    });
+  }
+  
+  async query(sql, params = []) {
+    return new Promise((resolve, reject) => {
+      this.db.all(sql, params, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
+  
+  async exec(sql, params = []) {
+    return new Promise((resolve, reject) => {
+      this.db.run(sql, params, function(err) {
+        if (err) reject(err);
+        else resolve({ lastID: this.lastID, changes: this.changes });
+      });
+    });
   }
 }
 

@@ -43,7 +43,8 @@ class AdminController {
             console.log('Found submissions:', rows.length);
             resolve(rows.map(row => ({
               ...row,
-              services: row.services ? JSON.parse(row.services) : []
+              services: row.services ? JSON.parse(row.services) : [],
+              submission_group: row.submission_group || `group_${row.id}`
             })));
           }
         });
@@ -146,6 +147,38 @@ class AdminController {
     } catch (error) {
       console.error('Get admins error:', error);
       res.status(500).json({ message: 'Failed to fetch admins' });
+    }
+  }
+
+  async toggleNotifications(req, res) {
+    try {
+      const { enabled } = req.body;
+      const adminId = req.user.id;
+      
+      const emailService = require('../utils/emailService');
+      const success = await emailService.toggleAdminNotifications(adminId, enabled);
+      
+      if (success) {
+        res.json({ message: `Notifications ${enabled ? 'activées' : 'désactivées'} avec succès` });
+      } else {
+        res.status(404).json({ message: 'Admin not found' });
+      }
+    } catch (error) {
+      console.error('Toggle notifications error:', error);
+      res.status(500).json({ message: 'Failed to update notification settings' });
+    }
+  }
+
+  async getNotificationStatus(req, res) {
+    try {
+      const adminId = req.user.id;
+      const emailService = require('../utils/emailService');
+      const enabled = await emailService.getAdminNotificationStatus(adminId);
+      
+      res.json({ enabled });
+    } catch (error) {
+      console.error('Get notification status error:', error);
+      res.status(500).json({ message: 'Failed to get notification status' });
     }
   }
 
