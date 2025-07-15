@@ -98,6 +98,15 @@ class Database {
         FOREIGN KEY (user_id) REFERENCES users (id)
       )`);
 
+      // Contact settings table
+      this.db.run(`CREATE TABLE IF NOT EXISTS contact_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        setting_key TEXT UNIQUE NOT NULL,
+        setting_value TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`);
+
       this.seedDefaultData();
     });
   }
@@ -110,6 +119,30 @@ class Database {
         const hashedPassword = bcrypt.hashSync('admin123', 10);
         this.db.run("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)", 
           ['Admin', 'contact@signatech.ma', hashedPassword, 'admin']);
+      }
+    });
+
+    // Insert default contact settings
+    this.db.get("SELECT COUNT(*) as count FROM contact_settings", (err, row) => {
+      if (!err && row.count === 0) {
+        const defaultSettings = [
+          ['company_name', 'Signa Tech'],
+          ['company_tagline', 'Solutions PLV & Signalétique'],
+          ['email', 'contact@signatech.ma'],
+          ['phone', '+212 5 39 40 31 33'],
+          ['whatsapp', '+212623537445'],
+          ['address_fr', 'Zone Industrielle Gzenaya, lot 376, Tanger, Morocco'],
+          ['address_en', 'Industrial Zone Gzenaya, lot 376, Tangier, Morocco'],
+          ['hours_fr', 'Lun-Ven: 8h-18h | Sam: 8h-13h'],
+          ['hours_en', 'Mon-Fri: 8am-6pm | Sat: 8am-1pm'],
+          ['hours_detailed_fr', 'Lun - Ven: 8h00 - 18h00|Samedi: 8h00 - 13h00|Dimanche: Fermé'],
+          ['hours_detailed_en', 'Mon - Fri: 8:00 AM - 6:00 PM|Saturday: 8:00 AM - 1:00 PM|Sunday: Closed']
+        ];
+        
+        defaultSettings.forEach(([key, value]) => {
+          this.db.run("INSERT INTO contact_settings (setting_key, setting_value) VALUES (?, ?)", [key, value]);
+        });
+        console.log('Default contact settings inserted');
       }
     });
 

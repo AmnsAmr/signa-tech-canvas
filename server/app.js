@@ -29,6 +29,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/contact-settings', require('./routes/contact-settings'));
 
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, '../src/assets')));

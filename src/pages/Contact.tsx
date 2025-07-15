@@ -13,6 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/Auth/AuthModal';
 import SEOHead from '@/components/SEOHead';
+import { useContactSettings } from '@/hooks/useContactSettings';
 import { 
   Phone, 
   Mail, 
@@ -118,9 +119,10 @@ const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) =
 };
 
 const Contact: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
   const { toast } = useToast();
+  const { settings } = useContactSettings();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
@@ -528,38 +530,38 @@ const Contact: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <ContactCard 
-                  icon={Phone} 
-                  title={t('contact.info.phone.title')} 
-                  value={t('contact.info.phone.value')} 
-                />
-                <ContactCard 
-                  icon={Mail} 
-                  title={t('contact.info.email.title')} 
-                  value={t('contact.info.email.value')} 
-                />
-                <ContactCard 
-                  icon={MapPin} 
-                  title={t('contact.info.address.title')} 
-                  value={t('contact.info.address.value')} 
-                />
-                <ContactCard 
-                  icon={Clock} 
-                  title={t('contact.info.hours.title')} 
-                  value={t('contact.info.hours.value')} 
-                />
+              <ContactCard 
+                icon={Phone} 
+                title={t('contact.info.phone.title')} 
+                value={settings.phone} 
+              />
+              <ContactCard 
+                icon={Mail} 
+                title={t('contact.info.email.title')} 
+                value={settings.email} 
+              />
+              <ContactCard 
+                icon={MapPin} 
+                title={t('contact.info.address.title')} 
+                value={language === 'fr' ? settings.address_fr : settings.address_en} 
+              />
+              <ContactCard 
+                icon={Clock} 
+                title={t('contact.info.hours.title')} 
+                value={language === 'fr' ? settings.hours_fr : settings.hours_en} 
+              />
                  <Button 
                 asChild
                 size="lg" 
                 className="w-full bg-green-500 hover:bg-green-600 text-white shadow-glow hover:shadow-strong transition-all text-lg py-6 transform hover:scale-105"
               >
                 <a 
-                  href="https://wa.me/212623537445"
+                  href={`https://wa.me/${settings.whatsapp?.replace(/\+/g, '').replace(/\s/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <MessageCircle className="mr-3 h-6 w-6" />
-                  Chatter sur WhatsApp
+                  {t('contact.whatsapp')}
                 </a>
               </Button>
               </div>

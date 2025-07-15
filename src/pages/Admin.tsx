@@ -12,6 +12,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ImageManager from '@/components/Admin/ImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
+import ContactSettings from '@/components/Admin/ContactSettings';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff } from 'lucide-react';
 
 interface User {
@@ -404,10 +405,14 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="images" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="images" className="flex items-center gap-2">
               <Image className="h-4 w-4" />
               Images
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Contact
             </TabsTrigger>
             <TabsTrigger value="admins" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -417,6 +422,17 @@ const Admin = () => {
             <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
             <TabsTrigger value="submissions">Submissions ({filteredSubmissions.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="contact">
+            <Card>
+              <CardHeader>
+                <CardTitle>Paramètres de Contact</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ContactSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="users">
             <Card>

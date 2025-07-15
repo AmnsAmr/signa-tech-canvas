@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useContactSettings } from '@/hooks/useContactSettings';
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { settings } = useContactSettings();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -16,10 +18,10 @@ const Footer = () => {
               <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
                 <span className="text-lg font-bold text-primary-foreground">ST</span>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-primary">{t('company.name')}</h3>
-                <p className="text-xs text-muted-foreground">{t('company.tagline')}</p>
-              </div>
+            <div>
+              <h3 className="text-xl font-bold text-primary">{settings.company_name}</h3>
+              <p className="text-xs text-muted-foreground">{settings.company_tagline}</p>
+            </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">
               {t('footer.description')}
@@ -67,16 +69,16 @@ const Footer = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <p className="text-muted-foreground text-sm">
-                  {t('company.address')}
+                  {language === 'fr' ? settings.address_fr : settings.address_en}
                 </p>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                <p className="text-muted-foreground text-sm">+212 5 39 40 31 33</p>
+                <p className="text-muted-foreground text-sm">{settings.phone}</p>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                <p className="text-muted-foreground text-sm">contact@signatech.ma</p>
+                <p className="text-muted-foreground text-sm">{settings.email}</p>
               </div>
             </div>
           </div>
@@ -85,7 +87,7 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
-            © {currentYear} {t('company.name')}. {t('footer.rights')}
+            © {currentYear} {settings.company_name}. {t('footer.rights')}
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/privacy" className="text-muted-foreground hover:text-primary text-sm transition-colors">
