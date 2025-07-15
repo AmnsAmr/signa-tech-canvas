@@ -56,6 +56,35 @@ interface Submission {
   created_at: string;
 }
 
+// Helper function to extract group ID from submission_group string
+const getGroupId = (submissionGroup: string): string => {
+  // Check if it's a numeric ID directly
+  if (/^\d+$/.test(submissionGroup)) {
+    return submissionGroup;
+  }
+  
+  // Handle format: group_123456789
+  if (submissionGroup.startsWith('group_')) {
+    const parts = submissionGroup.split('_');
+    if (parts.length > 1) {
+      // If it's a timestamp format (long number), return just a short ID
+      if (parts[1].length > 6) {
+        return parts[1].substring(0, 6);
+      }
+      return parts[1];
+    }
+  }
+  
+  // Handle format: group_timestamp_randomstring
+  const parts = submissionGroup.split('_');
+  if (parts.length > 2) {
+    return parts[1].substring(0, 6);
+  }
+  
+  // Fallback
+  return submissionGroup.substring(0, 6);
+};
+
 const Admin = () => {
   const { user, isAdmin } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
@@ -531,7 +560,7 @@ const Admin = () => {
                               )}
                               {submission.submission_group && (
                                 <Badge variant="outline" className="text-xs bg-blue-50">
-                                  Groupe: {submission.submission_group.split('_')[1]?.substring(0, 6) || 'N/A'}
+                                  Groupe: {getGroupId(submission.submission_group)}
                                 </Badge>
                               )}
                             </div>
@@ -672,11 +701,18 @@ const Admin = () => {
                           <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
                           <span className="text-sm">{new Date(request.created_at).toLocaleString()}</span>
                         </div>
-                        {request.services && request.services.length > 0 && (
-                          <Badge variant="outline" className="mt-2">
-                            {request.services.length} service{request.services.length > 1 ? 's' : ''}
-                          </Badge>
-                        )}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {request.services && request.services.length > 0 && (
+                            <Badge variant="outline">
+                              {request.services.length} service{request.services.length > 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                          {request.submission_group && (
+                            <Badge variant="outline" className="bg-blue-50">
+                              Groupe: {getGroupId(request.submission_group)}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -686,7 +722,7 @@ const Admin = () => {
                       </div>
                     )}
                     
-                    <div className="bg-muted/50 p-4 rounded-lg mb-4">
+                    <div className="bg-gradient-to-r from-muted/40 to-muted/20 p-4 rounded-md border border-muted/50 mb-4">
                       <h5 className="font-medium mb-2">Message:</h5>
                       <details className="group">
                         <summary className="cursor-pointer list-none">
@@ -709,7 +745,7 @@ const Admin = () => {
                       <div className="space-y-4">
                         <h5 className="font-medium">Services demandés ({request.services.length}):</h5>
                         {request.services.map((service, index) => (
-                          <div key={index} className="bg-muted/30 p-4 rounded-lg border-l-4 border-l-primary">
+                          <div key={index} className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
                             <h6 className="font-medium mb-3 text-primary">
                               Service {index + 1}: {service.serviceType || 'Non spécifié'}
                             </h6>

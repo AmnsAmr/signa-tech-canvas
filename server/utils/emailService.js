@@ -76,7 +76,7 @@ class EmailService {
   }
 
   async sendContactNotification({ name, company, email, phone, project, message, services, isGuest }) {
-    if (!EMAIL_USER || !EMAIL_PASS) {
+    if (!EMAIL_USER || !EMAIL_PASS || !this.transporter) {
       console.warn('Email service not configured, skipping notification');
       return;
     }

@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator');
 const database = require('../config/database');
-const { sendContactNotification } = require('../utils/emailService');
+const emailService = require('../utils/emailService');
 
 const db = database.getDb();
 
@@ -29,7 +29,7 @@ class ContactController {
 
       // Send notification email
       try {
-        await sendContactNotification({
+        await emailService.sendContactNotification({
           name,
           company,
           email,
@@ -86,7 +86,7 @@ class ContactController {
 
       // Send notification email
       try {
-        await sendContactNotification({
+        await emailService.sendContactNotification({
           name: user.name,
           company: user.company,
           email: user.email,
