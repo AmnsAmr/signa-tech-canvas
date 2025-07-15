@@ -18,16 +18,30 @@ export const useImages = (category?: string) => {
 
   useEffect(() => {
     fetchImages();
+    
+    // Listen for image updates from admin panel
+    const handleImageUpdate = () => {
+      fetchImages();
+    };
+    
+    window.addEventListener('imagesUpdated', handleImageUpdate);
+    return () => window.removeEventListener('imagesUpdated', handleImageUpdate);
   }, [category]);
 
   const fetchImages = async () => {
     try {
       setLoading(true);
+      const timestamp = Date.now();
       const url = category 
-        ? `http://localhost:5000/api/images?category=${category}`
-        : 'http://localhost:5000/api/images';
+        ? `http://localhost:5000/api/images?category=${category}&t=${timestamp}`
+        : `http://localhost:5000/api/images?t=${timestamp}`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -45,7 +59,9 @@ export const useImages = (category?: string) => {
   };
 
   const getImageUrl = (filename: string) => {
-    return `http://localhost:5000/uploads/${filename}`;
+    // Add cache busting parameter to force refresh
+    const timestamp = Date.now();
+    return `http://localhost:5000/uploads/${filename}?t=${timestamp}`;
   };
 
   const getImageByCategory = (cat: string, index: number = 0) => {

@@ -123,6 +123,11 @@ export default {
 				'gradient-shift': {
 					'0%, 100%': { backgroundPosition: '0% 50%' },
 					'50%': { backgroundPosition: '100% 50%' }
+				},
+				'nav-glow': {
+					'0%': { boxShadow: '0 0 5px hsl(270 85% 60% / 0.3)' },
+					'50%': { boxShadow: '0 0 20px hsl(270 85% 60% / 0.6), 0 0 30px hsl(320 85% 65% / 0.4)' },
+					'100%': { boxShadow: '0 0 5px hsl(270 85% 60% / 0.3)' }
 				}
 			},
 			animation: {
@@ -133,7 +138,8 @@ export default {
 				'float': 'float 3s ease-in-out infinite',
 				'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
 				'creative-spin': 'creative-spin 8s linear infinite',
-				'gradient-shift': 'gradient-shift 6s ease-in-out infinite'
+				'gradient-shift': 'gradient-shift 6s ease-in-out infinite',
+				'nav-glow': 'nav-glow 2s ease-in-out infinite'
 			}
 		}
 	},

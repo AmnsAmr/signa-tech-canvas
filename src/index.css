@@ -174,4 +174,42 @@ All colors MUST be HSL.
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
+
+  /* Header enhancements */
+  .nav-link-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: linear-gradient(135deg, hsl(270 85% 60%), hsl(320 85% 65%));
+    border-radius: 1px;
+    animation: nav-indicator 0.3s ease-out;
+  }
+
+  @keyframes nav-indicator {
+    from {
+      width: 0;
+      opacity: 0;
+    }
+    to {
+      width: 20px;
+      opacity: 1;
+    }
+  }
+
+  /* Glassmorphism effect for header */
+  .header-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .header-glass {
+    background: rgba(0, 0, 0, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }

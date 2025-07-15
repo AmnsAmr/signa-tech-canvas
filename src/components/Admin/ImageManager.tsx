@@ -100,6 +100,8 @@ const ImageManager: React.FC = () => {
         setNewCategory('');
         fetchImages();
         fetchCategories();
+        // Notify other components to refresh their images
+        window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
         const errorData = await response.json();
         console.error('Upload error:', errorData);
@@ -126,6 +128,8 @@ const ImageManager: React.FC = () => {
       if (response.ok) {
         alert('Image supprimée avec succès!');
         fetchImages();
+        // Notify other components to refresh their images
+        window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
         const errorData = await response.json();
         console.error('Delete error:', errorData);
@@ -152,6 +156,8 @@ const ImageManager: React.FC = () => {
       if (response.ok) {
         alert('Image remplacée avec succès!');
         fetchImages();
+        // Notify other components to refresh their images
+        window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
         const errorData = await response.json();
         console.error('Replace error:', errorData);

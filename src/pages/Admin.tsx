@@ -58,31 +58,37 @@ interface Submission {
 
 // Helper function to extract group ID from submission_group string
 const getGroupId = (submissionGroup: string): string => {
-  // Check if it's a numeric ID directly
+  if (!submissionGroup) return 'N/A';
+  
+  // If it's just a number, return it
   if (/^\d+$/.test(submissionGroup)) {
     return submissionGroup;
   }
   
-  // Handle format: group_123456789
-  if (submissionGroup.startsWith('group_')) {
-    const parts = submissionGroup.split('_');
-    if (parts.length > 1) {
-      // If it's a timestamp format (long number), return just a short ID
-      if (parts[1].length > 6) {
-        return parts[1].substring(0, 6);
-      }
-      return parts[1];
-    }
-  }
-  
   // Handle format: group_timestamp_randomstring
   const parts = submissionGroup.split('_');
-  if (parts.length > 2) {
-    return parts[1].substring(0, 6);
+  if (parts.length >= 3) {
+    // Return the random string part (last part)
+    return parts[parts.length - 1].substring(0, 8).toUpperCase();
   }
   
-  // Fallback
-  return submissionGroup.substring(0, 6);
+  // Handle format: group_123456789
+  if (parts.length === 2 && parts[0] === 'group') {
+    // Create a hash-like ID from timestamp
+    const timestamp = parts[1];
+    const hash = timestamp.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
+  }
+  
+  // Fallback - create a simple hash
+  const hash = submissionGroup.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
 };
 
 const Admin = () => {
@@ -560,7 +566,7 @@ const Admin = () => {
                               )}
                               {submission.submission_group && (
                                 <Badge variant="outline" className="text-xs bg-blue-50">
-                                  Groupe: {getGroupId(submission.submission_group)}
+                                  ID: {getGroupId(submission.submission_group)}
                                 </Badge>
                               )}
                             </div>
@@ -709,7 +715,7 @@ const Admin = () => {
                           )}
                           {request.submission_group && (
                             <Badge variant="outline" className="bg-blue-50">
-                              Groupe: {getGroupId(request.submission_group)}
+                              ID: {getGroupId(request.submission_group)}
                             </Badge>
                           )}
                         </div>
