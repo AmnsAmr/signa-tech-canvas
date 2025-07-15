@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ interface UserStats {
 const UserDashboard: React.FC = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
   const [ratings, setRatings] = useState<UserRating[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -136,7 +138,7 @@ const UserDashboard: React.FC = () => {
             
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avis Donnés</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('rating.reviews')} Donnés</CardTitle>
                 <Star className="h-4 w-4 text-yellow-500" />
               </CardHeader>
               <CardContent>
@@ -146,7 +148,7 @@ const UserDashboard: React.FC = () => {
             
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avis Publiés</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('rating.reviews')} Publiés</CardTitle>
                 <MessageSquare className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
@@ -160,8 +162,8 @@ const UserDashboard: React.FC = () => {
         <Tabs defaultValue="submissions" className="space-y-6">
           <TabsList>
             <TabsTrigger value="submissions">Mes Demandes</TabsTrigger>
-            <TabsTrigger value="ratings">Mes Avis</TabsTrigger>
-            <TabsTrigger value="new-rating">Donner un Avis</TabsTrigger>
+            <TabsTrigger value="ratings">Mes {t('rating.reviews')}</TabsTrigger>
+            <TabsTrigger value="new-rating">{t('rating.give_review')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="submissions">
@@ -256,7 +258,7 @@ const UserDashboard: React.FC = () => {
                       size="sm"
                       variant="destructive"
                       onClick={async () => {
-                        if (confirm('Êtes-vous sûr de vouloir supprimer votre avis ?')) {
+                        if (confirm(t('rating.delete_confirm'))) {
                           try {
                             const token = localStorage.getItem('token');
                             const response = await fetch('http://localhost:5000/api/ratings/my-rating', {
@@ -267,21 +269,21 @@ const UserDashboard: React.FC = () => {
                             if (response.ok) {
                               fetchUserData(); // Refresh data
                               toast({
-                                title: "Avis supprimé",
-                                description: "Votre avis a été supprimé avec succès"
+                                title: t('rating.deleted'),
+                                description: t('rating.deleted_desc')
                               });
                             }
                           } catch (error) {
                             toast({
                               title: "Erreur",
-                              description: "Impossible de supprimer l'avis",
+                              description: t('rating.delete_error'),
                               variant: "destructive"
                             });
                           }
                         }
                       }}
                     >
-                      Supprimer mon avis
+                      Supprimer mon {t('rating.reviews')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -291,7 +293,7 @@ const UserDashboard: React.FC = () => {
                 <Card>
                   <CardContent className="p-8 text-center text-gray-500">
                     <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucun avis donné pour le moment</p>
+                    <p>Aucun {t('rating.reviews')} donné pour le moment</p>
                   </CardContent>
                 </Card>
               )}

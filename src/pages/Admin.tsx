@@ -13,6 +13,7 @@ import Footer from '@/components/Footer';
 import ImageManager from '@/components/Admin/ImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff } from 'lucide-react';
 
 interface User {
@@ -94,6 +95,7 @@ const getGroupId = (submissionGroup: string): string => {
 
 const Admin = () => {
   const { user, isAdmin } = useAuth();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -329,7 +331,7 @@ const Admin = () => {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold text-white">
-                  {notificationsEnabled ? 'Activées' : 'Désactivées'}
+                  {notificationsEnabled ? t('admin.notifications.enabled') : t('admin.notifications.disabled')}
                 </div>
                 <Button
                   size="sm"
@@ -338,16 +340,16 @@ const Admin = () => {
                   disabled={loadingNotifications}
                   className="text-xs"
                 >
-                  {loadingNotifications ? '...' : (notificationsEnabled ? 'Désactiver' : 'Activer')}
+                  {loadingNotifications ? '...' : (notificationsEnabled ? t('admin.notifications.disable') : t('admin.notifications.enable'))}
                 </Button>
               </div>
-              <p className="text-xs text-green-100 mt-1">Notifications par email</p>
+              <p className="text-xs text-green-100 mt-1">{t('admin.notifications.email')}</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.total_users')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -357,7 +359,7 @@ const Admin = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.total_submissions')}</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -367,12 +369,12 @@ const Admin = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.admin_users')}</CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{admins.length}</div>
-              <p className="text-xs text-muted-foreground">Total admins</p>
+              <p className="text-xs text-muted-foreground">{t('admin.total_admins')}</p>
             </CardContent>
           </Card>
         </div>
@@ -395,9 +397,9 @@ const Admin = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="done">Terminé</SelectItem>
+                <SelectItem value="all">{t('admin.all_statuses')}</SelectItem>
+                <SelectItem value="pending">{t('admin.pending')}</SelectItem>
+                <SelectItem value="done">{t('admin.completed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -418,7 +420,7 @@ const Admin = () => {
               <Shield className="h-4 w-4" />
               Admins ({admins.length})
             </TabsTrigger>
-            <TabsTrigger value="ratings">Avis</TabsTrigger>
+            <TabsTrigger value="ratings">{t('admin.reviews')}</TabsTrigger>
             <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
             <TabsTrigger value="submissions">Submissions ({filteredSubmissions.length})</TabsTrigger>
           </TabsList>
@@ -426,7 +428,7 @@ const Admin = () => {
           <TabsContent value="contact">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres de Contact</CardTitle>
+                <CardTitle>{t('admin.contact_settings')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ContactSettings />
@@ -437,7 +439,7 @@ const Admin = () => {
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle>Registered Users</CardTitle>
+                <CardTitle>{t('admin.registered_users')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>

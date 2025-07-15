@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RatingStats {
   stats: Array<{
@@ -13,6 +14,7 @@ interface RatingStats {
 }
 
 const RatingStats: React.FC = () => {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<RatingStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,7 +76,7 @@ const RatingStats: React.FC = () => {
             ))}
           </div>
           <div className="text-sm text-gray-600">
-            {stats.total} avis
+            {stats.total} {t('rating.reviews')}
           </div>
         </div>
 

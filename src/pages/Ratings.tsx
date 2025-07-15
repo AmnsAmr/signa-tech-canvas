@@ -5,11 +5,13 @@ import RatingStats from '@/components/RatingSystem/RatingStats';
 import RatingDisplay from '@/components/RatingSystem/RatingDisplay';
 import RatingForm from '@/components/RatingSystem/RatingForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 
 const Ratings: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background">
@@ -18,7 +20,7 @@ const Ratings: React.FC = () => {
       <div className="container mx-auto px-4 py-24">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            Avis Clients
+            {t('rating.customer_reviews')}
           </h1>
           <p className="text-xl text-muted-foreground">
             Découvrez ce que nos clients pensent de nos services
@@ -40,7 +42,7 @@ const Ratings: React.FC = () => {
         {/* All Ratings */}
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-6">
-            Tous les avis
+            {t('rating.all_reviews')}
           </h2>
           <RatingDisplay />
         </div>

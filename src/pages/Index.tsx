@@ -333,7 +333,7 @@ const Index = () => {
             <Button asChild variant="outline" size="lg" className="text-xl px-12 py-4 rounded-2xl">
               <Link to="/ratings">
                 <Star className="mr-3 h-6 w-6" />
-                Voir tous les avis
+                {t('rating.view_all')}
                 <ArrowRight className="ml-3 h-6 w-6" />
               </Link>
             </Button>

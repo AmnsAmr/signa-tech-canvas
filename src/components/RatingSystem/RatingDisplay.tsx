@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, ChevronDown, ChevronUp, Quote } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Rating {
   id: number;
@@ -17,6 +18,7 @@ interface RatingDisplayProps {
 }
 
 const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }) => {
+  const { t } = useLanguage();
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -150,7 +152,7 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
               </>
             ) : (
               <>
-                Voir tous les avis ({ratings.length}) <ChevronDown className="h-4 w-4" />
+                {t('rating.view_all')} ({ratings.length}) <ChevronDown className="h-4 w-4" />
               </>
             )}
           </Button>
@@ -161,7 +163,7 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
         <Card>
           <CardContent className="p-8 text-center text-gray-500">
             <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun avis pour le moment</p>
+            <p>{t('rating.no_reviews')}</p>
           </CardContent>
         </Card>
       )}

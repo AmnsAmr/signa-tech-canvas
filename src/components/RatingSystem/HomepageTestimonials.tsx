@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, Quote } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Rating {
   id: number;
@@ -11,6 +12,7 @@ interface Rating {
 }
 
 const HomepageTestimonials: React.FC = () => {
+  const { t } = useLanguage();
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +57,7 @@ const HomepageTestimonials: React.FC = () => {
     return (
       <div className="text-center py-12">
         <Star className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-xl text-muted-foreground">Aucun avis pour le moment</p>
+        <p className="text-xl text-muted-foreground">{t('rating.no_reviews')}</p>
         <p className="text-muted-foreground mt-2">Soyez le premier à partager votre expérience!</p>
       </div>
     );

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Rating {
   id: number;
@@ -21,6 +22,7 @@ const AdminRatings: React.FC = () => {
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchRatings();
@@ -61,21 +63,21 @@ const AdminRatings: React.FC = () => {
           rating.id === id ? { ...rating, is_approved, is_featured } : rating
         ));
         toast({
-          title: "Statut mis à jour",
-          description: "Le statut de l'avis a été modifié"
+          title: t('rating.status_updated'),
+          description: t('rating.status_updated_desc')
         });
       }
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le statut",
+        description: t('rating.update_error'),
         variant: "destructive"
       });
     }
   };
 
   const deleteRating = async (id: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')) return;
+    if (!confirm(t('rating.delete_confirm'))) return;
     
     try {
       const token = localStorage.getItem('token');
@@ -87,14 +89,14 @@ const AdminRatings: React.FC = () => {
       if (response.ok) {
         setRatings(prev => prev.filter(rating => rating.id !== id));
         toast({
-          title: "Avis supprimé",
-          description: "L'avis a été supprimé avec succès"
+          title: t('rating.deleted'),
+          description: t('rating.deleted_desc')
         });
       }
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer l'avis",
+        description: t('rating.delete_error'),
         variant: "destructive"
       });
     }
@@ -119,7 +121,7 @@ const AdminRatings: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Star className="h-5 w-5" />
-          Gestion des Avis ({ratings.length})
+          {t('rating.manage_reviews')} ({ratings.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -144,10 +146,10 @@ const AdminRatings: React.FC = () => {
                         ))}
                       </div>
                       <Badge variant={rating.is_approved ? 'default' : 'secondary'}>
-                        {rating.is_approved ? 'Approuvé' : 'En attente'}
+                        {rating.is_approved ? t('rating.approved') : t('rating.pending')}
                       </Badge>
                       {rating.is_featured && (
-                        <Badge variant="outline">Mis en avant</Badge>
+                        <Badge variant="outline">{t('rating.featured')}</Badge>
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{rating.email}</p>
@@ -164,12 +166,12 @@ const AdminRatings: React.FC = () => {
                       {rating.is_approved ? (
                         <>
                           <EyeOff className="h-3 w-3 mr-1" />
-                          Masquer
+                          {t('rating.hide')}
                         </>
                       ) : (
                         <>
                           <Eye className="h-3 w-3 mr-1" />
-                          Approuver
+                          {t('rating.approve')}
                         </>
                       )}
                     </Button>
@@ -179,7 +181,7 @@ const AdminRatings: React.FC = () => {
                       onClick={() => updateRatingStatus(rating.id, rating.is_approved, !rating.is_featured)}
                     >
                       <Star className="h-3 w-3 mr-1" />
-                      {rating.is_featured ? 'Retirer' : 'Mettre en avant'}
+                      {rating.is_featured ? t('rating.remove') : t('rating.feature')}
                     </Button>
                     <Button
                       size="sm"
@@ -201,7 +203,7 @@ const AdminRatings: React.FC = () => {
           {ratings.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Aucun avis pour le moment</p>
+              <p>{t('rating.no_reviews')}</p>
             </div>
           )}
         </div>

@@ -7,10 +7,12 @@ import { Star, Send, Clock } from 'lucide-react';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const RatingForm: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -111,7 +113,7 @@ const RatingForm: React.FC = () => {
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible d'envoyer votre avis",
+        description: t('rating.send_error'),
         variant: "destructive"
       });
     } finally {
@@ -134,21 +136,21 @@ const RatingForm: React.FC = () => {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Avis client</CardTitle>
+          <CardTitle>{t('rating.customer_review')}</CardTitle>
         </CardHeader>
         <CardContent className="text-center">
           {ratingReason === 'already_rated' && (
             <>
               <Star className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
-              <h3 className="font-semibold mb-2">Merci pour votre avis!</h3>
-              <p className="text-gray-600">Vous avez déjà donné votre avis. Un seul avis par client est autorisé.</p>
+              <h3 className="font-semibold mb-2">{t('rating.thank_you')}</h3>
+              <p className="text-gray-600">{t('rating.already_rated')}</p>
             </>
           )}
           {ratingReason === 'no_completed_submission' && (
             <>
               <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="font-semibold mb-2">Pas encore éligible</h3>
-              <p className="text-gray-600">Vous pourrez donner votre avis une fois qu'une de vos demandes sera terminée.</p>
+              <h3 className="font-semibold mb-2">{t('rating.not_eligible')}</h3>
+              <p className="text-gray-600">{t('rating.eligibility_desc')}</p>
             </>
           )}
         </CardContent>
@@ -159,7 +161,7 @@ const RatingForm: React.FC = () => {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Donnez votre avis</CardTitle>
+        <CardTitle>{t('rating.give_review')}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -232,7 +234,7 @@ const RatingForm: React.FC = () => {
             disabled={loading || rating === 0 || comment.length < 10}
           >
             <Send className="h-4 w-4 mr-2" />
-            {loading ? 'Envoi...' : 'Envoyer mon avis'}
+            {loading ? 'Envoi...' : t('rating.send_review')}
           </Button>
         </form>
       </CardContent>
