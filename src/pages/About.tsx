@@ -17,10 +17,15 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEOHead from '@/components/SEOHead';
-import teamImage from '@/assets/main_pic.jpg';
+import { useImageCache } from '@/hooks/useImageCache';
+import ImageLoader from '@/components/ImageLoader';
 
 const About = () => {
   const { t } = useLanguage();
+  const { images: heroImages } = useImageCache('hero');
+  const { images: aboutImages } = useImageCache('about');
+  
+  const teamImage = aboutImages[0] || heroImages[0];
   
   const values = [
     {
@@ -104,9 +109,9 @@ const About = () => {
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-primary rounded-3xl transform rotate-6 opacity-20"></div>
-              <img 
-                src={teamImage} 
-                alt="Équipe Signa Tech au travail" 
+              <ImageLoader
+                filename={teamImage?.filename}
+                alt="Équipe Signa Tech au travail"
                 className="relative z-10 w-full rounded-3xl shadow-strong transform -rotate-2 hover:rotate-0 transition-transform duration-500"
               />
             </div>

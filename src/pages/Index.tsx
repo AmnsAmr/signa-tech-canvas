@@ -25,13 +25,19 @@ import {
   Phone
 } from 'lucide-react';
 import HomepageTestimonials from '@/components/RatingSystem/HomepageTestimonials';
-import heroImage from '@/assets/hero-workshop.jpg';
-import facadeImage from '@/assets/facade-project.jpg';
-import plvImage from '@/assets/plv-displays.jpg';
-import teamImage from '@/assets/team-work.jpg';
+import { useImageCache } from '@/hooks/useImageCache';
+import ImageLoader from '@/components/ImageLoader';
 
 const Index = () => {
   const { t } = useLanguage();
+  const { images: heroImages } = useImageCache('hero');
+  const { images: serviceImages } = useImageCache('services');
+  const { images: aboutImages } = useImageCache('about');
+  
+  const heroImage = heroImages[0];
+  const facadeImage = serviceImages[0];
+  const plvImage = serviceImages[1];
+  const teamImage = aboutImages[1] || aboutImages[0];
   
   const services = [
     {
@@ -246,9 +252,9 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
               <div className="aspect-[4/3] overflow-hidden relative">
-                <img 
-                  src={facadeImage} 
-                  alt="Habillage façade" 
+                <ImageLoader
+                  filename={facadeImage?.filename}
+                  alt="Habillage façade"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
@@ -263,9 +269,9 @@ const Index = () => {
 
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:rotate-1 hover:scale-105 lg:translate-y-8">
               <div className="aspect-[4/3] overflow-hidden relative">
-                <img 
-                  src={plvImage} 
-                  alt="Displays PLV" 
+                <ImageLoader
+                  filename={plvImage?.filename}
+                  alt="Displays PLV"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
@@ -280,9 +286,9 @@ const Index = () => {
 
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
               <div className="aspect-[4/3] overflow-hidden relative">
-                <img 
-                  src={teamImage} 
-                  alt="Équipe travail" 
+                <ImageLoader
+                  filename={teamImage?.filename}
+                  alt="Équipe travail"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">

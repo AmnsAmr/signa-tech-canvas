@@ -6,7 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
-import Logo from '@/assets/Logo.png';
+import { useImageCache } from '@/hooks/useImageCache';
+import ImageLoader from './ImageLoader';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,6 +20,9 @@ const Header = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { images } = useImageCache('logo');
+  
+  const logoImage = images[0];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,9 +66,9 @@ const Header = () => {
           {/* Logo with enhanced effects */}
           <Link to="/" className="flex items-center group">
             <div className="relative">
-              <img 
-                src={Logo} 
-                alt="Signa Tech Logo" 
+              <ImageLoader
+                filename={logoImage?.filename}
+                alt="Signa Tech Logo"
                 className={`w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
                   isMinimized && !isHovered ? 'h-6' : isScrolled ? 'h-8' : 'h-12'
                 }`}

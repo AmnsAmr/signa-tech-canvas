@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ImageManager from '@/components/Admin/ImageManager';
+import OrganizedImageManager from '@/components/Admin/OrganizedImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { buildApiUrl } from '@/config/api';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff } from 'lucide-react';
 
 interface User {
@@ -120,7 +121,7 @@ const Admin = () => {
   const fetchNotificationStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/notifications/status', {
+      const response = await fetch(buildApiUrl('/api/admin/notifications/status'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -136,7 +137,7 @@ const Admin = () => {
     setLoadingNotifications(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/notifications/toggle', {
+      const response = await fetch(buildApiUrl('/api/admin/notifications/toggle'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,9 +163,9 @@ const Admin = () => {
 
       console.log('Fetching admin data...');
       const [usersRes, adminsRes, submissionsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/admin/users', { headers }),
-        fetch('http://localhost:5000/api/admin/admins', { headers }),
-        fetch('http://localhost:5000/api/admin/submissions', { headers })
+        fetch(buildApiUrl('/api/admin/users'), { headers }),
+        fetch(buildApiUrl('/api/admin/admins'), { headers }),
+        fetch(buildApiUrl('/api/admin/submissions'), { headers })
       ]);
 
       console.log('Response statuses:', {
@@ -214,7 +215,7 @@ const Admin = () => {
     console.log('Updating status:', submissionId, newStatus);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/submissions/${submissionId}/status`, {
+      const response = await fetch(buildApiUrl(`/api/admin/submissions/${submissionId}/status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -243,7 +244,7 @@ const Admin = () => {
   const createAdmin = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/admins', {
+      const response = await fetch(buildApiUrl('/api/admin/admins'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -331,7 +332,7 @@ const Admin = () => {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold text-white">
-                  {notificationsEnabled ? t('admin.notifications.enabled') : t('admin.notifications.disabled')}
+                  {notificationsEnabled ? 'Activées' : 'Désactivées'}
                 </div>
                 <Button
                   size="sm"
@@ -340,10 +341,10 @@ const Admin = () => {
                   disabled={loadingNotifications}
                   className="text-xs"
                 >
-                  {loadingNotifications ? '...' : (notificationsEnabled ? t('admin.notifications.disable') : t('admin.notifications.enable'))}
+                  {loadingNotifications ? '...' : (notificationsEnabled ? 'Désactiver' : 'Activer')}
                 </Button>
               </div>
-              <p className="text-xs text-green-100 mt-1">{t('admin.notifications.email')}</p>
+              <p className="text-xs text-green-100 mt-1">Notifications par email</p>
             </CardContent>
           </Card>
           
@@ -506,7 +507,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="images">
-            <ImageManager />
+            <OrganizedImageManager />
           </TabsContent>
 
           <TabsContent value="admins">

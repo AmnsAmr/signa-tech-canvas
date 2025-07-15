@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEOHead from '@/components/SEOHead';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Star, 
   ArrowRight,
@@ -14,41 +14,26 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import img1 from '@/assets/1.jpg';
-import img2 from '@/assets/2.jpg';
-import img3 from '@/assets/3.jpg';
-import img4 from '@/assets/4.jpg';
-import img5 from '@/assets/5.jpg';
-import img6 from '@/assets/6.jpg';
-import img7 from '@/assets/7.jpg';
-import img8 from '@/assets/8.jpg';
-import img9 from '@/assets/9.jpg';
-import img10 from '@/assets/10.jpg';
-import img11 from '@/assets/11.jpg';
-import img12 from '@/assets/12.jpg';
-import img13 from '@/assets/13.jpg';
-import img14 from '@/assets/14.png';
-import img15 from '@/assets/15.jpg';
-import img16 from '@/assets/16.jpg';
+import { useImageCache } from '@/hooks/useImageCache';
+import { buildUploadUrl } from '@/config/api';
+import { throttle } from '@/utils/performance';
 
 const Portfolio = () => {
   const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const { images: portfolioImages, loading } = useImageCache('portfolio');
   
-  const images = [
-    img1, img2, img3, img4, img5, img6, img7, img8,
-    img9, img10, img11, img12, img13, img14, img15, img16
-  ];
+  const images = portfolioImages.map(img => buildUploadUrl(img.filename));
 
-  const nextImage = () => {
+  const nextImage = useMemo(() => throttle(() => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
-  };
+  }, 300), [images.length]);
 
-  const prevImage = () => {
+  const prevImage = useMemo(() => throttle(() => {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  }, 300), [images.length]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -119,7 +104,9 @@ const Portfolio = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black text-foreground mb-4">Nos Réalisations</h2>
-            <p className="text-muted-foreground text-lg">Découvrez notre portfolio de {images.length} projets créatifs</p>
+            <p className="text-muted-foreground text-lg">
+              {loading ? 'Chargement...' : `Découvrez notre portfolio de ${images.length} projets créatifs`}
+            </p>
           </div>
           
           <div className="max-w-4xl mx-auto">
@@ -130,7 +117,7 @@ const Portfolio = () => {
               onTouchEnd={handleTouchEnd}
               onClick={nextImage}
             >
-              {images.map((image, index) => {
+              {!loading && images.map((image, index) => {
                 const offset = (index - currentIndex + images.length) % images.length;
                 const isVisible = offset < 8;
                 const rotation = (Math.random() - 0.5) * 6; // Random rotation between -3 and 3 degrees
@@ -164,6 +151,9 @@ const Portfolio = () => {
                         alt={`Portfolio ${index + 1}`}
                         className="w-full h-full object-cover"
                         draggable={false}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
                       />
                       {offset === 0 && (
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 lg:p-6">

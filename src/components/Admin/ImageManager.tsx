@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Trash2, RefreshCw, Image as ImageIcon, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { buildApiUrl, buildUploadUrl } from '@/config/api';
 
 interface SiteImage {
   id: number;
@@ -36,8 +37,8 @@ const ImageManager: React.FC = () => {
       console.log('Token:', token ? 'Present' : 'Missing');
       
       const url = selectedCategory 
-        ? `http://localhost:5000/api/admin/images?category=${selectedCategory}`
-        : 'http://localhost:5000/api/admin/images';
+        ? `${buildApiUrl('/api/admin/images')}?category=${selectedCategory}`
+        : buildApiUrl('/api/admin/images');
       
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
@@ -63,7 +64,7 @@ const ImageManager: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/images/categories', {
+      const response = await fetch(buildApiUrl('/api/admin/images/categories'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -86,7 +87,7 @@ const ImageManager: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/images/upload', {
+      const response = await fetch(buildApiUrl('/api/admin/images/upload'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -120,7 +121,7 @@ const ImageManager: React.FC = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/images/${id}`, {
+      const response = await fetch(buildApiUrl(`/api/admin/images/${id}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -147,7 +148,7 @@ const ImageManager: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/images/${id}/replace`, {
+      const response = await fetch(buildApiUrl(`/api/admin/images/${id}/replace`), {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -170,7 +171,7 @@ const ImageManager: React.FC = () => {
   };
 
   const getImageUrl = (image: SiteImage) => {
-    return `http://localhost:5000/uploads/${image.filename}`;
+    return buildUploadUrl(image.filename);
   };
 
   if (!isAdmin) {

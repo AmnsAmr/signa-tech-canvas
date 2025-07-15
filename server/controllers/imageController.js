@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const database = require('../config/database');
+const MigrationHelper = require('../utils/migrationHelper');
 
 const db = database.getDb();
 
@@ -43,7 +44,7 @@ class ImageController {
         return res.status(400).json({ message: 'Category is required' });
       }
       
-      const imagePath = `/src/assets/${req.file.filename}`;
+      const imagePath = `/uploads/${req.file.filename}`;
       
       const imageId = await new Promise((resolve, reject) => {
         db.run("INSERT INTO site_images (category, filename, original_name, path, size, mime_type) VALUES (?, ?, ?, ?, ?, ?)",
@@ -85,7 +86,7 @@ class ImageController {
       }
       
       // Delete file from filesystem
-      const filePath = path.join(__dirname, '../src/assets', image.filename);
+      const filePath = path.join(MigrationHelper.getUploadDir(), image.filename);
       fs.unlink(filePath, (fsErr) => {
         if (fsErr) console.error('Failed to delete file:', fsErr);
       });
@@ -125,13 +126,13 @@ class ImageController {
       }
       
       // Delete old file
-      const oldFilePath = path.join(__dirname, '../src/assets', oldImage.filename);
+      const oldFilePath = path.join(MigrationHelper.getUploadDir(), oldImage.filename);
       fs.unlink(oldFilePath, (fsErr) => {
         if (fsErr) console.error('Failed to delete old file:', fsErr);
       });
       
       // Update database with new image info
-      const newImagePath = `/src/assets/${req.file.filename}`;
+      const newImagePath = `/uploads/${req.file.filename}`;
       
       await new Promise((resolve, reject) => {
         db.run("UPDATE site_images SET filename = ?, original_name = ?, path = ?, size = ?, mime_type = ? WHERE id = ?",

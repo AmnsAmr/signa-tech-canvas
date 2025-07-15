@@ -3,9 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { PORT } = require('./config/constants');
+const MigrationHelper = require('./utils/migrationHelper');
 
 // Import database to initialize
 require('./config/database');
+
+// Run image migration on startup
+MigrationHelper.migrateImages();
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -31,8 +35,9 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/contact-settings', require('./routes/contact-settings'));
 
-// Serve uploaded images
-app.use('/uploads', express.static(path.join(__dirname, '../src/assets')));
+// Serve uploaded images from dynamic directory
+const uploadDir = MigrationHelper.ensureUploadDir();
+app.use('/uploads', express.static(uploadDir));
 
 // Static files - serve only for non-API routes
 app.use(express.static(path.join(__dirname, '../dist')));

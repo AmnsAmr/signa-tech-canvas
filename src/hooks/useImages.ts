@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { buildApiUrl, buildUploadUrl } from '@/config/api';
 
 interface SiteImage {
   id: number;
@@ -15,9 +16,12 @@ export const useImages = (category?: string) => {
   const [images, setImages] = useState<SiteImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    fetchImages();
+    if (!hasLoaded) {
+      fetchImages();
+    }
     
     // Listen for image updates from admin panel
     const handleImageUpdate = () => {
@@ -26,27 +30,22 @@ export const useImages = (category?: string) => {
     
     window.addEventListener('imagesUpdated', handleImageUpdate);
     return () => window.removeEventListener('imagesUpdated', handleImageUpdate);
-  }, [category]);
+  }, [category, hasLoaded]);
 
   const fetchImages = async () => {
     try {
       setLoading(true);
-      const timestamp = Date.now();
       const url = category 
-        ? `http://localhost:5000/api/images?category=${category}&t=${timestamp}`
-        : `http://localhost:5000/api/images?t=${timestamp}`;
+        ? `${buildApiUrl('/api/images')}?category=${category}`
+        : buildApiUrl('/api/images');
       
-      const response = await fetch(url, {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
+      const response = await fetch(url);
       
       if (response.ok) {
         const data = await response.json();
         setImages(data);
         setError(null);
+        setHasLoaded(true);
       } else {
         setError('Failed to fetch images');
       }
@@ -59,9 +58,13 @@ export const useImages = (category?: string) => {
   };
 
   const getImageUrl = (filename: string) => {
-    // Add cache busting parameter to force refresh
-    const timestamp = Date.now();
-    return `http://localhost:5000/uploads/${filename}?t=${timestamp}`;
+    return buildUploadUrl(filename);
+  };
+  
+  const getImageUrlFromPath = (path: string) => {
+    // Handle both old and new path formats
+    const filename = path.includes('/uploads/') ? path.split('/uploads/')[1] : path.split('/').pop();
+    return buildUploadUrl(filename || '');
   };
 
   const getImageByCategory = (cat: string, index: number = 0) => {
@@ -78,6 +81,7 @@ export const useImages = (category?: string) => {
     loading,
     error,
     getImageUrl,
+    getImageUrlFromPath,
     getImageByCategory,
     getImagesByCategory,
     refetch: fetchImages

@@ -150,12 +150,12 @@ class Database {
     this.db.get("SELECT COUNT(*) as count FROM site_images", (err, row) => {
       if (!err && row.count === 0) {
         const defaultImages = [
-          { category: 'logo', filename: 'Logo.png', original_name: 'Logo.png', path: '/src/assets/Logo.png' },
-          { category: 'hero', filename: 'main_pic.jpg', original_name: 'main_pic.jpg', path: '/src/assets/main_pic.jpg' },
-          { category: 'about', filename: 'hero-workshop.jpg', original_name: 'hero-workshop.jpg', path: '/src/assets/hero-workshop.jpg' },
-          { category: 'about', filename: 'team-work.jpg', original_name: 'team-work.jpg', path: '/src/assets/team-work.jpg' },
-          { category: 'services', filename: 'facade-project.jpg', original_name: 'facade-project.jpg', path: '/src/assets/facade-project.jpg' },
-          { category: 'services', filename: 'plv-displays.jpg', original_name: 'plv-displays.jpg', path: '/src/assets/plv-displays.jpg' }
+          { category: 'logo', filename: 'Logo.png', original_name: 'Logo.png', path: '/uploads/Logo.png' },
+          { category: 'hero', filename: 'main_pic.jpg', original_name: 'main_pic.jpg', path: '/uploads/main_pic.jpg' },
+          { category: 'about', filename: 'hero-workshop.jpg', original_name: 'hero-workshop.jpg', path: '/uploads/hero-workshop.jpg' },
+          { category: 'about', filename: 'team-work.jpg', original_name: 'team-work.jpg', path: '/uploads/team-work.jpg' },
+          { category: 'services', filename: 'facade-project.jpg', original_name: 'facade-project.jpg', path: '/uploads/facade-project.jpg' },
+          { category: 'services', filename: 'plv-displays.jpg', original_name: 'plv-displays.jpg', path: '/uploads/plv-displays.jpg' }
         ];
         
         for (let i = 1; i <= 16; i++) {
@@ -163,7 +163,7 @@ class Database {
             category: 'portfolio',
             filename: `${i}.jpg`,
             original_name: `${i}.jpg`,
-            path: `/src/assets/${i}.jpg`
+            path: `/uploads/${i}.jpg`
           });
         }
         
@@ -212,6 +212,18 @@ class Database {
         }
       });
     }, 1000);
+    
+    // Update existing image paths to use /uploads/ prefix
+    setTimeout(() => {
+      this.db.all("SELECT * FROM site_images WHERE path LIKE '/src/assets/%'", (err, rows) => {
+        if (!err && rows && rows.length > 0) {
+          rows.forEach(row => {
+            const newPath = row.path.replace('/src/assets/', '/uploads/');
+            this.db.run("UPDATE site_images SET path = ? WHERE id = ?", [newPath, row.id]);
+          });
+        }
+      });
+    }, 1500);
   }
 
   getDb() {
