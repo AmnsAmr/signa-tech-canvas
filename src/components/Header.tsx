@@ -6,8 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
-import { useImageCache } from '@/hooks/useImageCache';
-import ImageLoader from './ImageLoader';
+import { useOptimizedImages } from '@/hooks/useOptimizedImages';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,9 +19,8 @@ const Header = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const { images } = useImageCache('logo');
-  
-  const logoImage = images[0];
+  const { getImageByCategory, getImageUrl } = useOptimizedImages();
+  const logoImage = getImageByCategory('logo', 0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,13 +64,14 @@ const Header = () => {
           {/* Logo with enhanced effects */}
           <Link to="/" className="flex items-center group">
             <div className="relative">
-              <ImageLoader
-                filename={logoImage?.filename}
+              <img
+                src={logoImage?.filename ? getImageUrl(logoImage.filename) : '/placeholder.svg'}
                 alt="Signa Tech Logo"
                 className={`w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
                   isMinimized && !isHovered ? 'h-6' : isScrolled ? 'h-8' : 'h-12'
                 }`}
                 style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}
+                onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.svg'}
               />
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 rounded-lg blur-xl transition-opacity duration-300"></div>
             </div>

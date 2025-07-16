@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const { PORT } = require('./config/constants');
 const MigrationHelper = require('./utils/migrationHelper');
+const { staticCache } = require('./middleware/cache');
 
 // Import database to initialize
 require('./config/database');
@@ -35,12 +36,20 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/contact-settings', require('./routes/contact-settings'));
 
-// Serve uploaded images from dynamic directory
+// Serve uploaded images from dynamic directory with caching
 const uploadDir = MigrationHelper.ensureUploadDir();
-app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', staticCache, express.static(uploadDir, {
+  maxAge: '1y', // Cache for 1 year
+  etag: true,
+  lastModified: true
+}));
 
-// Static files - serve only for non-API routes
-app.use(express.static(path.join(__dirname, '../dist')));
+// Static files - serve only for non-API routes with caching
+app.use(staticCache, express.static(path.join(__dirname, '../dist'), {
+  maxAge: '1d', // Cache for 1 day
+  etag: true,
+  lastModified: true
+}));
 app.get('*', (req, res) => {
   // Only serve index.html for non-API routes
   if (!req.path.startsWith('/api/') && !req.path.startsWith('/uploads/')) {

@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useContactSettings } from '@/hooks/useContactSettings';
+import { useOptimizedContactSettings } from '@/hooks/useOptimizedContactSettings';
 
 const Footer = () => {
   const { t, language } = useLanguage();
-  const { settings } = useContactSettings();
+  const { settings } = useOptimizedContactSettings();
   const currentYear = new Date().getFullYear();
 
   return (
