@@ -40,14 +40,39 @@ export const lazyLoadImage = (img: HTMLImageElement, src: string) => {
   observer.observe(img);
 };
 
-// Preload critical images
-export const preloadImage = (src: string): Promise<void> => {
+// Preload critical images with enhanced options
+export const preloadImage = (src: string, options: { fetchPriority?: 'high' | 'low' | 'auto' } = {}): Promise<void> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve();
     img.onerror = reject;
+    
+    // Set fetchPriority if supported by the browser
+    if ('fetchPriority' in img && options.fetchPriority) {
+      (img as any).fetchPriority = options.fetchPriority;
+    }
+    
     img.src = src;
   });
+};
+
+// Preload multiple critical images
+export const preloadImages = (sources: string[]): Promise<void[]> => {
+  return Promise.all(sources.map(src => preloadImage(src, { fetchPriority: 'high' })));
+};
+
+// Add link preload to document head
+export const addLinkPreload = (href: string, as: string): void => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.href = href;
+  link.as = as;
+  
+  if (as === 'image') {
+    link.setAttribute('fetchpriority', 'high');
+  }
+  
+  document.head.appendChild(link);
 };
 
 // Memory cleanup for components

@@ -20,4 +20,23 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Optimize build for better performance
+    target: 'esnext',
+    cssCodeSplit: true,
+    reportCompressedSize: false, // Faster build
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor code for better caching
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@/components/ui'],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    // Optimize dependencies for faster loading
+    include: ['react', 'react-dom', 'react-router-dom'],
+  },
 }));

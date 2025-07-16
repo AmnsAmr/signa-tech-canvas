@@ -8,6 +8,8 @@ interface ImageLoaderProps {
   className?: string;
   style?: React.CSSProperties;
   onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  priority?: boolean; // Add priority prop for critical images
+  fetchPriority?: 'high' | 'low' | 'auto'; // Add fetchPriority attribute
 }
 
 const ImageLoader: React.FC<ImageLoaderProps> = ({ 
@@ -15,16 +17,19 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
   alt, 
   className = '', 
   style,
-  onError 
+  onError,
+  priority = false,
+  fetchPriority = 'auto'
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const src = filename ? buildUploadUrl(filename) : '/placeholder.svg';
 
   useEffect(() => {
-    if (imgRef.current && filename) {
+    if (imgRef.current && filename && !priority) {
+      // Only use lazy loading for non-priority images
       lazyLoadImage(imgRef.current, src);
     }
-  }, [src, filename]);
+  }, [src, filename, priority]);
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     (e.target as HTMLImageElement).src = '/placeholder.svg';
@@ -34,12 +39,15 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
   return (
     <img
       ref={imgRef}
-      src={filename ? undefined : '/placeholder.svg'}
-      data-src={src}
+      src={priority && filename ? src : (filename ? undefined : '/placeholder.svg')}
+      data-src={!priority ? src : undefined}
       alt={alt}
       className={className}
       style={style}
       onError={handleError}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : fetchPriority}
+      decoding={priority ? 'sync' : 'async'}
     />
   );
 };

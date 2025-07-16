@@ -26,7 +26,9 @@ import {
 } from 'lucide-react';
 import HomepageTestimonials from '@/components/RatingSystem/HomepageTestimonials';
 import { useImageCache } from '@/hooks/useImageCache';
+import usePreloadCriticalImages from '@/hooks/usePreloadCriticalImages';
 import ImageLoader from '@/components/ImageLoader';
+import { useEffect } from 'react';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -38,6 +40,12 @@ const Index = () => {
   const facadeImage = serviceImages[0];
   const plvImage = serviceImages[1];
   const teamImage = aboutImages[1] || aboutImages[0];
+  
+  // Preload critical images for better LCP
+  usePreloadCriticalImages(
+    [heroImage?.filename, facadeImage?.filename].filter(Boolean),
+    { fetchPriority: 'high' }
+  );
   
   const services = [
     {
@@ -256,6 +264,8 @@ const Index = () => {
                   filename={facadeImage?.filename}
                   alt="Habillage façade"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  priority={true}
+                  fetchPriority="high"
                 />
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
                   <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
