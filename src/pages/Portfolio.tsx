@@ -14,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useOptimizedImageLoader } from '@/hooks/useOptimizedImageLoader';
+import { useImageCache } from '@/hooks/useImageCache';
 import { buildUploadUrl } from '@/config/api';
 import { throttle } from '@/utils/performance';
 
@@ -23,7 +23,7 @@ const Portfolio = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const { images: portfolioImages, loading } = useOptimizedImageLoader('portfolio');
+  const { images: portfolioImages, loading } = useImageCache('portfolio');
   
   const images = portfolioImages.map(img => buildUploadUrl(img.filename));
 
