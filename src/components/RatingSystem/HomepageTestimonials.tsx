@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, Quote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { RatingsApi } from '@/api/endpoints';
+import { useApiWithFallback } from '@/hooks/useApiWithFallback';
 
 interface Rating {
   id: number;
@@ -13,27 +15,44 @@ interface Rating {
 
 const HomepageTestimonials: React.FC = () => {
   const { t } = useLanguage();
-  const [ratings, setRatings] = useState<Rating[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchRatings();
-  }, []);
-
-  const fetchRatings = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/ratings');
-      if (response.ok) {
-        const data = await response.json();
-        // Get top 3 ratings
-        setRatings(data.slice(0, 3));
-      }
-    } catch (error) {
-      console.error('Failed to fetch ratings:', error);
-    } finally {
-      setLoading(false);
+  
+  // Mock data as fallback
+  const fallbackRatings: Rating[] = [
+    {
+      id: 1,
+      name: "Ahmed El Mansouri",
+      rating: 5,
+      comment: "Service exceptionnel! L'équipe a transformé notre façade avec un design moderne et professionnel.",
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      name: "Fatima Zahra",
+      rating: 5,
+      comment: "Créativité et qualité au rendez-vous. Nos displays PLV ont considérablement amélioré nos ventes.",
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      name: "Mohamed Berrada",
+      rating: 5,
+      comment: "Professionnalisme et respect des délais. Je recommande vivement SignaTech pour tous vos projets de signalétique.",
+      created_at: new Date().toISOString()
     }
-  };
+  ];
+
+  const { data: allRatings, loading, error } = useApiWithFallback(
+    () => RatingsApi.getAll(),
+    {
+      fallback: fallbackRatings,
+      onError: (error) => console.error('Failed to fetch ratings:', error)
+    }
+  );
+
+  const ratings = useMemo(() => {
+    if (!allRatings) return [];
+    return allRatings.slice(0, 3);
+  }, [allRatings]);
 
   if (loading) {
     return (

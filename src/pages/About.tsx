@@ -17,13 +17,13 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEOHead from '@/components/SEOHead';
-import { useImageCache } from '@/hooks/useImageCache';
+import { useOptimizedImageLoader } from '@/hooks/useOptimizedImageLoader';
 import ImageLoader from '@/components/ImageLoader';
 
 const About = () => {
   const { t } = useLanguage();
-  const { images: heroImages } = useImageCache('hero');
-  const { images: aboutImages } = useImageCache('about');
+  const { images: heroImages } = useOptimizedImageLoader('hero');
+  const { images: aboutImages } = useOptimizedImageLoader('about');
   
   const teamImage = aboutImages[0] || heroImages[0];
   

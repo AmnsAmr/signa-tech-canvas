@@ -25,14 +25,16 @@ import {
   Phone
 } from 'lucide-react';
 import HomepageTestimonials from '@/components/RatingSystem/HomepageTestimonials';
-import { useImageCache } from '@/hooks/useImageCache';
+import { useOptimizedImageLoader } from '@/hooks/useOptimizedImageLoader';
 import ImageLoader from '@/components/ImageLoader';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import LoadingFallback from '@/components/LoadingFallback';
 
 const Index = () => {
   const { t } = useLanguage();
-  const { images: heroImages } = useImageCache('hero');
-  const { images: serviceImages } = useImageCache('services');
-  const { images: aboutImages } = useImageCache('about');
+  const { images: heroImages, loading: heroLoading } = useOptimizedImageLoader('hero');
+  const { images: serviceImages, loading: serviceLoading } = useOptimizedImageLoader('services');
+  const { images: aboutImages, loading: aboutLoading } = useOptimizedImageLoader('about');
   
   const heroImage = heroImages[0];
   const facadeImage = serviceImages[0];
@@ -252,11 +254,15 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
               <div className="aspect-[4/3] overflow-hidden relative">
-                <ImageLoader
-                  filename={facadeImage?.filename}
-                  alt="Habillage façade"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
+                {serviceLoading || !facadeImage ? (
+                  <LoadingFallback type="image" className="w-full h-full" />
+                ) : (
+                  <ImageLoader
+                    filename={facadeImage?.filename}
+                    alt="Habillage façade"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
                   <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
                 </div>
@@ -269,11 +275,15 @@ const Index = () => {
 
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:rotate-1 hover:scale-105 lg:translate-y-8">
               <div className="aspect-[4/3] overflow-hidden relative">
-                <ImageLoader
-                  filename={plvImage?.filename}
-                  alt="Displays PLV"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
+                {serviceLoading || !plvImage ? (
+                  <LoadingFallback type="image" className="w-full h-full" />
+                ) : (
+                  <ImageLoader
+                    filename={plvImage?.filename}
+                    alt="Displays PLV"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
                   <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
                 </div>
@@ -286,11 +296,15 @@ const Index = () => {
 
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
               <div className="aspect-[4/3] overflow-hidden relative">
-                <ImageLoader
-                  filename={teamImage?.filename}
-                  alt="Équipe travail"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
+                {aboutLoading || !teamImage ? (
+                  <LoadingFallback type="image" className="w-full h-full" />
+                ) : (
+                  <ImageLoader
+                    filename={teamImage?.filename}
+                    alt="Équipe travail"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
                   <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
                 </div>
@@ -333,7 +347,15 @@ const Index = () => {
           </div>
 
           {/* Dynamic Ratings Display - Top 3 by Rating */}
-          <HomepageTestimonials />
+          <ErrorBoundary fallback={
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <LoadingFallback key={i} type="card" />
+              ))}
+            </div>
+          }>
+            <HomepageTestimonials />
+          </ErrorBoundary>
           
           <div className="text-center mt-12">
             <Button asChild variant="outline" size="lg" className="text-xl px-12 py-4 rounded-2xl">
