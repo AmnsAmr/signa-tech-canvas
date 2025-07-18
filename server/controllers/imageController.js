@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const database = require('../config/database');
 const MigrationHelper = require('../utils/migrationHelper');
+const { clearCache } = require('../middleware/cache');
 
 const db = database.getDb();
 
@@ -55,6 +56,9 @@ class ImageController {
           });
       });
       
+      // Clear image cache
+      clearCache('/api/images');
+      
       res.json({
         id: imageId,
         category,
@@ -99,6 +103,9 @@ class ImageController {
         });
       });
 
+      // Clear image cache
+      clearCache('/api/images');
+      
       res.json({ message: 'Image deleted successfully' });
     } catch (error) {
       console.error('Delete image error:', error);
@@ -142,6 +149,9 @@ class ImageController {
             else resolve();
           });
       });
+      
+      // Clear image cache
+      clearCache('/api/images');
       
       res.json({
         id: parseInt(id),

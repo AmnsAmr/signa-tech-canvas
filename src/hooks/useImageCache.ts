@@ -58,7 +58,9 @@ export const useImageCache = (category?: string) => {
 
     // Listen for cache updates
     const handleImageUpdate = () => {
-      imageCache.delete(cacheKey);
+      // Clear all image cache when images are updated
+      imageCache.clear();
+      loadingStates.clear();
       fetchImages(cacheKey);
     };
     
