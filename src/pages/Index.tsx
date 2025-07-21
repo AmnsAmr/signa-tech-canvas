@@ -33,19 +33,32 @@ import { useEffect } from 'react';
 const Index = () => {
   const { t } = useLanguage();
   const { images: heroImages } = useImageCache('hero');
-  const { images: serviceImages } = useImageCache('services');
   const { images: aboutImages } = useImageCache('about');
   
-  const heroImage = heroImages[0];
-  const facadeImage = serviceImages[0];
-  const plvImage = serviceImages[1];
-  const teamImage = aboutImages[1] || aboutImages[0];
+  // Sort hero images by ID to ensure consistent order
+  const sortedHeroImages = [...heroImages].sort((a, b) => a.id - b.id);
+  
+  // Use the sorted hero images for the three cards
+  const heroImage = sortedHeroImages[0]; // Main hero image
+  const facadeImage = sortedHeroImages[1]; // Facade project image (2nd hero image)
+  const plvImage = sortedHeroImages[2]; // PLV project image (3rd hero image)
   
   // Preload critical images for better LCP
   usePreloadCriticalImages(
     [heroImage?.filename, facadeImage?.filename].filter(Boolean),
     { fetchPriority: 'high' }
   );
+  
+  // Log available images for debugging
+  useEffect(() => {
+    console.log('Hero images available:', heroImages.length);
+    console.log('About images available:', aboutImages.length);
+    
+    // Log the specific images being used
+    console.log('Hero image 1 (main):', heroImage?.filename);
+    console.log('Hero image 2 (facade):', facadeImage?.filename);
+    console.log('Hero image 3 (plv/craft):', plvImage?.filename);
+  }, [heroImages, aboutImages, heroImage, facadeImage, plvImage]);
   
   const services = [
     {
@@ -259,7 +272,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
-              <div className="aspect-[4/3] overflow-hidden relative">
+              <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
                   filename={facadeImage?.filename}
                   alt="Habillage façade"
@@ -278,9 +291,9 @@ const Index = () => {
             </Card>
 
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:rotate-1 hover:scale-105 lg:translate-y-8">
-              <div className="aspect-[4/3] overflow-hidden relative">
+              <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
-                  filename={plvImage?.filename}
+                  filename={heroImage?.filename}
                   alt="Displays PLV"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
@@ -295,10 +308,10 @@ const Index = () => {
             </Card>
 
             <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
-              <div className="aspect-[4/3] overflow-hidden relative">
+              <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
-                  filename={teamImage?.filename}
-                  alt="Équipe travail"
+                  filename={plvImage?.filename}
+                  alt="Artisanat"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">

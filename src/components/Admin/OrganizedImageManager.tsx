@@ -40,9 +40,9 @@ const sections: ImageSection[] = [
   },
   { 
     key: 'hero', 
-    title: 'Page d\'Accueil - Hero', 
+    title: 'Page d\'Accueil', 
     icon: Home, 
-    description: 'Images principales de la page d\'accueil et aperçus portfolio', 
+    description: 'Images principales de la page d\'accueil (hero + 2 aperçus portfolio)', 
     usage: 'Homepage hero section + portfolio preview cards',
     maxImages: 3,
     priority: 'high'
@@ -54,14 +54,6 @@ const sections: ImageSection[] = [
     description: 'Image de l\'équipe utilisée dans la section histoire', 
     usage: 'About page story section (single image)',
     maxImages: 1,
-    priority: 'medium'
-  },
-  { 
-    key: 'services', 
-    title: 'Services & Projets', 
-    icon: Palette, 
-    description: 'Images des services (façade, PLV, etc.) utilisées sur la page d\'accueil', 
-    usage: 'Homepage portfolio preview section',
     priority: 'medium'
   },
   { 
@@ -99,6 +91,12 @@ const OrganizedImageManager: React.FC = () => {
           acc[img.category].push(img);
           return acc;
         }, {});
+        
+        // Sort images by ID for consistent order
+        Object.keys(grouped).forEach(category => {
+          grouped[category].sort((a, b) => a.id - b.id);
+        });
+        
         setImages(grouped);
       }
     } catch (error) {
@@ -249,6 +247,20 @@ const OrganizedImageManager: React.FC = () => {
                 </div>
               )}
               
+              {section.key === 'hero' && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <div className="text-sm text-blue-700">
+                    <p><strong>Important:</strong> Cette section est limitée à 3 images spécifiques pour la page d'accueil:</p>
+                    <ol className="list-decimal ml-5 mt-1">
+                      <li>Image principale (Hero) - Affichée en haut de la page d'accueil</li>
+                      <li>Aperçu projet 1 (Façade) - Affichée dans la section portfolio (1ère carte)</li>
+                      <li>Aperçu projet 2 (Artisanat) - Affichée dans la section portfolio (3ème carte)</li>
+                    </ol>
+                  </div>
+                </div>
+              )}
+              
               {canUpload && (
                 <div className="flex gap-4 items-end p-4 bg-muted/30 rounded-lg">
                   <div className="flex-1">
@@ -275,15 +287,13 @@ const OrganizedImageManager: React.FC = () => {
                 {sectionImages.map((image, index) => {
                   const isFirstImage = index === 0;
                   const orderHint = section.key === 'hero' && index < 3 ? 
-                    ['Image principale', 'Aperçu projet 1', 'Aperçu projet 2'][index] :
-                    section.key === 'services' && index < 2 ?
-                    ['Projet façade', 'Projet PLV'][index] :
+                    ['Image principale (Hero)', 'Aperçu projet 1 (Façade)', 'Aperçu projet 2 (Artisanat)'][index] :
                     section.key === 'about' ?
                     'Image équipe' :
                     `Image ${index + 1}`;
                   
                   return (
-                    <Card key={image.id} className={`overflow-hidden relative ${
+                    <Card key={image.id} className={`overflow-hidden relative flex flex-col h-full ${
                       isFirstImage ? 'ring-2 ring-primary ring-opacity-50' : ''
                     }`}>
                       {isFirstImage && (
@@ -291,7 +301,7 @@ const OrganizedImageManager: React.FC = () => {
                           Principale
                         </div>
                       )}
-                      <div className="aspect-video bg-gray-100 relative">
+                      <div className="aspect-square bg-gray-100 relative">
                         <img
                           src={buildUploadUrl(image.filename)}
                           alt={image.original_name}
@@ -304,13 +314,15 @@ const OrganizedImageManager: React.FC = () => {
                           #{index + 1}
                         </div>
                       </div>
-                      <CardContent className="p-3">
-                        <div className="text-sm font-medium truncate mb-1">{image.original_name}</div>
-                        <div className="text-xs text-blue-600 mb-2 font-medium">{orderHint}</div>
-                        <div className="text-xs text-gray-500 mb-3">
-                          {Math.round(image.size / 1024)}KB • {new Date(image.created_at).toLocaleDateString()}
+                      <CardContent className="p-3 flex-1 flex flex-col">
+                        <div>
+                          <div className="text-sm font-medium truncate mb-1">{image.original_name}</div>
+                          <div className="text-xs text-blue-600 mb-2 font-medium">{orderHint}</div>
+                          <div className="text-xs text-gray-500 mb-3">
+                            {Math.round(image.size / 1024)}KB • {new Date(image.created_at).toLocaleDateString()}
+                          </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 mt-auto">
                           <Button
                             size="sm"
                             variant="outline"

@@ -29,15 +29,9 @@ export const IMAGE_USAGE_MAP: Record<string, ImageUsageMap> = {
   about: {
     category: 'about',
     expectedUsage: 'About page story section',
-    maxImages: 2,
+    maxImages: 1,
     priority: 'medium',
-    description: 'Images de l\'équipe et de l\'histoire (page À propos)'
-  },
-  services: {
-    category: 'services',
-    expectedUsage: 'Homepage portfolio preview section',
-    priority: 'medium',
-    description: 'Images des services (façade, PLV) utilisées sur la page d\'accueil'
+    description: 'Image de l\'équipe utilisée dans la section histoire (page À propos)'
   },
   portfolio: {
     category: 'portfolio',
@@ -75,9 +69,8 @@ export const suggestCategory = (filename: string): string | null => {
   const lowerFilename = filename.toLowerCase();
   
   if (lowerFilename.includes('logo')) return 'logo';
-  if (lowerFilename.includes('hero') || lowerFilename.includes('main')) return 'hero';
+  if (lowerFilename.includes('hero') || lowerFilename.includes('main') || lowerFilename.includes('facade') || lowerFilename.includes('plv')) return 'hero';
   if (lowerFilename.includes('about') || lowerFilename.includes('team') || lowerFilename.includes('equipe')) return 'about';
-  if (lowerFilename.includes('facade') || lowerFilename.includes('plv') || lowerFilename.includes('service')) return 'services';
   
   return 'portfolio'; // Default fallback
 };
