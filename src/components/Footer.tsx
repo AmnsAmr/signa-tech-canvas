@@ -2,10 +2,14 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOptimizedContactSettings } from '@/hooks/useOptimizedContactSettings';
+import { useImageCache } from '@/hooks/useImageCache';
+import { buildUploadUrl } from '@/config/api';
 
 const Footer = () => {
   const { t, language } = useLanguage();
   const { settings } = useOptimizedContactSettings();
+  const { images: logoImages } = useImageCache('logo');
+  const logoImage = logoImages[0];
   const currentYear = new Date().getFullYear();
 
   return (
@@ -15,13 +19,26 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <span className="text-lg font-bold text-primary-foreground">ST</span>
+              {logoImage ? (
+                <img 
+                  src={buildUploadUrl(logoImage.filename)}
+                  alt="Signa Tech Logo"
+                  className="h-10 w-auto object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/placeholder.svg';
+                    (e.target as HTMLImageElement).style.width = '40px';
+                    (e.target as HTMLImageElement).style.height = '40px';
+                  }}
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                  <span className="text-lg font-bold text-primary-foreground">ST</span>
+                </div>
+              )}
+              <div>
+                <h3 className="text-xl font-bold text-primary">{settings.company_name}</h3>
+                <p className="text-xs text-muted-foreground">{settings.company_tagline}</p>
               </div>
-            <div>
-              <h3 className="text-xl font-bold text-primary">{settings.company_name}</h3>
-              <p className="text-xs text-muted-foreground">{settings.company_tagline}</p>
-            </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">
               {t('footer.description')}

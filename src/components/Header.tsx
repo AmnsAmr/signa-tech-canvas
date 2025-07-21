@@ -6,7 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
-import { useOptimizedImages } from '@/hooks/useOptimizedImages';
+import { useImageCache } from '@/hooks/useImageCache';
+import { buildUploadUrl } from '@/config/api';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,8 +20,8 @@ const Header = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const { getImageByCategory, getImageUrl } = useOptimizedImages();
-  const logoImage = getImageByCategory('logo', 0);
+  const { images: logoImages } = useImageCache('logo');
+  const logoImage = logoImages[0];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,7 +66,7 @@ const Header = () => {
           <Link to="/" className="flex items-center group">
             <div className="relative">
               <img
-                src={logoImage?.filename ? getImageUrl(logoImage.filename) : '/placeholder.svg'}
+                src={logoImage?.filename ? buildUploadUrl(logoImage.filename) : '/placeholder.svg'}
                 alt="Signa Tech Logo"
                 className={`w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
                   isMinimized && !isHovered ? 'h-6' : isScrolled ? 'h-8' : 'h-12'

@@ -14,22 +14,3 @@ export const refreshImageCache = () => {
   // Force reload of image components
   window.dispatchEvent(new CustomEvent('forceImageRefresh'));
 };
-
-export const refreshAllCaches = () => {
-  // Clear all browser caches
-  if ('caches' in window) {
-    caches.keys().then(names => {
-      names.forEach(name => caches.delete(name));
-    });
-  }
-  
-  // Clear localStorage cache if any
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('image-cache-') || key.startsWith('api-cache-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  
-  // Dispatch refresh events
-  refreshImageCache();
-};
