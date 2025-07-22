@@ -15,6 +15,18 @@ yarn-error.log*
 dist/
 build/
 
+# Uploads and media files
+server/uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.svg
+*.pdf
+*.mp4
+*.webm
+
 # IDE
 .vscode/
 .idea/
