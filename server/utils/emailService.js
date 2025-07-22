@@ -97,10 +97,29 @@ class EmailService {
     
     console.log('Email credentials available, proceeding with notification');
     
-    const servicesHtml = services && services.length > 0 
+    // Parse services if it's a string
+    let parsedServices = [];
+    try {
+      if (typeof services === 'string') {
+        parsedServices = JSON.parse(services);
+      } else if (Array.isArray(services)) {
+        parsedServices = services;
+      }
+    } catch (e) {
+      console.error('Error parsing services in email:', e);
+      parsedServices = [];
+    }
+    
+    const servicesHtml = parsedServices && parsedServices.length > 0 
       ? `
-        <h3>Services demandés (${services.length} service${services.length > 1 ? 's' : ''}):</h3>
-        ${services.map((service, index) => `
+        <h3>Services demandés (${parsedServices.length} service${parsedServices.length > 1 ? 's' : ''}):</h3>
+        ${parsedServices.map((service, index) => {
+          // Ensure service is an object
+          if (!service || typeof service !== 'object') {
+            return `<div>Service ${index + 1}: Information non disponible</div>`;
+          }
+          
+          return `
           <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
             <h4 style="color: #333; margin-bottom: 8px;">Service ${index + 1}: ${service.serviceType || 'Non spécifié'}</h4>
             ${service.material ? `<p><strong>Matériau:</strong> ${service.material}</p>` : ''}
@@ -111,7 +130,8 @@ class EmailService {
             ${service.finishing ? `<p><strong>Finition:</strong> ${service.finishing}</p>` : ''}
             ${service.cuttingApplication ? `<p><strong>Application:</strong> ${service.cuttingApplication}</p>` : ''}
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       `
       : '';
 
@@ -146,7 +166,7 @@ class EmailService {
       const mailOptions = {
         from: EMAIL_USER,
         to: adminEmails.join(', '),
-        subject: `Nouvelle demande de contact de ${name}${services && services.length > 0 ? ` (${services.length} service${services.length > 1 ? 's' : ''})` : ''}`,
+        subject: `Nouvelle demande de contact de ${name}${parsedServices && parsedServices.length > 0 ? ` (${parsedServices.length} service${parsedServices.length > 1 ? 's' : ''})` : ''}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">Nouvelle demande de contact ${isGuest ? '(Invité)' : '(Utilisateur connecté)'}</h2>
