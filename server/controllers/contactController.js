@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const database = require('../config/database');
 const emailService = require('../utils/emailService');
+const vectorService = require('../utils/vectorService');
 const path = require('path');
 const fs = require('fs');
 
@@ -57,6 +58,28 @@ class ContactController {
           });
       });
 
+      // Process vector file if present
+      let vectorAnalysis = null;
+      if (req.file) {
+        try {
+          // Check if it's a supported vector file
+          const ext = path.extname(req.file.originalname).toLowerCase();
+          const supportedExtensions = ['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc'];
+          
+          if (supportedExtensions.includes(ext)) {
+            console.log('Processing vector file:', req.file.originalname);
+            vectorAnalysis = await vectorService.processVectorFile(
+              submissionId, 
+              req.file.path, 
+              req.file.originalname
+            );
+          }
+        } catch (analysisError) {
+          console.error('Vector analysis failed:', analysisError);
+          // Continue without failing the request
+        }
+      }
+
       // Send notification email
       try {
         await emailService.sendContactNotification({
@@ -69,14 +92,18 @@ class ContactController {
           services,
           isGuest: true,
           hasFile: !!req.file,
-          fileName: fileName
+          fileName: fileName,
+          vectorAnalysis: vectorAnalysis
         });
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
         // Continue without failing the request
       }
       
-      res.json({ message: 'Votre demande a été envoyée avec succès!' });
+      res.json({ 
+        message: 'Votre demande a été envoyée avec succès!',
+        vectorAnalysis: vectorAnalysis
+      });
     } catch (error) {
       console.error('Guest contact submission error:', error);
       res.status(500).json({ message: 'Failed to save submission' });
@@ -150,6 +177,28 @@ class ContactController {
           });
       });
 
+      // Process vector file if present
+      let vectorAnalysis = null;
+      if (req.file) {
+        try {
+          // Check if it's a supported vector file
+          const ext = path.extname(req.file.originalname).toLowerCase();
+          const supportedExtensions = ['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc'];
+          
+          if (supportedExtensions.includes(ext)) {
+            console.log('Processing vector file:', req.file.originalname);
+            vectorAnalysis = await vectorService.processVectorFile(
+              submissionId, 
+              req.file.path, 
+              req.file.originalname
+            );
+          }
+        } catch (analysisError) {
+          console.error('Vector analysis failed:', analysisError);
+          // Continue without failing the request
+        }
+      }
+
       // Send notification email
       try {
         await emailService.sendContactNotification({
@@ -162,14 +211,18 @@ class ContactController {
           services,
           isGuest: false,
           hasFile: !!req.file,
-          fileName: fileName
+          fileName: fileName,
+          vectorAnalysis: vectorAnalysis
         });
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
         // Continue without failing the request
       }
       
-      res.json({ message: 'Votre demande a été envoyée avec succès!' });
+      res.json({ 
+        message: 'Votre demande a été envoyée avec succès!',
+        vectorAnalysis: vectorAnalysis
+      });
     } catch (error) {
       console.error('User contact submission error:', error);
       res.status(500).json({ message: 'Failed to save submission' });
@@ -222,6 +275,138 @@ class ContactController {
     } catch (error) {
       console.error('File download error:', error);
       res.status(500).json({ message: 'Failed to download file' });
+    }
+  }
+
+  async analyzeVectorFile(req, res) {
+    try {
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Admin only.' });
+      }
+
+      // Check if file was uploaded
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      // Check if it's a supported vector file
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const supportedExtensions = ['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc'];
+      
+      if (!supportedExtensions.includes(ext)) {
+        return res.status(400).json({ message: 'Not a supported vector file format' });
+      }
+
+      // Get units from request or default to mm
+      const units = req.body.units || 'mm';
+
+      try {
+        console.log(`Direct analysis of ${req.file.originalname}`);
+        
+        // Use the vectorAnalyzer directly without storing in database
+        const { analyzeVectorFile } = require('../utils/vectorAnalyzer');
+        const vectorAnalysis = await analyzeVectorFile(req.file.path, units);
+        
+        return res.json({
+          fileName: req.file.originalname,
+          paperArea: vectorAnalysis.paperArea,
+          letterArea: vectorAnalysis.letterArea,
+          pathLength: vectorAnalysis.pathLength,
+          shapes: vectorAnalysis.shapes,
+          fileType: ext.substring(1).toUpperCase(),
+          units: units
+        });
+      } catch (error) {
+        console.error('Error analyzing vector file:', error);
+        return res.status(500).json({ 
+          message: 'Failed to analyze vector file',
+          error: error.message 
+        });
+      }
+    } catch (error) {
+      console.error('Vector file analysis error:', error);
+      res.status(500).json({ message: 'Failed to analyze vector file' });
+    }
+  }
+
+  async getVectorAnalysis(req, res) {
+    try {
+      const { submissionId } = req.params;
+      
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Admin only.' });
+      }
+
+      // Get submission details
+      const submission = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM contact_submissions WHERE id = ?", [submissionId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+
+      if (!submission) {
+        return res.status(404).json({ message: 'Submission not found' });
+      }
+
+      // Get vector analysis results
+      const analysisResults = await vectorService.getAnalysisResults(submissionId);
+      
+      if (!analysisResults) {
+        // If no analysis exists but we have a file, try to analyze it now
+        if (submission.file_path && fs.existsSync(submission.file_path)) {
+          const ext = path.extname(submission.file_name).toLowerCase();
+          const supportedExtensions = ['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc'];
+          
+          if (supportedExtensions.includes(ext)) {
+            try {
+              console.log(`On-demand analysis of ${submission.file_name} for submission ${submissionId}`);
+              const vectorAnalysis = await vectorService.processVectorFile(
+                submission.id,
+                submission.file_path,
+                submission.file_name
+              );
+              
+              return res.json({
+                fileName: submission.file_name,
+                paperArea: vectorAnalysis.paperArea,
+                letterArea: vectorAnalysis.letterArea,
+                pathLength: vectorAnalysis.pathLength,
+                shapes: vectorAnalysis.shapes,
+                fileType: ext.substring(1).toUpperCase(),
+                units: vectorAnalysis.paperArea && vectorAnalysis.paperArea.includes('mm') ? 'mm' : 'units'
+              });
+            } catch (error) {
+              console.error('Error analyzing vector file:', error);
+              return res.status(500).json({ 
+                message: 'Failed to analyze vector file',
+                error: error.message 
+              });
+            }
+          } else {
+            return res.status(400).json({ message: 'Not a supported vector file format' });
+          }
+        }
+        
+        return res.status(404).json({ message: 'No vector analysis available for this submission' });
+      }
+      
+      // Return the analysis results
+      res.json({
+        fileName: analysisResults.file_name,
+        paperArea: analysisResults.paper_area,
+        letterArea: analysisResults.letter_area,
+        pathLength: analysisResults.path_length,
+        shapes: analysisResults.shapes_data,
+        fileType: path.extname(analysisResults.file_name).substring(1).toUpperCase(),
+        units: analysisResults.paper_area && analysisResults.paper_area.includes('mm') ? 'mm' : 'units'
+      });
+      
+    } catch (error) {
+      console.error('Vector analysis retrieval error:', error);
+      res.status(500).json({ message: 'Failed to retrieve vector analysis' });
     }
   }
 }

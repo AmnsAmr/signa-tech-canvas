@@ -1,52 +1,115 @@
-# Signa-Tech Canvas Server
+# SignaTech Server
 
-This is the backend server for the Signa-Tech Canvas application.
+## Project Structure
 
-## Database Structure
+```
+server/
+├── config/           # Configuration files
+├── controllers/      # API controllers
+├── middleware/       # Express middleware
+├── migrations/       # Database migrations
+├── routes/           # API routes
+├── scripts/          # Utility scripts
+├── uploads/          # Uploaded files
+├── utils/            # Utility functions
+└── backups/          # Database backups
+```
 
-The application uses SQLite for data storage with the following tables:
+## Getting Started
 
-- **users**: Stores user accounts and authentication information
-- **contact_submissions**: Stores contact form submissions from users and guests
-- **password_resets**: Manages password reset requests
-- **site_images**: Stores information about uploaded images
-- **ratings**: Stores customer ratings and testimonials
+1. Install dependencies:
+   ```
+   npm install
+   ```
 
-## Database Maintenance
+2. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in the required values
 
-Several scripts are available for database management:
+3. Start the server:
+   ```
+   npm start
+   ```
 
-- `npm run db:init` - Initialize the database and create tables
-- `npm run db:backup` - Create a backup of the database and perform maintenance
-- `npm run db:health` - Check the health of the database
+4. For development:
+   ```
+   npm run dev
+   ```
+
+## Database Management
+
+The server uses SQLite for data storage. Database migrations run automatically on server startup.
+
+### Database Commands
+
+- Run all migrations:
+  ```
+  npm run db:manage migrate
+  ```
+
+- Create a database backup:
+  ```
+  npm run db:backup
+  ```
+
+- Run database health checks:
+  ```
+  npm run db:manage health
+  ```
+
+- Initialize database:
+  ```
+  npm run db:manage init
+  ```
+
+## Testing
+
+- Test email functionality:
+  ```
+  npm run test:email
+  ```
+
+- Test vector file analysis:
+  ```
+  npm run test:vector path/to/vector/file.svg
+  ```
+
+## Vector File Analysis
+
+The server supports analyzing vector files (SVG, DXF, AI, PDF, EPS, GCODE) to extract geometric information:
+
+- Path lengths
+- Shape areas
+- Paper dimensions
+
+This information is stored in the database and included in notification emails.
 
 ## API Endpoints
 
-The server provides the following API endpoints:
+### Contact
 
-- `/api/auth` - Authentication routes (login, register, etc.)
-- `/api/contact` - Contact form submission routes
-- `/api/admin` - Admin-only routes
-- `/api/images` - Image management routes
-- `/api/ratings` - Rating and testimonial routes
-- `/api/user` - User profile management routes
+- `POST /api/contact/guest-submit` - Submit a contact form as a guest
+- `POST /api/contact/submit` - Submit a contact form as a logged-in user
+- `GET /api/contact/download/:filename` - Download an uploaded file (admin only)
+- `GET /api/contact/vector-analysis/:submissionId` - Get vector analysis for a submission (admin only)
 
-## Development
+### Authentication
 
-To start the development server:
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login a user
+- `POST /api/auth/google` - Login with Google
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password
 
-```bash
-npm run dev
-```
+### Admin
 
-The server will run on the port specified in the `.env` file (default: 3000).
+- `GET /api/admin/submissions` - Get all contact submissions (admin only)
+- `GET /api/admin/users` - Get all users (admin only)
 
-## Production
+## File Structure
 
-To start the production server:
-
-```bash
-npm start
-```
-
-Make sure to set the `NODE_ENV` environment variable to `production` in your `.env` file.
+- `app.js` - Main application entry point
+- `utils/startupManager.js` - Handles all initialization tasks
+- `utils/dbMigrationManager.js` - Manages database migrations
+- `utils/vectorAnalyzer.js` - Analyzes vector files
+- `utils/vectorService.js` - Service for vector file processing

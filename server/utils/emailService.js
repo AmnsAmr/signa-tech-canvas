@@ -87,7 +87,7 @@ class EmailService {
     });
   }
 
-  async sendContactNotification({ name, company, email, phone, project, message, services, isGuest, hasFile, fileName }) {
+  async sendContactNotification({ name, company, email, phone, project, message, services, isGuest, hasFile, fileName, vectorAnalysis }) {
     console.log('Attempting to send contact notification email');
     
     if (!EMAIL_USER || !EMAIL_PASS || !this.transporter) {
@@ -188,6 +188,17 @@ class EmailService {
               <h3 style="color: #2e7d32; margin-top: 0;">Fichier joint</h3>
               <p><strong>Nom du fichier:</strong> ${fileName || 'Fichier vectoriel'}</p>
               <p style="color: #388e3c;">Le fichier est disponible dans le panneau d'administration.</p>
+              ${vectorAnalysis ? `
+              <div style="margin-top: 10px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
+                <h4 style="color: #2e7d32; margin-top: 0;">Analyse vectorielle</h4>
+                <p><strong>Surface du matériau:</strong> ${vectorAnalysis.paperArea}</p>
+                <p><strong>Surface de la forme:</strong> ${vectorAnalysis.letterArea}</p>
+                <p><strong>Longueur totale des chemins:</strong> ${vectorAnalysis.pathLength}</p>
+                ${vectorAnalysis.shapes && vectorAnalysis.shapes.length > 0 ? `
+                <p><strong>Nombre de formes:</strong> ${vectorAnalysis.shapes.length}</p>
+                ` : ''}
+              </div>
+              ` : ''}
             </div>
             ` : ''}
             ${servicesHtml}

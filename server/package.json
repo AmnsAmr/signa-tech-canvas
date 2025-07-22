@@ -7,10 +7,10 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:backup": "node db-maintenance.js",
-    "db:init": "node init-db.js",
-    "db:health": "node db-health-check.js",
-    "test:email": "node test-email.js"
+    "db:manage": "node scripts/db-manager.js",
+    "db:backup": "node scripts/db-manager.js backup",
+    "test:email": "node scripts/test-email.js",
+    "test:vector": "node scripts/test-vector.js"
   },
   "keywords": [],
   "author": "",
@@ -18,14 +18,20 @@
   "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "canvas": "^3.1.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
+    "dxf-parser": "^1.1.2",
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "google-auth-library": "^9.15.1",
+    "jsdom": "^26.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.5",
-    "sqlite3": "^5.1.6"
+    "paper": "^0.12.18",
+    "paper-jsdom": "^0.12.18",
+    "sqlite3": "^5.1.6",
+    "svg-parser": "^2.0.4"
   }
 }

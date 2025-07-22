@@ -4,13 +4,16 @@ const cors = require('cors');
 const path = require('path');
 const { PORT } = require('./config/constants');
 const MigrationHelper = require('./utils/migrationHelper');
+const StartupManager = require('./utils/startupManager');
 const { staticCache } = require('./middleware/cache');
 
 // Import database to initialize
 require('./config/database');
 
-// Run image migration on startup
-MigrationHelper.migrateImages();
+// Run all startup tasks
+StartupManager.initialize().catch(err => {
+  console.error('Startup initialization error:', err);
+});
 
 // Import routes
 const authRoutes = require('./routes/auth');

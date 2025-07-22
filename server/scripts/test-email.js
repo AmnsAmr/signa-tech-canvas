@@ -1,5 +1,11 @@
+/**
+ * Test script for email service
+ * 
+ * Usage: node scripts/test-email.js
+ */
+
 require('dotenv').config();
-const emailService = require('./utils/emailService');
+const emailService = require('../utils/emailService');
 
 // Log environment variables
 console.log('Email configuration:');
@@ -29,7 +35,24 @@ async function testEmail() {
       ],
       isGuest: true,
       hasFile: true,
-      fileName: 'test-file.pdf'
+      fileName: 'test-file.pdf',
+      vectorAnalysis: {
+        paperArea: '210x297mm (A4)',
+        letterArea: '12.3 cm²',
+        pathLength: '45.7 cm',
+        shapes: [
+          {
+            name: 'Shape 1',
+            length: '25.2 cm',
+            area: '5.8 cm²'
+          },
+          {
+            name: 'Shape 2',
+            length: '20.5 cm',
+            area: '6.5 cm²'
+          }
+        ]
+      }
     });
     
     console.log('Email sent successfully:', result);

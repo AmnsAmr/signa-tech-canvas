@@ -24,4 +24,10 @@ router.post('/submit', authenticateToken, uploadContactFile, userContactValidati
 // Route to download uploaded files (admin only)
 router.get('/download/:filename', authenticateToken, contactController.downloadFile);
 
+// Route to get vector analysis for a submission (admin only)
+router.get('/vector-analysis/:submissionId', authenticateToken, contactController.getVectorAnalysis);
+
+// Route to analyze a vector file directly (admin only)
+router.post('/analyze-vector', authenticateToken, uploadContactFile, contactController.analyzeVectorFile);
+
 module.exports = router;
