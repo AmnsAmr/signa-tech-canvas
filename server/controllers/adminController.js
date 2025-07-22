@@ -44,7 +44,14 @@ class AdminController {
             resolve(rows.map(row => ({
               ...row,
               services: row.services ? JSON.parse(row.services) : [],
-              submission_group: row.submission_group || `group_${row.id}`
+              submission_group: row.submission_group || `group_${row.id}`,
+              has_file: !!row.file_path,
+              file_info: row.file_path ? {
+                name: row.file_name,
+                size: row.file_size,
+                type: row.file_type,
+                path: row.file_path
+              } : null
             })));
           }
         });

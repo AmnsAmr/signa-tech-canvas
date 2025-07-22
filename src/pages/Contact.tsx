@@ -17,6 +17,7 @@ import { useImageCache } from '@/hooks/useImageCache';
 import ImageLoader from '@/components/ImageLoader';
 
 import { useOptimizedContactSettings } from '@/hooks/useOptimizedContactSettings';
+import FileUpload from '@/components/FileUpload';
 import { 
   Phone, 
   Mail, 
@@ -56,6 +57,7 @@ interface FormData {
   project: string;
   message: string;
   services: ServiceSpec[];
+  vectorFile?: File | null;
 }
 
 interface ContactCardProps {
@@ -136,7 +138,8 @@ const Contact: React.FC = () => {
     phone: isAuthenticated ? user?.phone || '' : '',
     project: '',
     message: '',
-    services: []
+    services: [],
+    vectorFile: null
   });
 
   const [showServiceModal, setShowServiceModal] = useState(false);
@@ -186,6 +189,11 @@ const Contact: React.FC = () => {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  // Handle file selection
+  const handleFileSelect = (file: File | null) => {
+    setFormData((prevData) => ({ ...prevData, vectorFile: file }));
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,18 +216,33 @@ const Contact: React.FC = () => {
     const backendUrl = isAuthenticated ? 'http://localhost:5000/api/contact/submit' : 'http://localhost:5000/api/contact/guest-submit';
 
     try {
-      const headers: any = {
-        'Content-Type': 'application/json'
-      };
+      // Use FormData for file upload
+      const formDataToSend = new FormData();
+      
+      // Add all form fields
+      Object.keys(formData).forEach(key => {
+        if (key === 'vectorFile') {
+          if (formData.vectorFile) {
+            formDataToSend.append('vectorFile', formData.vectorFile);
+          }
+        } else if (key === 'services') {
+          formDataToSend.append('services', JSON.stringify(formData.services));
+        } else {
+          formDataToSend.append(key, formData[key as keyof FormData] as string);
+        }
+      });
+
+      const headers: any = {};
       
       if (isAuthenticated && token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
+      // Don't set Content-Type for FormData - let browser set it with boundary
 
       const response = await fetch(backendUrl, {
         method: 'POST',
         headers,
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       const result = await response.json();
@@ -234,7 +257,8 @@ const Contact: React.FC = () => {
           phone: isAuthenticated ? user?.phone || '' : '',
           project: '',
           message: '',
-          services: []
+          services: [],
+          vectorFile: null
         });
         toast({
           title: "Message envoyé",
@@ -423,6 +447,13 @@ const Contact: React.FC = () => {
                       className="border-border/50 focus:border-primary transition-colors resize-none"
                     />
                   </div>
+
+                  {/* File Upload Section */}
+                  <FileUpload 
+                    onFileSelect={handleFileSelect}
+                    acceptedFormats={['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc']}
+                    maxSize={10}
+                  />
 
                   {/* Service Management Section */}
                   <div className="space-y-4">

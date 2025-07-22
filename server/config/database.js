@@ -45,6 +45,10 @@ class Database {
         services TEXT,
         status TEXT DEFAULT 'pending',
         submission_group TEXT,
+        file_path TEXT,
+        file_name TEXT,
+        file_size INTEGER,
+        file_type TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
       )`);
@@ -59,6 +63,23 @@ class Database {
       });
       
       this.db.run("ALTER TABLE contact_submissions ADD COLUMN submission_group TEXT", (err) => {
+        // Ignore error if column already exists
+      });
+
+      // Add file upload columns to existing contact_submissions table
+      this.db.run("ALTER TABLE contact_submissions ADD COLUMN file_path TEXT", (err) => {
+        // Ignore error if column already exists
+      });
+      
+      this.db.run("ALTER TABLE contact_submissions ADD COLUMN file_name TEXT", (err) => {
+        // Ignore error if column already exists
+      });
+      
+      this.db.run("ALTER TABLE contact_submissions ADD COLUMN file_size INTEGER", (err) => {
+        // Ignore error if column already exists
+      });
+      
+      this.db.run("ALTER TABLE contact_submissions ADD COLUMN file_type TEXT", (err) => {
         // Ignore error if column already exists
       });
 

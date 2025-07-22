@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const contactController = require('../controllers/contactController');
 const { authenticateToken } = require('../middleware/auth');
+const { uploadContactFile } = require('../middleware/fileUpload');
 
 const router = express.Router();
 
@@ -16,8 +17,11 @@ const userContactValidation = [
   body('message').notEmpty().withMessage('Message is required')
 ];
 
-// Routes
-router.post('/guest-submit', guestContactValidation, contactController.submitGuestContact);
-router.post('/submit', authenticateToken, userContactValidation, contactController.submitUserContact);
+// Routes with file upload support
+router.post('/guest-submit', uploadContactFile, guestContactValidation, contactController.submitGuestContact);
+router.post('/submit', authenticateToken, uploadContactFile, userContactValidation, contactController.submitUserContact);
+
+// Route to download uploaded files (admin only)
+router.get('/download/:filename', authenticateToken, contactController.downloadFile);
 
 module.exports = router;

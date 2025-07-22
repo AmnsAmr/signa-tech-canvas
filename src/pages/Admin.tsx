@@ -15,7 +15,7 @@ import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip } from 'lucide-react';
 
 interface User {
   id: number;
@@ -57,6 +57,13 @@ interface Submission {
   submission_group?: string;
   status: 'pending' | 'done';
   created_at: string;
+  has_file?: boolean;
+  file_info?: {
+    name: string;
+    size: number;
+    type: string;
+    path: string;
+  } | null;
 }
 
 // Helper function to extract group ID from submission_group string
@@ -239,6 +246,40 @@ const Admin = () => {
     } catch (error) {
       console.error('Failed to update status:', error);
     }
+  };
+
+  const downloadFile = async (filename: string, originalName: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/contact/download/${filename}`), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = originalName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to download file');
+      }
+    } catch (error) {
+      console.error('File download error:', error);
+      alert('Failed to download file');
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const createAdmin = async () => {
@@ -583,12 +624,18 @@ const Admin = () => {
                                   {submission.services.length} service{submission.services.length > 1 ? 's' : ''}
                                 </Badge>
                               )}
-                              {submission.submission_group && (
-                                <Badge variant="outline" className="text-xs bg-blue-50">
-                                  ID: {getGroupId(submission.submission_group)}
-                                </Badge>
-                              )}
-                            </div>
+                               {submission.submission_group && (
+                                 <Badge variant="outline" className="text-xs bg-blue-50">
+                                   ID: {getGroupId(submission.submission_group)}
+                                 </Badge>
+                               )}
+                               {submission.has_file && (
+                                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                   <Paperclip className="h-3 w-3 mr-1" />
+                                   Fichier joint
+                                 </Badge>
+                               )}
+                             </div>
                             <p className="text-xs text-muted-foreground mb-1">
                               {submission.user_name} • {submission.email}
                             </p>
@@ -638,8 +685,36 @@ const Admin = () => {
                           <div className="mt-4">
                             
                             {submission.services && submission.services.length > 0 && (
-                              <div className="space-y-3">
-                                <h4 className="text-sm font-medium">Services demandés ({submission.services.length}):</h4>
+                             <div className="space-y-3">
+                               {/* File Download Section */}
+                               {submission.file_info && (
+                                 <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                                   <div className="flex items-center justify-between">
+                                     <div className="flex items-center space-x-3">
+                                       <FileText className="h-6 w-6 text-green-600" />
+                                       <div>
+                                         <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
+                                         <p className="text-xs text-green-600">{submission.file_info.name}</p>
+                                         <p className="text-xs text-green-500">{formatFileSize(submission.file_info.size)}</p>
+                                       </div>
+                                     </div>
+                                     <Button
+                                       size="sm"
+                                       variant="outline"
+                                       className="border-green-300 hover:bg-green-100"
+                                       onClick={() => {
+                                         const filename = submission.file_info!.path.split('/').pop() || '';
+                                         downloadFile(filename, submission.file_info!.name);
+                                       }}
+                                     >
+                                       <Download className="h-4 w-4 mr-2" />
+                                       Télécharger
+                                     </Button>
+                                   </div>
+                                 </div>
+                               )}
+                               
+                               <h4 className="text-sm font-medium">Services demandés ({submission.services.length}):</h4>
                                 {submission.services.map((service, index) => (
                                   <div key={index} className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
                                     <div className="flex items-center mb-2">
