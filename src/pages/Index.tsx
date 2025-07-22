@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage , yearsOfExperience} from '@/contexts/LanguageContext';
 import SEOHead from '@/components/SEOHead';
 import { 
   ArrowRight, 
@@ -90,7 +90,7 @@ const Index = () => {
   // Testimonials are now loaded dynamically from the database
 
   const stats = [
-    { number: "15+", label: t('stats.experience'), icon: Clock },
+    { number: yearsOfExperience, label: t('stats.experience'), icon: Clock },
     { number: "500+", label: t('stats.projects'), icon: Award },
     { number: "200+", label: t('stats.clients'), icon: Users },
     { number: "100%", label: t('stats.solutions'), icon: CheckCircle }

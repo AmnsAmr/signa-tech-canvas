@@ -28,6 +28,10 @@ const getDefaultLanguage = (): Language => {
   return 'en';
 };
 
+  const currentYear = new Date().getFullYear();
+  export const yearsOfExperience = (currentYear - 2008).toString()+"+";
+
+
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(getDefaultLanguage);
 
@@ -67,7 +71,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.projects': 'Projets',
     'nav.contact': 'Contact',
     'nav.quote': 'Devis Gratuit',
-    'hero.badge': '15+ années d\'expérience',
+    'hero.badge': `${yearsOfExperience} années d\'expérience`,
     'hero.title1': 'SOLUTIONS',
     'hero.title2': 'CRÉATIVES',
     'hero.subtitle': 'Nous transformons vos idées en',
@@ -140,7 +144,7 @@ const translations: Record<Language, Record<string, string>> = {
     'company.name': 'Signa Tech',
     'company.tagline': 'Solutions PLV & Signalétique',
     'company.address': 'Zone Industrielle Gzenaya lot 376, Tanger, Morocco',
-    'footer.description': 'Depuis plus de 15 ans, nous créons des solutions de communication créatives et innovantes pour renforcer la visibilité de votre marque.',
+    'footer.description': `Depuis plus de ${yearsOfExperience} ans, nous créons des solutions de communication créatives et innovantes pour renforcer la visibilité de votre marque.`,
     'footer.navigation': 'Navigation',
     'footer.services': 'Nos Services',
     'footer.contact': 'Contact',
@@ -150,9 +154,9 @@ const translations: Record<Language, Record<string, string>> = {
     'about.hero.badge': 'Notre Histoire',
     'about.hero.title1': 'EXPERTS EN',
     'about.hero.title2': 'COMMUNICATION',
-    'about.hero.subtitle': '15+ années d\'expérience en solutions visuelles et PLV',
+    'about.hero.subtitle': `${yearsOfExperience} années d\'expérience en solutions visuelles et PLV`,
     'about.story.badge': 'Notre Épopée',
-    'about.story.title': 'Notre Histoire Depuis Plus de 15 Ans',
+    'about.story.title': `Notre Histoire Depuis Plus de ${yearsOfExperience} Ans`,
     'about.story.p1': 'Fondée à Tanger, Signa Tech s\'est spécialisée dans les solutions de communication visuelle et PLV. Nous accompagnons nos clients dans le développement de leur image de marque.',
     'about.story.p2': 'Nos réalisations sont conçues pour répondre efficacement à vos objectifs commerciaux tout en respectant votre identité visuelle.',
     'about.story.p3': 'Avec plus de 500 projets réalisés et la confiance de clients prestigieux comme Coca-Cola, Juver et Expleo Group, nous continuons d\'innover pour repousser les frontières du possible.',
@@ -265,7 +269,7 @@ const translations: Record<Language, Record<string, string>> = {
     'services.hero.title2': 'EXTRAORDINAIRES',
     'services.hero.subtitle': 'Chaque service est une nouvelle aventure créative où nous repoussons les limites du possible',
     'services.design.subtitle': 'Créativité sur mesure',
-    'services.design.highlight': '15+ années d\'expertise créative',
+    'services.design.highlight': `${yearsOfExperience} années d\'expertise créative`,
     'services.retail.subtitle': 'Expériences d\'achat immersives',
     'services.retail.highlight': '500+ projets retail réalisés',
     'services.seasonal.subtitle': 'Campagnes événementielles',
@@ -340,7 +344,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.projects': 'Projects',
     'nav.contact': 'Contact',
     'nav.quote': 'Free Quote',
-    'hero.badge': '15+ years of experience',
+    'hero.badge': `${yearsOfExperience} years of experience`,
     'hero.title1': 'CREATIVE',
     'hero.title2': 'SOLUTIONS',
     'hero.subtitle': 'We transform your ideas into',
@@ -413,7 +417,7 @@ const translations: Record<Language, Record<string, string>> = {
     'company.name': 'Signa Tech',
     'company.tagline': 'POS & Signage Solutions',
     'company.address': 'Industrial Zone Gzenaya lot 376, Tangier, Morocco',
-    'footer.description': 'For over 15 years, we have been creating creative and innovative communication solutions to strengthen your brand visibility.',
+    'footer.description': `For over ${yearsOfExperience} years, we have been creating creative and innovative communication solutions to strengthen your brand visibility.`,
     'footer.navigation': 'Navigation',
     'footer.services': 'Our Services',
     'footer.contact': 'Contact',
@@ -423,9 +427,9 @@ const translations: Record<Language, Record<string, string>> = {
     'about.hero.badge': 'Our Story',
     'about.hero.title1': 'COMMUNICATION',
     'about.hero.title2': 'EXPERTS',
-    'about.hero.subtitle': '15+ years of experience in visual solutions and POS displays',
+    'about.hero.subtitle': `${yearsOfExperience} years of experience in visual solutions and POS displays`,
     'about.story.badge': 'Our Journey',
-    'about.story.title': 'Our Story Over 15 Years',
+    'about.story.title': `Our Story Over ${yearsOfExperience} Years`,
     'about.story.p1': 'Founded in Tangier, Signa Tech specializes in visual communication solutions and POS displays. We support our clients in developing their brand image.',
     'about.story.p2': 'Our work is designed to effectively meet your commercial objectives while respecting your visual identity.',
     'about.story.p3': 'With over 500 completed projects and the trust of prestigious clients like Coca-Cola, Juver and Expleo Group, we continue to innovate to push the boundaries of possibility.',
@@ -538,7 +542,7 @@ const translations: Record<Language, Record<string, string>> = {
     'services.hero.title2': 'SERVICES',
     'services.hero.subtitle': 'Every service is a new creative adventure where we push the boundaries of possibility',
     'services.design.subtitle': 'Custom Creativity',
-    'services.design.highlight': '15+ years of creative expertise',
+    'services.design.highlight': `${yearsOfExperience} years of creative expertise`,
     'services.retail.subtitle': 'Immersive Shopping Experiences',
     'services.retail.highlight': '500+ retail projects completed',
     'services.seasonal.subtitle': 'Event Campaigns',
