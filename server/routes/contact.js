@@ -21,13 +21,20 @@ const userContactValidation = [
 router.post('/guest-submit', uploadContactFile, guestContactValidation, contactController.submitGuestContact);
 router.post('/submit', authenticateToken, uploadContactFile, userContactValidation, contactController.submitUserContact);
 
-// Route to download uploaded files (admin only)
-router.get('/download/:filename', authenticateToken, contactController.downloadFile);
-
-// Route to get vector analysis for a submission (admin only)
-router.get('/vector-analysis/:submissionId', authenticateToken, contactController.getVectorAnalysis);
+// Route to download uploaded files (admin or file owner)
+router.get('/download/:filename', require('../middleware/optionalAuth'), require('../controllers/fileDownloadController').downloadFile);
 
 // Route to analyze a vector file directly (admin only)
 router.post('/analyze-vector', authenticateToken, uploadContactFile, contactController.analyzeVectorFile);
+
+// Route to get vector analysis for a specific file or submission (admin or file owner)
+router.get('/analyze-file/:fileId', authenticateToken, require('../controllers/fileAnalysisController').getFileVectorAnalysis);
+
+// Alias for backward compatibility - redirects to analyze-file endpoint
+router.get('/vector-analysis/:submissionId', authenticateToken, (req, res) => {
+  // Redirect to the correct endpoint
+  const submissionId = req.params.submissionId;
+  res.redirect(`/api/contact/analyze-file/${submissionId}`);
+});
 
 module.exports = router;

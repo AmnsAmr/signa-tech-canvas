@@ -232,12 +232,24 @@ class ContactController {
   async downloadFile(req, res) {
     try {
       const { filename } = req.params;
+      const tokenParam = req.query.token;
       
       console.log('Download request for file:', filename);
       
-      // Check if user is admin
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Access denied. Admin only.' });
+      // If token is provided in query param, use it for authentication
+      if (tokenParam && !req.user) {
+        try {
+          const jwt = require('jsonwebtoken');
+          const decoded = jwt.verify(tokenParam, process.env.JWT_SECRET);
+          req.user = decoded;
+        } catch (err) {
+          console.error('Invalid token in query param:', err);
+        }
+      }
+      
+      // Check if user is authenticated
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
 
       // Verify file exists in database and get submission info

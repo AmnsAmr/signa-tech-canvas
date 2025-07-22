@@ -71,18 +71,24 @@ async function storeAnalysisResults(submissionId, fileName, results) {
  */
 async function getAnalysisResults(submissionId) {
   return new Promise((resolve, reject) => {
+    console.log(`Getting vector analysis for submission ID: ${submissionId}`);
+    
     db.get(`
       SELECT * FROM vector_analysis WHERE submission_id = ?
     `, [submissionId], (err, row) => {
       if (err) {
+        console.error(`Error getting vector analysis for submission ${submissionId}:`, err);
         reject(err);
         return;
       }
       
       if (!row) {
+        console.log(`No vector analysis found for submission ${submissionId}`);
         resolve(null);
         return;
       }
+      
+      console.log(`Found vector analysis for submission ${submissionId}:`, row.file_name);
       
       // Parse shapes data
       try {
@@ -91,7 +97,22 @@ async function getAnalysisResults(submissionId) {
         row.shapes_data = [];
       }
       
-      resolve(row);
+      // Format the results for the API
+      const result = {
+        fileName: row.file_name,
+        paperArea: row.paper_area,
+        letterArea: row.letter_area,
+        pathLength: row.path_length,
+        shapes: row.shapes_data.map(shape => ({
+          name: shape.name || 'Shape',
+          length: shape.length || 'Unknown',
+          area: shape.area || 'Unknown'
+        })),
+        fileType: path.extname(row.file_name).substring(1).toUpperCase(),
+        units: row.paper_area && row.paper_area.includes('mm') ? 'mm' : 'units'
+      };
+      
+      resolve(result);
     });
   });
 }

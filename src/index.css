@@ -212,4 +212,28 @@ All colors MUST be HSL.
     background: rgba(0, 0, 0, 0.85);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
+  
+  /* Custom cursor for context menu elements */
+  .cursor-context-menu {
+    cursor: context-menu;
+    position: relative;
+  }
+
+  /* Add a subtle indicator for right-click functionality */
+  .cursor-context-menu::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    background-color: hsl(var(--primary));
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .cursor-context-menu:hover::after {
+    opacity: 1;
+  }
 }

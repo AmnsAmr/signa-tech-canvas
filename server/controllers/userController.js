@@ -10,7 +10,7 @@ class UserController {
 
       const submissions = await new Promise((resolve, reject) => {
         db.all(`SELECT 
-          id, project, message, services, status, created_at
+          id, project, message, services, status, created_at, file_path, file_name, file_type, file_size
           FROM contact_submissions 
           WHERE user_id = ? 
           ORDER BY created_at DESC`, [userId], (err, rows) => {
@@ -25,9 +25,24 @@ class UserController {
                 console.error('Error parsing services JSON:', e);
               }
             }
+            // Add file info if available
+            const has_file = !!row.file_path && !!row.file_name;
+            let file_info = null;
+            
+            if (has_file) {
+              file_info = {
+                name: row.file_name,
+                path: row.file_path,
+                type: row.file_type || 'application/octet-stream',
+                size: row.file_size || 0
+              };
+            }
+            
             return {
               ...row,
-              services
+              services,
+              has_file,
+              file_info
             };
           }));
         });

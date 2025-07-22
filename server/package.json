@@ -10,7 +10,8 @@
     "db:manage": "node scripts/db-manager.js",
     "db:backup": "node scripts/db-manager.js backup",
     "test:email": "node scripts/test-email.js",
-    "test:vector": "node scripts/test-vector.js"
+    "test:vector": "node scripts/test-vector.js",
+    "test:file-analysis": "node scripts/test-file-analysis.js"
   },
   "keywords": [],
   "author": "",

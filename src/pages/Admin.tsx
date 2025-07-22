@@ -16,6 +16,7 @@ import ContactSettings from '@/components/Admin/ContactSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip } from 'lucide-react';
+import FileContextMenu from '@/components/FileContextMenu';
 
 interface User {
   id: number;
@@ -58,6 +59,10 @@ interface Submission {
   status: 'pending' | 'done';
   created_at: string;
   has_file?: boolean;
+  file_name?: string;
+  file_path?: string;
+  file_size?: number;
+  file_type?: string;
   file_info?: {
     name: string;
     size: number;
@@ -200,7 +205,37 @@ const Admin = () => {
       if (submissionsRes.ok) {
         const submissionsData = await submissionsRes.json();
         console.log('Submissions data:', submissionsData);
-        setSubmissions(submissionsData);
+        
+        // Process submissions to ensure file info is properly set
+        const processedSubmissions = submissionsData.map(submission => {
+          // Make sure has_file flag is set correctly based on file properties
+          if (submission.file_name && submission.file_path) {
+            submission.has_file = true;
+            
+            // Ensure file_info is set for consistency
+            if (!submission.file_info) {
+              submission.file_info = {
+                name: submission.file_name,
+                size: submission.file_size || 0,
+                type: submission.file_type || 'application/octet-stream',
+                path: submission.file_path
+              };
+            }
+          }
+          
+          // If we have file_info but no direct properties, set them
+          if (submission.file_info && !submission.file_path) {
+            submission.file_name = submission.file_info.name;
+            submission.file_path = submission.file_info.path;
+            submission.file_size = submission.file_info.size;
+            submission.file_type = submission.file_info.type;
+            submission.has_file = true;
+          }
+          
+          return submission;
+        });
+        
+        setSubmissions(processedSubmissions);
       } else {
         console.error('Submissions fetch failed:', await submissionsRes.text());
       }
@@ -252,11 +287,16 @@ const Admin = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('Downloading file:', filename);
+      console.log('Original name:', originalName);
       
       // Extract just the filename without path
       const filenameOnly = filename.split(/[\\/]/).pop() || filename;
+      console.log('Filename only:', filenameOnly);
       
-      const response = await fetch(buildApiUrl(`/api/contact/download/${filenameOnly}`), {
+      const downloadUrl = buildApiUrl(`/api/contact/download/${filenameOnly}`);
+      console.log('Download URL:', downloadUrl);
+      
+      const response = await fetch(downloadUrl, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -270,13 +310,15 @@ const Admin = () => {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        console.log('File download successful');
       } else {
         console.error('Download failed with status:', response.status);
-        alert('Failed to download file: ' + response.statusText);
+        console.error('Response text:', await response.text());
+        alert(`Failed to download file: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('File download error:', error);
-      alert('Failed to download file');
+      alert(`Failed to download file: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -689,35 +731,54 @@ const Admin = () => {
                           
                           {/* Services shown when expanded */}
                           <div className="mt-4">
+                            {/* File Download Section - Always show first when expanded */}
+                            {submission.has_file && (
+                              <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <FileText className="h-6 w-6 text-green-600" />
+                                    <div>
+                                      <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
+                                      {submission.file_info ? (
+                                        <>
+                                          <p className="text-xs text-green-600">{submission.file_info.name}</p>
+                                          <p className="text-xs text-green-500">{formatFileSize(submission.file_info.size)}</p>
+                                        </>
+                                      ) : submission.file_name ? (
+                                        <>
+                                          <p className="text-xs text-green-600">{submission.file_name}</p>
+                                          <p className="text-xs text-green-500">{submission.file_size ? formatFileSize(submission.file_size) : 'Taille inconnue'}</p>
+                                        </>
+                                      ) : (
+                                        <p className="text-xs text-green-600">Fichier joint</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    
+                                    <FileContextMenu
+                                      fileId={submission.id}
+                                      fileName={submission.file_info?.name || submission.file_name || 'file'}
+                                      filePath={submission.file_info?.path || submission.file_path || ''}
+                                      isAdmin={true}
+                                      submissionId={submission.id}
+                                    >
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-green-300 hover:bg-green-100"
+                                      >
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Options
+                                      </Button>
+                                    </FileContextMenu>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             
                             {submission.services && Array.isArray(submission.services) && submission.services.length > 0 && (
                              <div className="space-y-3">
-                               {/* File Download Section */}
-                               {submission.file_info && (
-                                 <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                                   <div className="flex items-center justify-between">
-                                     <div className="flex items-center space-x-3">
-                                       <FileText className="h-6 w-6 text-green-600" />
-                                       <div>
-                                         <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
-                                         <p className="text-xs text-green-600">{submission.file_info.name}</p>
-                                         <p className="text-xs text-green-500">{formatFileSize(submission.file_info.size)}</p>
-                                       </div>
-                                     </div>
-                                     <Button
-                                       size="sm"
-                                       variant="outline"
-                                       className="border-green-300 hover:bg-green-100"
-                                       onClick={() => {
-                                         downloadFile(submission.file_info!.path, submission.file_info!.name);
-                                       }}
-                                     >
-                                       <Download className="h-4 w-4 mr-2" />
-                                       Télécharger
-                                     </Button>
-                                   </div>
-                                 </div>
-                               )}
                                
                                <h4 className="text-sm font-medium">Services demandés ({submission.services.length}):</h4>
                                 {Array.isArray(submission.services) && submission.services.map((service, index) => (
@@ -767,6 +828,12 @@ const Admin = () => {
                                     </div>
                                   </div>
                                 ))}
+                              </div>
+                            )}
+                            {/* Show a message if there are no services but there is a file */}
+                            {(!submission.services || !Array.isArray(submission.services) || submission.services.length === 0) && submission.has_file && (
+                              <div className="text-center py-2 text-muted-foreground text-sm">
+                                Aucun service demandé avec ce fichier.
                               </div>
                             )}
                           </div>
@@ -845,7 +912,68 @@ const Admin = () => {
                         </summary>
                       </details>
                     </div>
+                    
+                    {/* File section */}
+                    {request.has_file && (
+                      <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-6 w-6 text-green-600" />
+                            <div>
+                              <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
+                              {request.file_info ? (
+                                <>
+                                  <p className="text-xs text-green-600">{request.file_info.name}</p>
+                                  <p className="text-xs text-green-500">{formatFileSize(request.file_info.size)}</p>
+                                </>
+                              ) : request.file_name ? (
+                                <>
+                                  <p className="text-xs text-green-600">{request.file_name}</p>
+                                  <p className="text-xs text-green-500">{request.file_size ? formatFileSize(request.file_size) : 'Taille inconnue'}</p>
+                                </>
+                              ) : (
+                                <p className="text-xs text-green-600">Fichier joint</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-green-300 hover:bg-green-100"
+                              onClick={() => {
+                                const filePath = request.file_info?.path || request.file_path;
+                                const fileName = request.file_info?.name || request.file_name;
+                                if (filePath && fileName) {
+                                  downloadFile(filePath, fileName);
+                                }
+                              }}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Télécharger
+                            </Button>
+                            <FileContextMenu
+                              fileId={request.id}
+                              fileName={request.file_info?.name || request.file_name || 'file'}
+                              filePath={request.file_info?.path || request.file_path || ''}
+                              isAdmin={true}
+                              submissionId={request.id}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-green-300 hover:bg-green-100"
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                Options
+                              </Button>
+                            </FileContextMenu>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
+                    {/* Show services if available */}
                     {request.services && Array.isArray(request.services) && request.services.length > 0 && (
                       <div className="space-y-4">
                         <h5 className="font-medium">Services demandés ({request.services.length}):</h5>
@@ -894,6 +1022,13 @@ const Admin = () => {
                             </div>
                           </div>
                         ))}
+                      </div>
+                    )}
+                    
+                    {/* Show a message if there are no services but there is a file */}
+                    {(!request.services || !Array.isArray(request.services) || request.services.length === 0) && request.has_file && (
+                      <div className="text-center py-2 text-muted-foreground text-sm">
+                        Aucun service demandé avec ce fichier.
                       </div>
                     )}
                   </CardContent>

@@ -66,30 +66,114 @@ async function analyzeVectorFile(filePath, units = 'mm') {
   };
   
   try {
-    switch (fileExt) {
-      case '.svg':
+    // Try to determine the file type by content if possible
+    let fileType = fileExt.substring(1).toLowerCase();
+    
+    // Read the first few bytes to check for magic numbers
+    try {
+      const buffer = Buffer.alloc(8);
+      const fd = fs.openSync(filePath, 'r');
+      fs.readSync(fd, buffer, 0, 8, 0);
+      fs.closeSync(fd);
+      
+      // Check for PDF signature
+      if (buffer.toString('ascii', 0, 5) === '%PDF-') {
+        fileType = 'pdf';
+        console.log('File identified as PDF by signature');
+      }
+      // Check for SVG XML
+      else if (buffer.toString('ascii', 0, 5).includes('<?xml') || 
+               fs.readFileSync(filePath, 'utf8', { encoding: 'utf8' }).includes('<svg')) {
+        fileType = 'svg';
+        console.log('File identified as SVG by content');
+      }
+      // Check for PostScript
+      else if (buffer.toString('ascii', 0, 4) === '%!PS') {
+        // Check if it's AI or EPS
+        const header = fs.readFileSync(filePath, 'utf8', { encoding: 'utf8', flag: 'r' }).slice(0, 1000);
+        if (header.includes('Adobe Illustrator')) {
+          fileType = 'ai';
+          console.log('File identified as AI by content');
+        } else if (header.includes('EPSF')) {
+          fileType = 'eps';
+          console.log('File identified as EPS by content');
+        }
+      }
+    } catch (e) {
+      console.log('Error checking file signature:', e);
+      // Continue with extension-based detection
+    }
+    
+    // Process based on determined file type
+    switch (fileType) {
+      case 'svg':
         result = await analyzeSVG(filePath, units);
         break;
-      case '.dxf':
+      case 'dxf':
         result = await analyzeDXF(filePath, units);
         break;
-      case '.pdf':
+      case 'pdf':
         result = await analyzePDF(filePath, units);
         break;
-      case '.ai':
-      case '.eps':
+      case 'ai':
+      case 'eps':
         result = await analyzeAIorEPS(filePath, units);
         break;
-      case '.gcode':
-      case '.nc':
+      case 'gcode':
+      case 'nc':
         result = await analyzeGCode(filePath, units);
         break;
       default:
-        throw new Error(`Unsupported file format: ${fileExt}`);
+        // Try to analyze as SVG first, then fall back to other formats
+        try {
+          console.log('Trying to analyze as SVG...');
+          result = await analyzeSVG(filePath, units);
+        } catch (svgError) {
+          console.log('SVG analysis failed, trying DXF...');
+          try {
+            result = await analyzeDXF(filePath, units);
+          } catch (dxfError) {
+            throw new Error(`Unsupported or unrecognized file format: ${fileExt}`);
+          }
+        }
+        break;
     }
     
     // Add filename to result
     result.fileName = fileName;
+    
+    // Calculate totals if we have shapes
+    if (result.shapes && result.shapes.length > 0) {
+      let totalLength = 0;
+      let totalArea = 0;
+      let hasValidLength = false;
+      let hasValidArea = false;
+      
+      result.shapes.forEach(shape => {
+        // Extract numeric values from length and area strings
+        const lengthMatch = shape.length.match(/([\d.]+)/);
+        const areaMatch = shape.area.match(/([\d.]+)/);
+        
+        if (lengthMatch) {
+          totalLength += parseFloat(lengthMatch[1]);
+          hasValidLength = true;
+        }
+        
+        if (areaMatch && !shape.area.includes('Open')) {
+          totalArea += parseFloat(areaMatch[1]);
+          hasValidArea = true;
+        }
+      });
+      
+      // Update the total values if we have valid data
+      if (hasValidLength) {
+        result.pathLength = `${totalLength.toFixed(2)} ${units}`;
+      }
+      
+      if (hasValidArea) {
+        result.letterArea = `${totalArea.toFixed(2)} ${units}²`;
+      }
+    }
     
     return result;
   } catch (error) {
@@ -414,30 +498,291 @@ async function analyzeDXF(filePath, units) {
  * Analyze PDF file (vector-based)
  */
 async function analyzePDF(filePath, units) {
-  // Basic implementation - would need pdf.js or similar in production
-  return {
-    fileName: path.basename(filePath),
-    paperArea: "Unknown (PDF analysis requires additional libraries)",
-    letterArea: 0,
-    pathLength: 0,
-    shapes: [],
-    error: "PDF analysis requires additional libraries like pdf.js"
-  };
+  try {
+    // Get file size
+    const stats = fs.statSync(filePath);
+    const fileSizeInBytes = stats.size;
+    const fileSizeInMB = (fileSizeInBytes / (1024 * 1024)).toFixed(2);
+    
+    // Try to extract PDF info using pdftk if available
+    let pdfInfo = {};
+    try {
+      const { stdout } = await execAsync(`pdftk "${filePath}" dump_data`);
+      
+      // Parse the output
+      const lines = stdout.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('NumberOfPages:')) {
+          pdfInfo.pages = parseInt(line.split(':')[1].trim());
+        }
+        if (line.startsWith('PageMediaDimensions:')) {
+          const dimensions = line.split(':')[1].trim().split(' ');
+          if (dimensions.length >= 2) {
+            // Convert from PDF points (1/72 inch) to mm if needed
+            const width = parseFloat(dimensions[0]);
+            const height = parseFloat(dimensions[1]);
+            
+            if (units === 'mm') {
+              pdfInfo.width = (width * 25.4 / 72).toFixed(2);
+              pdfInfo.height = (height * 25.4 / 72).toFixed(2);
+            } else {
+              pdfInfo.width = (width / 72).toFixed(2);
+              pdfInfo.height = (height / 72).toFixed(2);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log('pdftk not available, trying alternative method');
+      
+      // Try using pdfinfo if available
+      try {
+        const { stdout } = await execAsync(`pdfinfo "${filePath}"`);
+        
+        // Parse the output
+        const lines = stdout.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('Pages:')) {
+            pdfInfo.pages = parseInt(line.split(':')[1].trim());
+          }
+          if (line.startsWith('Page size:')) {
+            const sizeInfo = line.split(':')[1].trim();
+            const match = sizeInfo.match(/([\d.]+) x ([\d.]+)/);
+            if (match) {
+              // Convert from PDF points (1/72 inch) to mm if needed
+              const width = parseFloat(match[1]);
+              const height = parseFloat(match[2]);
+              
+              if (units === 'mm') {
+                pdfInfo.width = (width * 25.4 / 72).toFixed(2);
+                pdfInfo.height = (height * 25.4 / 72).toFixed(2);
+              } else {
+                pdfInfo.width = (width / 72).toFixed(2);
+                pdfInfo.height = (height / 72).toFixed(2);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.log('pdfinfo not available either');
+      }
+    }
+    
+    // Try to extract vector data using pdf2svg and then analyze the SVG
+    let vectorData = null;
+    try {
+      // Create a temporary directory for the SVG output
+      const tempDir = path.join(require('os').tmpdir(), 'pdf2svg-' + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      const svgOutputPath = path.join(tempDir, 'output.svg');
+      
+      // Convert PDF to SVG using pdf2svg or Inkscape
+      try {
+        console.log('Attempting to convert PDF to SVG using pdf2svg...');
+        await execAsync(`pdf2svg "${filePath}" "${svgOutputPath}" 1`);
+      } catch (e) {
+        console.log('pdf2svg failed, trying Inkscape...');
+        try {
+          await execAsync(`inkscape "${filePath}" --export-filename="${svgOutputPath}"`);
+        } catch (e2) {
+          console.log('Inkscape failed too, vector extraction not possible');
+          throw new Error('PDF to SVG conversion failed');
+        }
+      }
+      
+      // If conversion succeeded, analyze the SVG
+      if (fs.existsSync(svgOutputPath)) {
+        console.log('Successfully converted PDF to SVG, analyzing vector data...');
+        vectorData = await analyzeSVG(svgOutputPath, units);
+        
+        // Clean up the temporary file
+        try {
+          fs.unlinkSync(svgOutputPath);
+          fs.rmdirSync(tempDir);
+        } catch (e) {
+          console.log('Failed to clean up temporary files:', e);
+        }
+      }
+    } catch (e) {
+      console.log('Failed to extract vector data from PDF:', e);
+    }
+    
+    // Create a more informative result
+    const result = {
+      fileName: path.basename(filePath),
+      paperArea: pdfInfo.width && pdfInfo.height ? 
+        `${pdfInfo.width}x${pdfInfo.height} ${units}` : 
+        "Unknown (PDF dimensions could not be determined)",
+      letterArea: vectorData ? vectorData.letterArea : "Unknown (PDF content analysis not available)",
+      pathLength: vectorData ? vectorData.pathLength : "Unknown (PDF path analysis not available)",
+      shapes: vectorData ? vectorData.shapes : [],
+      fileInfo: {
+        size: `${fileSizeInMB} MB`,
+        pages: pdfInfo.pages || "Unknown",
+        format: "PDF"
+      }
+    };
+    
+    // If we couldn't extract vector data but we know the page count, add page entries
+    if (!vectorData && pdfInfo.pages && result.shapes.length === 0) {
+      for (let i = 1; i <= pdfInfo.pages; i++) {
+        result.shapes.push({
+          name: `Page ${i}`,
+          length: "Unknown (PDF path analysis not available)",
+          area: pdfInfo.width && pdfInfo.height ? 
+            `${(parseFloat(pdfInfo.width) * parseFloat(pdfInfo.height)).toFixed(2)} ${units}²` : 
+            "Unknown"
+        });
+      }
+    }
+    
+    // If we still have no shapes, add a generic entry
+    if (result.shapes.length === 0) {
+      result.shapes.push({
+        name: "PDF Document",
+        length: "Unknown (PDF path analysis not available)",
+        area: "Unknown (PDF area analysis not available)"
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error analyzing PDF file:', error);
+    return {
+      fileName: path.basename(filePath),
+      paperArea: "Unknown (PDF analysis error)",
+      letterArea: "Unknown",
+      pathLength: "Unknown",
+      shapes: [],
+      error: `PDF analysis error: ${error.message}`
+    };
+  }
 }
 
 /**
  * Analyze AI or EPS file
  */
 async function analyzeAIorEPS(filePath, units) {
-  // Basic implementation - would need specialized libraries in production
-  return {
-    fileName: path.basename(filePath),
-    paperArea: "Unknown (AI/EPS analysis requires additional libraries)",
-    letterArea: 0,
-    pathLength: 0,
-    shapes: [],
-    error: "AI/EPS analysis requires specialized libraries"
-  };
+  try {
+    // Get file size
+    const stats = fs.statSync(filePath);
+    const fileSizeInBytes = stats.size;
+    const fileSizeInMB = (fileSizeInBytes / (1024 * 1024)).toFixed(2);
+    
+    // Read the first few KB to try to extract header information
+    const fileBuffer = Buffer.alloc(4096);
+    const fd = fs.openSync(filePath, 'r');
+    fs.readSync(fd, fileBuffer, 0, 4096, 0);
+    fs.closeSync(fd);
+    
+    const fileHeader = fileBuffer.toString('utf8', 0, 4096);
+    
+    // Try to extract bounding box information
+    let boundingBox = null;
+    const bbMatch = fileHeader.match(/%%BoundingBox:\s*([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)/);
+    if (bbMatch) {
+      const x1 = parseFloat(bbMatch[1]);
+      const y1 = parseFloat(bbMatch[2]);
+      const x2 = parseFloat(bbMatch[3]);
+      const y2 = parseFloat(bbMatch[4]);
+      
+      // Convert from points (1/72 inch) to mm if needed
+      if (units === 'mm') {
+        boundingBox = {
+          width: ((x2 - x1) * 25.4 / 72).toFixed(2),
+          height: ((y2 - y1) * 25.4 / 72).toFixed(2)
+        };
+      } else {
+        boundingBox = {
+          width: ((x2 - x1) / 72).toFixed(2),
+          height: ((y2 - y1) / 72).toFixed(2)
+        };
+      }
+    }
+    
+    // Try to determine if it's an AI or EPS file
+    const isAI = fileHeader.includes('%!PS-Adobe') && fileHeader.includes('%%Creator: Adobe Illustrator');
+    const isEPS = fileHeader.includes('%!PS-Adobe') && fileHeader.includes('EPSF');
+    const fileType = isAI ? 'AI' : (isEPS ? 'EPS' : 'Unknown PostScript');
+    
+    // Try to extract vector data by converting to SVG first
+    let vectorData = null;
+    try {
+      // Create a temporary directory for the SVG output
+      const tempDir = path.join(require('os').tmpdir(), 'eps2svg-' + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      const svgOutputPath = path.join(tempDir, 'output.svg');
+      
+      // Try to convert using Inkscape
+      console.log(`Attempting to convert ${fileType} to SVG using Inkscape...`);
+      try {
+        await execAsync(`inkscape "${filePath}" --export-filename="${svgOutputPath}"`);
+      } catch (e) {
+        console.log('Inkscape conversion failed, trying pstoedit...');
+        try {
+          // Try pstoedit as an alternative
+          await execAsync(`pstoedit -f plot-svg "${filePath}" "${svgOutputPath}"`);
+        } catch (e2) {
+          console.log('pstoedit failed too, vector extraction not possible');
+          throw new Error(`${fileType} to SVG conversion failed`);
+        }
+      }
+      
+      // If conversion succeeded, analyze the SVG
+      if (fs.existsSync(svgOutputPath)) {
+        console.log(`Successfully converted ${fileType} to SVG, analyzing vector data...`);
+        vectorData = await analyzeSVG(svgOutputPath, units);
+        
+        // Clean up the temporary file
+        try {
+          fs.unlinkSync(svgOutputPath);
+          fs.rmdirSync(tempDir);
+        } catch (e) {
+          console.log('Failed to clean up temporary files:', e);
+        }
+      }
+    } catch (e) {
+      console.log(`Failed to extract vector data from ${fileType}:`, e);
+    }
+    
+    // Create a more informative result
+    const result = {
+      fileName: path.basename(filePath),
+      paperArea: boundingBox ? 
+        `${boundingBox.width}x${boundingBox.height} ${units}` : 
+        (vectorData && vectorData.paperArea !== "Unknown" ? vectorData.paperArea : "Unknown (Could not determine dimensions)"),
+      letterArea: vectorData ? vectorData.letterArea : "Unknown (Content analysis not available)",
+      pathLength: vectorData ? vectorData.pathLength : "Unknown (Path analysis not available)",
+      shapes: vectorData ? vectorData.shapes : [],
+      fileInfo: {
+        size: `${fileSizeInMB} MB`,
+        format: fileType
+      }
+    };
+    
+    // If we couldn't extract vector data, add a generic shape entry
+    if (!vectorData || result.shapes.length === 0) {
+      result.shapes.push({
+        name: `${fileType} Document`,
+        length: "Unknown (Path analysis not available)",
+        area: boundingBox ? 
+          `${(parseFloat(boundingBox.width) * parseFloat(boundingBox.height)).toFixed(2)} ${units}²` : 
+          "Unknown"
+      });
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error analyzing AI/EPS file:', error);
+    return {
+      fileName: path.basename(filePath),
+      paperArea: "Unknown (AI/EPS analysis error)",
+      letterArea: "Unknown",
+      pathLength: "Unknown",
+      shapes: [],
+      error: `AI/EPS analysis error: ${error.message}`
+    };
+  }
 }
 
 /**

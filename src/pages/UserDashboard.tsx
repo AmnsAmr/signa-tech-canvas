@@ -9,7 +9,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import RatingForm from '@/components/RatingSystem/RatingForm';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Star, BarChart3, MessageSquare, Clock, CheckCircle } from 'lucide-react';
+import { FileText, Star, BarChart3, MessageSquare, Clock, CheckCircle, Download, Paperclip } from 'lucide-react';
+import FileContextMenu from '@/components/FileContextMenu';
 
 interface UserSubmission {
   id: number;
@@ -18,6 +19,13 @@ interface UserSubmission {
   services: any[];
   status: 'pending' | 'done';
   created_at: string;
+  has_file?: boolean;
+  file_info?: {
+    name: string;
+    size: number;
+    type: string;
+    path: string;
+  } | null;
 }
 
 interface UserRating {
@@ -34,6 +42,14 @@ interface UserStats {
   completed_submissions: number;
   approved_ratings: number;
 }
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 const UserDashboard: React.FC = () => {
   // Debug logging
@@ -256,6 +272,37 @@ const UserDashboard: React.FC = () => {
                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
                       <p className="text-sm">{submission.message}</p>
                     </div>
+                    
+                    {/* File information */}
+                    {submission.has_file && submission.file_info && (
+                      <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-6 w-6 text-green-600" />
+                            <div>
+                              <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
+                              <p className="text-xs text-green-600">{submission.file_info.name}</p>
+                              <p className="text-xs text-green-500">{formatFileSize(submission.file_info.size)}</p>
+                            </div>
+                          </div>
+                          <FileContextMenu
+                            fileId={submission.id}
+                            fileName={submission.file_info.name}
+                            filePath={submission.file_info.path}
+                            submissionId={submission.id}
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-green-300 hover:bg-green-100"
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Options
+                            </Button>
+                          </FileContextMenu>
+                        </div>
+                      </div>
+                    )}
 
                     {submission.services && Array.isArray(submission.services) && submission.services.length > 0 && (
                       <div className="space-y-2">
