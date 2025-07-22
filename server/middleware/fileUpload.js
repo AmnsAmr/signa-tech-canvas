@@ -25,22 +25,47 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const allowedExtensions = ['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc'];
   const allowedMimeTypes = [
-    'image/svg+xml',
-    'application/dxf',
-    'application/postscript',
-    'application/pdf',
-    'application/illustrator',
-    'text/plain', // For .gcode and .nc files
-    'application/octet-stream' // Fallback for some vector formats
+    'image/svg+xml',                 // SVG files
+    'application/dxf',               // DXF files
+    'application/postscript',        // EPS files
+    'application/pdf',               // PDF files
+    'application/illustrator',       // AI files
+    'application/vnd.adobe.illustrator', // AI files alternative
+    'text/plain',                   // For .gcode and .nc files
+    'application/octet-stream',      // Fallback for various formats
+    'application/acad',              // AutoCAD DXF alternative
+    'application/x-dxf',             // DXF alternative
+    'drawing/x-dxf',                 // DXF alternative
+    'image/vnd.dxf',                 // DXF alternative
+    'image/x-dxf'                    // DXF alternative
   ];
+  
+  // Log file information for debugging
+  console.log('File upload attempt:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size
+  });
   
   const ext = path.extname(file.originalname).toLowerCase();
   
+  // Always accept files with the correct extension regardless of mimetype
   if (allowedExtensions.includes(ext)) {
+    console.log('File accepted by extension:', file.originalname);
     cb(null, true);
-  } else {
-    cb(new Error(`Invalid file type. Only vector files are allowed: ${allowedExtensions.join(', ')}`), false);
+    return;
   }
+  
+  // If extension check fails, check mimetype
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    console.log('File accepted by mimetype:', file.originalname);
+    cb(null, true);
+    return;
+  }
+  
+  // If both checks fail, reject the file
+  console.log('File rejected:', file.originalname, file.mimetype);
+  cb(new Error(`Invalid file type. Only these formats are allowed: ${allowedExtensions.join(', ')}`), false);
 };
 
 const upload = multer({

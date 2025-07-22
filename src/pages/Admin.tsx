@@ -251,7 +251,12 @@ const Admin = () => {
   const downloadFile = async (filename: string, originalName: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/contact/download/${filename}`), {
+      console.log('Downloading file:', filename);
+      
+      // Extract just the filename without path
+      const filenameOnly = filename.split(/[\\/]/).pop() || filename;
+      
+      const response = await fetch(buildApiUrl(`/api/contact/download/${filenameOnly}`), {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -266,7 +271,8 @@ const Admin = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        alert('Failed to download file');
+        console.error('Download failed with status:', response.status);
+        alert('Failed to download file: ' + response.statusText);
       }
     } catch (error) {
       console.error('File download error:', error);
@@ -343,9 +349,9 @@ const Admin = () => {
     const matchesSearch = submission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       submission.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       submission.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (submission.services && submission.services.some(service => 
-        service.serviceType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.material?.toLowerCase().includes(searchTerm.toLowerCase())
+      (submission.services && Array.isArray(submission.services) && submission.services.some(service => 
+        service?.serviceType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service?.material?.toLowerCase().includes(searchTerm.toLowerCase())
       ));
     
     const matchesStatus = statusFilter === 'all' || submission.status === statusFilter;
@@ -684,7 +690,7 @@ const Admin = () => {
                           {/* Services shown when expanded */}
                           <div className="mt-4">
                             
-                            {submission.services && submission.services.length > 0 && (
+                            {submission.services && Array.isArray(submission.services) && submission.services.length > 0 && (
                              <div className="space-y-3">
                                {/* File Download Section */}
                                {submission.file_info && (
@@ -703,8 +709,7 @@ const Admin = () => {
                                        variant="outline"
                                        className="border-green-300 hover:bg-green-100"
                                        onClick={() => {
-                                         const filename = submission.file_info!.path.split('/').pop() || '';
-                                         downloadFile(filename, submission.file_info!.name);
+                                         downloadFile(submission.file_info!.path, submission.file_info!.name);
                                        }}
                                      >
                                        <Download className="h-4 w-4 mr-2" />
@@ -715,7 +720,7 @@ const Admin = () => {
                                )}
                                
                                <h4 className="text-sm font-medium">Services demandés ({submission.services.length}):</h4>
-                                {submission.services.map((service, index) => (
+                                {Array.isArray(submission.services) && submission.services.map((service, index) => (
                                   <div key={index} className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
                                     <div className="flex items-center mb-2">
                                       <Badge variant="secondary" className="text-xs mr-2">
@@ -841,10 +846,10 @@ const Admin = () => {
                       </details>
                     </div>
 
-                    {request.services && request.services.length > 0 && (
+                    {request.services && Array.isArray(request.services) && request.services.length > 0 && (
                       <div className="space-y-4">
                         <h5 className="font-medium">Services demandés ({request.services.length}):</h5>
-                        {request.services.map((service, index) => (
+                        {Array.isArray(request.services) && request.services.map((service, index) => (
                           <div key={index} className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
                             <h6 className="font-medium mb-3 text-primary">
                               Service {index + 1}: {service.serviceType || 'Non spécifié'}

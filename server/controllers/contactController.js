@@ -15,7 +15,19 @@ class ContactController {
       }
 
       const { name, company, email, phone, project, message, services } = req.body;
-      const servicesJson = JSON.stringify(services || []);
+      let servicesJson;
+      try {
+        // If services is already a string (JSON), parse it first then stringify it again
+        if (typeof services === 'string') {
+          const parsedServices = JSON.parse(services);
+          servicesJson = JSON.stringify(parsedServices || []);
+        } else {
+          servicesJson = JSON.stringify(services || []);
+        }
+      } catch (e) {
+        console.error('Error parsing services:', e);
+        servicesJson = JSON.stringify([]);
+      }
       const submissionGroup = `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       // Handle uploaded file
@@ -25,6 +37,7 @@ class ContactController {
       let fileType = null;
 
       if (req.file) {
+        console.log('Guest contact - File uploaded:', req.file.originalname, req.file.mimetype);
         filePath = req.file.path;
         fileName = req.file.originalname;
         fileSize = req.file.size;
@@ -72,13 +85,31 @@ class ContactController {
 
   async submitUserContact(req, res) {
     try {
+      // Log received data for debugging
+      console.log('User contact submission received:');
+      console.log('Body:', req.body);
+      console.log('Message field:', req.body.message);
+      
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({ message: errors.array()[0].msg });
       }
 
       const { project, message, services } = req.body;
-      const servicesJson = JSON.stringify(services || []);
+      let servicesJson;
+      try {
+        // If services is already a string (JSON), parse it first then stringify it again
+        if (typeof services === 'string') {
+          const parsedServices = JSON.parse(services);
+          servicesJson = JSON.stringify(parsedServices || []);
+        } else {
+          servicesJson = JSON.stringify(services || []);
+        }
+      } catch (e) {
+        console.error('Error parsing services:', e);
+        servicesJson = JSON.stringify([]);
+      }
       const submissionGroup = `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       // Handle uploaded file
@@ -88,6 +119,7 @@ class ContactController {
       let fileType = null;
 
       if (req.file) {
+        console.log('User contact - File uploaded:', req.file.originalname, req.file.mimetype);
         filePath = req.file.path;
         fileName = req.file.originalname;
         fileSize = req.file.size;
@@ -148,6 +180,8 @@ class ContactController {
     try {
       const { filename } = req.params;
       
+      console.log('Download request for file:', filename);
+      
       // Check if user is admin
       if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied. Admin only.' });
@@ -155,16 +189,21 @@ class ContactController {
 
       // Verify file exists in database and get submission info
       const submission = await new Promise((resolve, reject) => {
-        db.get("SELECT * FROM contact_submissions WHERE file_path LIKE ?", [`%${filename}`], (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        });
+        // Use a more flexible query to find the file
+        db.get("SELECT * FROM contact_submissions WHERE file_path LIKE ? OR file_path LIKE ? OR file_path LIKE ?", 
+          [`%${filename}`, `%${filename.replace(/\\/g, '/')}`, `%${filename.replace(/\//g, '\\')}`], 
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
       });
 
       if (!submission) {
-        return res.status(404).json({ message: 'File not found' });
+        console.error('File not found in database:', filename);
+        return res.status(404).json({ message: 'File not found in database' });
       }
 
+      console.log('Found file in database:', submission.file_path);
       const filePath = path.resolve(submission.file_path);
       
       // Check if file exists on filesystem

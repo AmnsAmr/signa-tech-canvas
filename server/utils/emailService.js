@@ -13,8 +13,12 @@ class EmailService {
       console.log('Initializing email service with:', EMAIL_USER);
     }
     
+    // Create a more reliable transporter configuration
     this.transporter = nodemailer.createTransport({
       service: EMAIL_SERVICE,
+      host: EMAIL_SERVICE === 'gmail' ? 'smtp.gmail.com' : undefined,
+      port: EMAIL_SERVICE === 'gmail' ? 587 : undefined,
+      secure: EMAIL_SERVICE === 'gmail' ? false : undefined,
       auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS,
@@ -23,6 +27,14 @@ class EmailService {
         rejectUnauthorized: false
       },
       debug: process.env.NODE_ENV === 'development'
+    });
+    
+    console.log('Email transport configuration:', {
+      service: EMAIL_SERVICE,
+      host: EMAIL_SERVICE === 'gmail' ? 'smtp.gmail.com' : undefined,
+      port: EMAIL_SERVICE === 'gmail' ? 587 : undefined,
+      secure: EMAIL_SERVICE === 'gmail' ? false : undefined,
+      hasAuth: !!EMAIL_USER && !!EMAIL_PASS
     });
     
     // Verify connection configuration
@@ -75,11 +87,15 @@ class EmailService {
     });
   }
 
-  async sendContactNotification({ name, company, email, phone, project, message, services, isGuest }) {
+  async sendContactNotification({ name, company, email, phone, project, message, services, isGuest, hasFile, fileName }) {
+    console.log('Attempting to send contact notification email');
+    
     if (!EMAIL_USER || !EMAIL_PASS || !this.transporter) {
       console.warn('Email service not configured, skipping notification');
       return;
     }
+    
+    console.log('Email credentials available, proceeding with notification');
     
     const servicesHtml = services && services.length > 0 
       ? `
@@ -101,6 +117,18 @@ class EmailService {
 
     try {
       // Get admin emails with notification preferences enabled
+      console.log('Looking up admin emails for notification');
+      
+      // First check if there are any admins at all
+      const allAdmins = await new Promise((resolve, reject) => {
+        db.all("SELECT email, email_notifications FROM users WHERE role = 'admin'", (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      console.log('All admins found:', allAdmins.length, allAdmins.map(a => ({ email: a.email, notifications: a.email_notifications })));
+      
       const adminEmails = await new Promise((resolve, reject) => {
         db.all("SELECT email FROM users WHERE role = 'admin' AND (email_notifications = 1 OR email_notifications IS NULL)", (err, rows) => {
           if (err) reject(err);
@@ -135,6 +163,13 @@ class EmailService {
                 ${message}
               </div>
             </div>
+            ${hasFile ? `
+            <div style="margin: 15px 0; padding: 10px; background-color: #e8f5e9; border-radius: 5px; border: 1px solid #c8e6c9;">
+              <h3 style="color: #2e7d32; margin-top: 0;">Fichier joint</h3>
+              <p><strong>Nom du fichier:</strong> ${fileName || 'Fichier vectoriel'}</p>
+              <p style="color: #388e3c;">Le fichier est disponible dans le panneau d'administration.</p>
+            </div>
+            ` : ''}
             ${servicesHtml}
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 12px;">Cette notification a été envoyée automatiquement depuis le site SignaTech.</p>

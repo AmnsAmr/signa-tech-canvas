@@ -14,7 +14,7 @@ const guestContactValidation = [
 ];
 
 const userContactValidation = [
-  body('message').notEmpty().withMessage('Message is required')
+  body('message').notEmpty().withMessage('Message is required').trim()
 ];
 
 // Routes with file upload support

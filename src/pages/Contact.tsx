@@ -228,9 +228,19 @@ const Contact: React.FC = () => {
         } else if (key === 'services') {
           formDataToSend.append('services', JSON.stringify(formData.services));
         } else {
-          formDataToSend.append(key, formData[key as keyof FormData] as string);
+          // Ensure string values are properly appended
+          const value = formData[key as keyof FormData];
+          if (value !== undefined && value !== null) {
+            formDataToSend.append(key, String(value));
+          }
         }
       });
+      
+      // Debug log to check form data
+      console.log('Form data fields being sent:');
+      for (const pair of formDataToSend.entries()) {
+        console.log(pair[0], pair[1]);
+      }
 
       const headers: any = {};
       
@@ -239,6 +249,8 @@ const Contact: React.FC = () => {
       }
       // Don't set Content-Type for FormData - let browser set it with boundary
 
+      console.log('Sending form data with file:', formData.vectorFile ? formData.vectorFile.name : 'No file');
+      
       const response = await fetch(backendUrl, {
         method: 'POST',
         headers,
@@ -266,9 +278,17 @@ const Contact: React.FC = () => {
         });
       } else {
         setSubmissionStatus('error');
+        console.error('Server response error:', result);
+        
+        // Check for file-related errors
+        let errorMessage = result.message || "Échec de l'envoi du message.";
+        if (errorMessage.toLowerCase().includes('file') || errorMessage.toLowerCase().includes('fichier')) {
+          errorMessage = `Problème avec le fichier: ${errorMessage}`;
+        }
+        
         toast({
           title: "Erreur",
-          description: result.message || "Échec de l'envoi du message.",
+          description: errorMessage,
           variant: "destructive"
         });
       }
@@ -276,9 +296,21 @@ const Contact: React.FC = () => {
     } catch (error) {
       console.error('Error submitting form:', error);
       setSubmissionStatus('error');
+      
+      // Provide more specific error message if available
+      let errorMessage = "Échec de l'envoi du message. Veuillez réessayer plus tard.";
+      
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+        // Check if it's a file-related error
+        if (error.message.includes('file') || error.message.includes('File')) {
+          errorMessage = `Problème avec le fichier: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Erreur",
-        description: "Échec de l'envoi du message. Veuillez réessayer plus tard.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -445,6 +477,7 @@ const Contact: React.FC = () => {
                       placeholder={t('contact.form.message.placeholder')}
                       rows={6}
                       className="border-border/50 focus:border-primary transition-colors resize-none"
+                      required
                     />
                   </div>
 

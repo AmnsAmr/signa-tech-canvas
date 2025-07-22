@@ -29,7 +29,35 @@ const FileUpload: React.FC<FileUploadProps> = ({
     
     // Validate file type
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    if (!acceptedFormats.includes(fileExtension)) {
+    const acceptedMimeTypes = [
+      'image/svg+xml',                 // SVG files
+      'application/dxf',               // DXF files
+      'application/postscript',        // EPS files
+      'application/pdf',               // PDF files
+      'application/illustrator',       // AI files
+      'application/vnd.adobe.illustrator', // AI files alternative
+      'text/plain',                   // For .gcode and .nc files
+      'application/octet-stream',      // Fallback for various formats
+      'application/acad',              // AutoCAD DXF alternative
+      'application/x-dxf',             // DXF alternative
+      'drawing/x-dxf',                 // DXF alternative
+      'image/vnd.dxf',                 // DXF alternative
+      'image/x-dxf'                    // DXF alternative
+    ];
+    
+    console.log('File selected:', file.name, file.type, file.size);
+    
+    // First check extension
+    if (acceptedFormats.includes(fileExtension)) {
+      console.log('File accepted by extension:', file.name);
+    }
+    // Then check mimetype
+    else if (acceptedMimeTypes.includes(file.type)) {
+      console.log('File accepted by mimetype:', file.name);
+    }
+    // Reject if both checks fail
+    else {
+      console.log('File rejected:', file.name, file.type);
       setError(`Type de fichier non supporté. Formats acceptés: ${acceptedFormats.join(', ')}`);
       return;
     }
@@ -40,6 +68,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       return;
     }
 
+    console.log('File accepted:', file.name, file.type, file.size);
     setSelectedFile(file);
     onFileSelect(file);
   };
@@ -163,7 +192,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept={acceptedFormats.join(',')}
+        accept=".svg,.dxf,.ai,.pdf,.eps,.gcode,.nc,image/svg+xml,application/pdf,application/postscript,application/illustrator,application/vnd.adobe.illustrator"
         onChange={handleFileInputChange}
         className="hidden"
       />
