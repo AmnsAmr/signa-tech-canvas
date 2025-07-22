@@ -132,13 +132,25 @@ const Admin = () => {
 
   const fetchNotificationStatus = async () => {
     try {
+      console.log('Fetching notification status...');
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+      
       const response = await fetch(buildApiUrl('/api/admin/notifications/status'), {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('Notification status response:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Notification status data:', data);
         setNotificationsEnabled(data.enabled);
+      } else {
+        console.error('Failed to fetch notification status:', await response.text());
       }
     } catch (error) {
       console.error('Failed to fetch notification status:', error);
@@ -148,7 +160,14 @@ const Admin = () => {
   const toggleNotifications = async () => {
     setLoadingNotifications(true);
     try {
+      console.log('Toggling notifications to:', !notificationsEnabled);
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        alert('Erreur d\'authentification. Veuillez vous reconnecter.');
+        return;
+      }
+      
       const response = await fetch(buildApiUrl('/api/admin/notifications/toggle'), {
         method: 'POST',
         headers: {
@@ -157,11 +176,20 @@ const Admin = () => {
         },
         body: JSON.stringify({ enabled: !notificationsEnabled })
       });
+      
+      console.log('Toggle response status:', response.status);
+      const data = await response.json();
+      console.log('Toggle response data:', data);
+      
       if (response.ok) {
         setNotificationsEnabled(!notificationsEnabled);
+        alert(data.message || `Notifications ${!notificationsEnabled ? 'activées' : 'désactivées'} avec succès`);
+      } else {
+        alert(data.message || 'Erreur lors de la modification des paramètres de notification');
       }
     } catch (error) {
       console.error('Failed to toggle notifications:', error);
+      alert('Erreur lors de la modification des paramètres de notification. Veuillez réessayer.');
     } finally {
       setLoadingNotifications(false);
     }
@@ -413,9 +441,19 @@ const Admin = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-orange-500 to-violet-600 text-white">
+          <Card className={notificationsEnabled ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white" : "bg-gradient-to-r from-gray-500 to-slate-600 text-white"} data-testid="notification-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Notifications Email</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                {notificationsEnabled ? (
+                  <span className="flex items-center">
+                    <Bell className="h-4 w-4 mr-2" /> Notifications Email
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    <BellOff className="h-4 w-4 mr-2" /> Notifications Email
+                  </span>
+                )}
+              </CardTitle>
               <Mail className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
@@ -425,15 +463,36 @@ const Admin = () => {
                 </div>
                 <Button
                   size="sm"
-                  variant="secondary"
+                  variant={notificationsEnabled ? "destructive" : "secondary"}
                   onClick={toggleNotifications}
                   disabled={loadingNotifications}
-                  className="text-xs"
+                  className="text-xs font-medium"
+                  data-testid="toggle-notifications-button"
                 >
-                  {loadingNotifications ? '...' : (notificationsEnabled ? 'Désactiver' : 'Activer')}
+                  {loadingNotifications ? (
+                    <span className="flex items-center">
+                      <span className="animate-spin mr-1">⟳</span> Chargement...
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      {notificationsEnabled ? (
+                        <>
+                          <BellOff className="h-3 w-3 mr-1" /> Désactiver
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-3 w-3 mr-1" /> Activer
+                        </>
+                      )}
+                    </span>
+                  )}
                 </Button>
               </div>
-              <p className="text-xs text-green-100 mt-1">Notifications par email</p>
+              <p className="text-xs text-green-100 mt-2">
+                {notificationsEnabled 
+                  ? "Vous recevez des notifications par email pour les nouvelles demandes" 
+                  : "Vous ne recevez pas de notifications par email"}
+              </p>
             </CardContent>
           </Card>
           

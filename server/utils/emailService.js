@@ -64,24 +64,61 @@ class EmailService {
   }
 
   async toggleAdminNotifications(adminId, enabled) {
+    console.log(`EmailService: Toggling notifications for admin ${adminId} to ${enabled ? 'enabled' : 'disabled'}`);
+    
+    // First check if the admin exists
+    const admin = await new Promise((resolve, reject) => {
+      db.get("SELECT * FROM users WHERE id = ? AND role = 'admin'", [adminId], (err, row) => {
+        if (err) {
+          console.error('Error checking admin existence:', err);
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+    
+    if (!admin) {
+      console.error(`Admin with ID ${adminId} not found in database`);
+      return false;
+    }
+    
+    console.log(`Admin found: ${admin.name} (${admin.email}), current notification status: ${admin.email_notifications === 1 ? 'enabled' : 'disabled'}`);
+    
     return new Promise((resolve, reject) => {
+      const newValue = enabled ? 1 : 0;
+      console.log(`Setting email_notifications to ${newValue}`);
+      
       db.run("UPDATE users SET email_notifications = ? WHERE id = ? AND role = 'admin'", 
-        [enabled ? 1 : 0, adminId], 
+        [newValue, adminId], 
         function(err) {
-          if (err) reject(err);
-          else resolve(this.changes > 0);
+          if (err) {
+            console.error('Error updating notification status:', err);
+            reject(err);
+          } else {
+            console.log(`Update complete. Changes: ${this.changes}`);
+            resolve(this.changes > 0);
+          }
         }
       );
     });
   }
 
   async getAdminNotificationStatus(adminId) {
+    console.log(`EmailService: Getting notification status for admin ${adminId}`);
+    
     return new Promise((resolve, reject) => {
       db.get("SELECT email_notifications FROM users WHERE id = ? AND role = 'admin'", 
         [adminId], 
         (err, row) => {
-          if (err) reject(err);
-          else resolve(row ? (row.email_notifications === 1) : true);
+          if (err) {
+            console.error('Error getting notification status:', err);
+            reject(err);
+          } else {
+            const enabled = row ? (row.email_notifications === 1) : true;
+            console.log(`Admin ${adminId} notification status: ${enabled ? 'enabled' : 'disabled'}`);
+            resolve(enabled);
+          }
         }
       );
     });
@@ -141,16 +178,20 @@ class EmailService {
       
       // First check if there are any admins at all
       const allAdmins = await new Promise((resolve, reject) => {
-        db.all("SELECT email, email_notifications FROM users WHERE role = 'admin'", (err, rows) => {
+        db.all("SELECT id, name, email, email_notifications FROM users WHERE role = 'admin'", (err, rows) => {
           if (err) reject(err);
           else resolve(rows);
         });
       });
       
-      console.log('All admins found:', allAdmins.length, allAdmins.map(a => ({ email: a.email, notifications: a.email_notifications })));
+      console.log('All admins found:', allAdmins.length);
+      allAdmins.forEach(admin => {
+        console.log(`Admin: ${admin.name} (${admin.email}), notifications: ${admin.email_notifications === 1 ? 'enabled' : 'disabled'}`);
+      });
       
       const adminEmails = await new Promise((resolve, reject) => {
-        db.all("SELECT email FROM users WHERE role = 'admin' AND (email_notifications = 1 OR email_notifications IS NULL)", (err, rows) => {
+        // Only select admins where email_notifications is explicitly set to 1
+        db.all("SELECT email FROM users WHERE role = 'admin' AND email_notifications = 1", (err, rows) => {
           if (err) reject(err);
           else resolve(rows.map(row => row.email));
         });

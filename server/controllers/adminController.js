@@ -162,8 +162,27 @@ class AdminController {
       const { enabled } = req.body;
       const adminId = req.user.id;
       
+      console.log(`Toggling notifications for admin ${adminId} to ${enabled ? 'enabled' : 'disabled'}`);
+      
+      // Verify admin exists
+      const admin = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE id = ? AND role = 'admin'", [adminId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (!admin) {
+        console.error(`Admin with ID ${adminId} not found`);
+        return res.status(404).json({ message: 'Admin not found' });
+      }
+      
+      console.log('Admin found:', admin.name, admin.email);
+      
       const emailService = require('../utils/emailService');
       const success = await emailService.toggleAdminNotifications(adminId, enabled);
+      
+      console.log('Toggle result:', success ? 'Success' : 'Failed');
       
       if (success) {
         res.json({ message: `Notifications ${enabled ? 'activées' : 'désactivées'} avec succès` });
@@ -179,8 +198,27 @@ class AdminController {
   async getNotificationStatus(req, res) {
     try {
       const adminId = req.user.id;
+      console.log(`Getting notification status for admin ${adminId}`);
+      
+      // Verify admin exists
+      const admin = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE id = ? AND role = 'admin'", [adminId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (!admin) {
+        console.error(`Admin with ID ${adminId} not found`);
+        return res.status(404).json({ message: 'Admin not found' });
+      }
+      
+      console.log('Admin found:', admin.name, admin.email);
+      
       const emailService = require('../utils/emailService');
       const enabled = await emailService.getAdminNotificationStatus(adminId);
+      
+      console.log('Current notification status:', enabled ? 'Enabled' : 'Disabled');
       
       res.json({ enabled });
     } catch (error) {
