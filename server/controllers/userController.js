@@ -6,6 +6,7 @@ class UserController {
   async getUserSubmissions(req, res) {
     try {
       const userId = req.user.id;
+      console.log(`Fetching submissions for user ${userId}`);
 
       const submissions = await new Promise((resolve, reject) => {
         db.all(`SELECT 
@@ -14,13 +15,25 @@ class UserController {
           WHERE user_id = ? 
           ORDER BY created_at DESC`, [userId], (err, rows) => {
           if (err) reject(err);
-          else resolve(rows.map(row => ({
-            ...row,
-            services: row.services ? JSON.parse(row.services) : []
-          })));
+          else resolve(rows.map(row => {
+            let services = [];
+            if (row.services) {
+              try {
+                const parsed = JSON.parse(row.services);
+                services = Array.isArray(parsed) ? parsed : [];
+              } catch (e) {
+                console.error('Error parsing services JSON:', e);
+              }
+            }
+            return {
+              ...row,
+              services
+            };
+          }));
         });
       });
 
+      console.log(`Found ${submissions.length} submissions for user ${userId}`);
       res.json(submissions);
     } catch (error) {
       console.error('Get user submissions error:', error);
@@ -31,6 +44,7 @@ class UserController {
   async getUserRatings(req, res) {
     try {
       const userId = req.user.id;
+      console.log(`Fetching ratings for user ${userId}`);
 
       const ratings = await new Promise((resolve, reject) => {
         db.all("SELECT id, rating, comment, is_approved, created_at FROM ratings WHERE user_id = ? ORDER BY created_at DESC", 
@@ -40,6 +54,7 @@ class UserController {
         });
       });
 
+      console.log(`Found ${ratings.length} ratings for user ${userId}`);
       res.json(ratings);
     } catch (error) {
       console.error('Get user ratings error:', error);
@@ -50,22 +65,21 @@ class UserController {
   async getUserStats(req, res) {
     try {
       const userId = req.user.id;
+      console.log(`Fetching stats for user ${userId}`);
 
       const stats = await new Promise((resolve, reject) => {
         db.get(`SELECT 
-          COUNT(DISTINCT cs.id) as total_submissions,
-          COUNT(DISTINCT r.id) as total_ratings,
-          COUNT(CASE WHEN cs.status = 'done' THEN 1 END) as completed_submissions,
-          COUNT(CASE WHEN r.is_approved = 1 THEN 1 END) as approved_ratings
-          FROM users u
-          LEFT JOIN contact_submissions cs ON u.id = cs.user_id
-          LEFT JOIN ratings r ON u.id = r.user_id
-          WHERE u.id = ?`, [userId], (err, row) => {
+          (SELECT COUNT(*) FROM contact_submissions WHERE user_id = ?) as total_submissions,
+          (SELECT COUNT(*) FROM ratings WHERE user_id = ?) as total_ratings,
+          (SELECT COUNT(*) FROM contact_submissions WHERE user_id = ? AND status = 'done') as completed_submissions,
+          (SELECT COUNT(*) FROM ratings WHERE user_id = ? AND is_approved = 1) as approved_ratings
+          FROM users WHERE id = ?`, [userId, userId, userId, userId, userId], (err, row) => {
           if (err) reject(err);
           else resolve(row);
         });
       });
 
+      console.log(`Stats for user ${userId}:`, stats);
       res.json(stats);
     } catch (error) {
       console.error('Get user stats error:', error);

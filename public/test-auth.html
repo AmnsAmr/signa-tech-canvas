@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    button:hover {
+      background-color: #4338ca;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .error {
+      color: #ef4444;
+    }
+    .success {
+      color: #10b981;
+    }
+  </style>
+</head>
+<body>
+  <h1>Authentication Test Tool</h1>
+  
+  <div class="card">
+    <h2>Current Token</h2>
+    <pre id="current-token">Loading...</pre>
+    <button onclick="clearToken()">Clear Token</button>
+  </div>
+  
+  <div class="card">
+    <h2>Test API Connection</h2>
+    <button onclick="testAuth()">Test Auth Endpoint</button>
+    <div id="auth-result"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Test User Dashboard API</h2>
+    <button onclick="testUserSubmissions()">Test Submissions</button>
+    <button onclick="testUserRatings()">Test Ratings</button>
+    <button onclick="testUserStats()">Test Stats</button>
+    <div id="dashboard-result"></div>
+  </div>
+
+  <script>
+    // Display current token on load
+    window.onload = function() {
+      const token = localStorage.getItem('token');
+      document.getElementById('current-token').textContent = token ? 
+        `${token.substring(0, 20)}...${token.substring(token.length - 20)}` : 
+        'No token found';
+    };
+
+    // Clear token
+    function clearToken() {
+      localStorage.removeItem('token');
+      document.getElementById('current-token').textContent = 'Token cleared';
+      setTimeout(() => {
+        document.getElementById('current-token').textContent = 'No token found';
+      }, 2000);
+    }
+
+    // Test auth endpoint
+    async function testAuth() {
+      const resultDiv = document.getElementById('auth-result');
+      resultDiv.innerHTML = '<p>Testing auth endpoint...</p>';
+      
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          resultDiv.innerHTML = '<p class="error">No token found in localStorage</p>';
+          return;
+        }
+        
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <p class="success">Authentication successful!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">Authentication failed: ${response.status}</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">Error: ${error.message}</p>
+          <p>This could indicate a CORS issue or the server is not running.</p>
+        `;
+      }
+    }
+
+    // Test user submissions endpoint
+    async function testUserSubmissions() {
+      await testEndpoint('submissions', 'dashboard-result');
+    }
+
+    // Test user ratings endpoint
+    async function testUserRatings() {
+      await testEndpoint('ratings', 'dashboard-result');
+    }
+
+    // Test user stats endpoint
+    async function testUserStats() {
+      await testEndpoint('stats', 'dashboard-result');
+    }
+
+    // Generic endpoint test function
+    async function testEndpoint(endpoint, resultDivId) {
+      const resultDiv = document.getElementById(resultDivId);
+      resultDiv.innerHTML = `<p>Testing ${endpoint} endpoint...</p>`;
+      
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          resultDiv.innerHTML = '<p class="error">No token found in localStorage</p>';
+          return;
+        }
+        
+        const response = await fetch(`http://localhost:5000/api/user/${endpoint}`, {
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <p class="success">${endpoint} endpoint successful!</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <p class="error">${endpoint} endpoint failed: ${response.status}</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">Error: ${error.message}</p>
+          <p>This could indicate a CORS issue or the server is not running.</p>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -34,8 +34,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    try {
     checkAuthStatus();
     handleGoogleCallback();
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      setLoading(false);
+    }
   }, []);
 
   const handleGoogleCallback = async () => {
@@ -50,14 +55,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const checkAuthStatus = async () => {
+    console.log('Checking auth status...');
     try {
       const token = localStorage.getItem('token');
       if (token) {
+        console.log('Token found, verifying...');
         // Add timeout to prevent hanging
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
         
-        const response = await fetch('http://localhost:5000/api/auth/me', {
+        // Use the proxy configured in vite.config.ts
+        const response = await fetch('/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
           signal: controller.signal
         });
@@ -66,8 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (response.ok) {
           const userData = await response.json();
+          console.log('Auth successful, user data:', userData);
           setUser(userData);
         } else {
+          console.log('Auth failed, removing token');
           localStorage.removeItem('token');
         }
       }
@@ -83,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -100,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (userData: RegisterData) => {
-    const response = await fetch('http://localhost:5000/api/auth/register', {
+    const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)

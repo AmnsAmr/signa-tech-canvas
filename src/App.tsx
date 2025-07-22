@@ -1,5 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import DashboardFallback from "@/components/DashboardFallback";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -14,6 +16,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import UserDashboard from "./pages/UserDashboard";
 import Ratings from "./pages/Ratings";
 import NotFound from "./pages/NotFound";
+import Debug from "./pages/Debug";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -33,9 +36,10 @@ const App = () => (
               <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/admin" element={<Admin />} />
-              <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/dashboard" element={<ErrorBoundary fallback={<DashboardFallback />}><UserDashboard /></ErrorBoundary>} />
               <Route path="/ratings" element={<Ratings />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/debug" element={<Debug />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -32,7 +32,7 @@ const RatingForm: React.FC = () => {
   const checkRatingEligibility = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ratings/can-rate', {
+      const response = await fetch('/api/ratings/can-rate', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -80,7 +80,7 @@ const RatingForm: React.FC = () => {
         body.email = email;
       }
 
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers,
         body: JSON.stringify(body)
