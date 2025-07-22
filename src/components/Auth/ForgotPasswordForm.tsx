@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
 }
 
 const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -36,7 +38,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           const data = await response.json();
           throw new Error(data.message);
         } else {
-          throw new Error('Serveur indisponible. Vérifiez que le serveur est démarré.');
+          throw new Error(t('auth.forgot_password.server_unavailable'));
         }
       }
 
@@ -45,9 +47,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
       setStep('code');
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError('Impossible de se connecter au serveur. Vérifiez que le serveur est démarré.');
+        setError(t('auth.forgot_password.connection_error'));
       } else {
-        setError(err.message || 'Une erreur est survenue');
+        setError(err.message || t('auth.forgot_password.unknown_error'));
       }
     } finally {
       setLoading(false);
@@ -72,7 +74,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           const data = await response.json();
           throw new Error(data.message);
         } else {
-          throw new Error('Serveur indisponible');
+          throw new Error(t('auth.forgot_password.server_error'));
         }
       }
 
@@ -80,9 +82,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
       setStep('password');
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError('Impossible de se connecter au serveur');
+        setError(t('auth.forgot_password.connection_error'));
       } else {
-        setError(err.message || 'Une erreur est survenue');
+        setError(err.message || t('auth.forgot_password.unknown_error'));
       }
     } finally {
       setLoading(false);
@@ -92,7 +94,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError(t('auth.forgot_password.passwords_no_match'));
       return;
     }
 
@@ -112,7 +114,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           const data = await response.json();
           throw new Error(data.message);
         } else {
-          throw new Error('Serveur indisponible');
+          throw new Error(t('auth.forgot_password.server_error'));
         }
       }
 
@@ -121,9 +123,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
       setTimeout(() => onBackToLogin(), 2000);
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError('Impossible de se connecter au serveur');
+        setError(t('auth.forgot_password.connection_error'));
       } else {
-        setError(err.message || 'Une erreur est survenue');
+        setError(err.message || t('auth.forgot_password.unknown_error'));
       }
     } finally {
       setLoading(false);
@@ -135,14 +137,14 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
       <CardContent className="p-8">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            {step === 'email' && 'Mot de passe oublié'}
-            {step === 'code' && 'Vérification'}
-            {step === 'password' && 'Nouveau mot de passe'}
+            {step === 'email' && t('auth.forgot_password.email_title')}
+            {step === 'code' && t('auth.forgot_password.verification_title')}
+            {step === 'password' && t('auth.forgot_password.new_password_title')}
           </h2>
           <p className="text-muted-foreground">
-            {step === 'email' && 'Entrez votre email pour recevoir un code de vérification'}
-            {step === 'code' && 'Entrez le code à 6 chiffres envoyé à votre email'}
-            {step === 'password' && 'Créez votre nouveau mot de passe'}
+            {step === 'email' && t('auth.forgot_password.email_desc')}
+            {step === 'code' && t('auth.forgot_password.code_desc')}
+            {step === 'password' && t('auth.forgot_password.password_desc')}
           </p>
         </div>
 
@@ -150,7 +152,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Email
+                {t('auth.forgot_password.email_label')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -158,7 +160,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
+                  placeholder={t('auth.forgot_password.email_placeholder')}
                   className="pl-10"
                   required
                 />
@@ -173,7 +175,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
               className="w-full bg-gradient-primary hover:opacity-90"
               disabled={loading}
             >
-              {loading ? 'Envoi...' : 'Envoyer le code'}
+              {loading ? t('auth.forgot_password.sending') : t('auth.forgot_password.send_code')}
             </Button>
           </form>
         )}
@@ -182,13 +184,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           <form onSubmit={handleCodeSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Code de vérification
+                {t('auth.forgot_password.code_label')}
               </label>
               <Input
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="123456"
+                placeholder={t('auth.forgot_password.code_placeholder')}
                 maxLength={6}
                 className="text-center text-lg tracking-widest"
                 required
@@ -202,7 +204,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
               className="w-full bg-gradient-primary hover:opacity-90"
               disabled={loading}
             >
-              {loading ? 'Vérification...' : 'Vérifier le code'}
+              {loading ? t('auth.forgot_password.verifying') : t('auth.forgot_password.verify_code')}
             </Button>
           </form>
         )}
@@ -211,7 +213,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Nouveau mot de passe
+                {t('auth.forgot_password.password_label')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -219,7 +221,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={t('auth.forgot_password.password_placeholder')}
                   className="pl-10"
                   minLength={6}
                   required
@@ -229,7 +231,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Confirmer le mot de passe
+                {t('auth.forgot_password.confirm_password_label')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -237,7 +239,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={t('auth.forgot_password.confirm_password_placeholder')}
                   className="pl-10"
                   minLength={6}
                   required
@@ -258,7 +260,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
               className="w-full bg-gradient-primary hover:opacity-90"
               disabled={loading}
             >
-              {loading ? 'Mise à jour...' : 'Réinitialiser le mot de passe'}
+              {loading ? t('auth.forgot_password.updating') : t('auth.forgot_password.reset_password')}
             </Button>
           </form>
         )}
@@ -269,7 +271,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
             className="text-primary hover:underline font-medium flex items-center justify-center mx-auto"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour à la connexion
+            {t('auth.forgot_password.back_to_login')}
           </button>
         </div>
       </CardContent>
