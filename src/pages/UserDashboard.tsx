@@ -11,6 +11,7 @@ import RatingForm from '@/components/RatingSystem/RatingForm';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Star, BarChart3, MessageSquare, Clock, CheckCircle, Download, Paperclip } from 'lucide-react';
 import FileContextMenu from '@/components/FileContextMenu';
+import { ProjectCard } from '@/components/shared';
 
 interface UserSubmission {
   id: number;
@@ -243,82 +244,20 @@ const UserDashboard: React.FC = () => {
           <TabsContent value="submissions">
             <div className="space-y-4">
               {submissions.map((submission) => (
-                <Card key={submission.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-2">
-                          {submission.project || 'Demande de contact'}
-                        </h3>
-                        <Badge variant={submission.status === 'done' ? 'default' : 'secondary'}>
-                          {submission.status === 'done' ? (
-                            <>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Terminé
-                            </>
-                          ) : (
-                            <>
-                              <Clock className="h-3 w-3 mr-1" />
-                              En attente
-                            </>
-                          )}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(submission.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                      <p className="text-sm">{submission.message}</p>
-                    </div>
-                    
-                    {/* File information */}
-                    {submission.has_file && submission.file_info && (
-                      <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <FileText className="h-6 w-6 text-green-600" />
-                            <div>
-                              <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
-                              <p className="text-xs text-green-600">{submission.file_info.name}</p>
-                              <p className="text-xs text-green-500">{formatFileSize(submission.file_info.size)}</p>
-                            </div>
-                          </div>
-                          <FileContextMenu
-                            fileId={submission.id}
-                            fileName={submission.file_info.name}
-                            filePath={submission.file_info.path}
-                            submissionId={submission.id}
-                          >
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-green-300 hover:bg-green-100"
-                            >
-                              <FileText className="h-4 w-4 mr-2" />
-                              Options
-                            </Button>
-                          </FileContextMenu>
-                        </div>
-                      </div>
-                    )}
-
-                    {submission.services && Array.isArray(submission.services) && submission.services.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Services demandés:</h4>
-                        {submission.services.map((service, index) => (
-                          <div key={index} className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
-                            <div className="font-medium text-sm">{service.serviceType}</div>
-                            {service.material && <div className="text-xs text-gray-600">Matériau: {service.material}</div>}
-                            {service.size && <div className="text-xs text-gray-600">Taille: {service.size}</div>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <ProjectCard
+                  key={submission.id}
+                  id={submission.id}
+                  name={submission.project || 'Demande de contact'}
+                  message={submission.message}
+                  status={submission.status}
+                  createdAt={submission.created_at}
+                  hasFile={submission.has_file}
+                  fileInfo={submission.file_info}
+                  services={Array.isArray(submission.services) ? submission.services : []}
+                  isExpanded={false}
+                />
               ))}
+
 
               {submissions.length === 0 && (
                 <Card>

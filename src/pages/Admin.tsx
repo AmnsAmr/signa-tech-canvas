@@ -16,6 +16,7 @@ import ContactSettings from '@/components/Admin/ContactSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip } from 'lucide-react';
+import { ProjectCard } from '@/components/shared';
 import FileContextMenu from '@/components/FileContextMenu';
 
 interface User {
@@ -715,190 +716,29 @@ const Admin = () => {
               <CardContent>
                 <div className="space-y-3">
                   {filteredSubmissions.map((submission) => (
-                    <Card key={submission.id} className={`border-l-4 ${submission.status === 'done' ? 'border-l-green-500 bg-green-50/50' : 'border-l-primary'} card-hover-effect`}>
-                      <CardContent className="p-4">
-                        <details className="group">
-                          <summary className="cursor-pointer list-none">
-                            <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold">{submission.name}</h3>
-                              <Badge variant={submission.status === 'done' ? 'default' : 'secondary'} className="text-xs">
-                                {submission.status === 'done' ? 'Terminé' : 'En attente'}
-                              </Badge>
-                              {submission.services && submission.services.length > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  {submission.services.length} service{submission.services.length > 1 ? 's' : ''}
-                                </Badge>
-                              )}
-                               {submission.submission_group && (
-                                 <Badge variant="outline" className="text-xs bg-blue-50">
-                                   ID: {getGroupId(submission.submission_group)}
-                                 </Badge>
-                               )}
-                               {submission.has_file && (
-                                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                   <Paperclip className="h-3 w-3 mr-1" />
-                                   Fichier joint
-                                 </Badge>
-                               )}
-                             </div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              {submission.user_name} • {submission.email}
-                            </p>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {new Date(submission.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant={submission.status === 'done' ? 'outline' : 'default'}
-                            onClick={() => updateSubmissionStatus(submission.id, submission.status === 'done' ? 'pending' : 'done')}
-                            className="ml-2"
-                          >
-                            {submission.status === 'done' ? (
-                              <><Clock className="h-3 w-3 mr-1" />Rouvrir</>
-                            ) : (
-                              <><Check className="h-3 w-3 mr-1" />Marquer terminé</>
-                            )}
-                          </Button>
-                        </div>
-                        
-                        {submission.project && (
-                          <div className="mb-2">
-                            <Badge variant="outline" className="text-xs">
-                              Projet: {submission.project}
-                            </Badge>
-                          </div>
-                        )}
-                        
-                            <div className="bg-gradient-to-r from-muted/40 to-muted/20 p-4 rounded-md text-sm mb-3 border border-muted/50">
-                              <div className="message-content">
-                                <p>{submission.message}</p>
-                              </div>
-                              <span className="text-xs inline-flex items-center gap-1 text-primary font-medium mt-2 group-open:hidden">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                Voir plus
-                              </span>
-                              <span className="text-xs inline-flex items-center gap-1 text-primary font-medium mt-2 hidden group-open:inline-flex">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                                Voir moins
-                              </span>
-                            </div>
-                          </summary>
-                          
-                          {/* Services shown when expanded */}
-                          <div className="mt-4">
-                            {/* File Download Section - Always show first when expanded */}
-                            {submission.has_file && (
-                              <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-3">
-                                    <FileText className="h-6 w-6 text-green-600" />
-                                    <div>
-                                      <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
-                                      {submission.file_info ? (
-                                        <>
-                                          <p className="text-xs text-green-600">{submission.file_info.name}</p>
-                                          <p className="text-xs text-green-500">{formatFileSize(submission.file_info.size)}</p>
-                                        </>
-                                      ) : submission.file_name ? (
-                                        <>
-                                          <p className="text-xs text-green-600">{submission.file_name}</p>
-                                          <p className="text-xs text-green-500">{submission.file_size ? formatFileSize(submission.file_size) : 'Taille inconnue'}</p>
-                                        </>
-                                      ) : (
-                                        <p className="text-xs text-green-600">Fichier joint</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    
-                                    <FileContextMenu
-                                      fileId={submission.id}
-                                      fileName={submission.file_info?.name || submission.file_name || 'file'}
-                                      filePath={submission.file_info?.path || submission.file_path || ''}
-                                      isAdmin={true}
-                                      submissionId={submission.id}
-                                    >
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="border-green-300 hover:bg-green-100"
-                                      >
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        Options
-                                      </Button>
-                                    </FileContextMenu>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {submission.services && Array.isArray(submission.services) && submission.services.length > 0 && (
-                             <div className="space-y-3">
-                               
-                               <h4 className="text-sm font-medium">Services demandés ({submission.services.length}):</h4>
-                                {Array.isArray(submission.services) && submission.services.map((service, index) => (
-                                  <div key={index} className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
-                                    <div className="flex items-center mb-2">
-                                      <Badge variant="secondary" className="text-xs mr-2">
-                                        {service.serviceType || 'Service'} #{index + 1}
-                                      </Badge>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                      {service.material && (
-                                        <div>
-                                          <span className="font-medium">Matériau:</span>
-                                          <p className="text-muted-foreground truncate">{service.material}</p>
-                                        </div>
-                                      )}
-                                      {service.size && (
-                                        <div>
-                                          <span className="font-medium">Taille:</span>
-                                          <p className="text-muted-foreground truncate">{service.size}</p>
-                                        </div>
-                                      )}
-                                      {service.quantity && (
-                                        <div>
-                                          <span className="font-medium">Quantité:</span>
-                                          <p className="text-muted-foreground truncate">{service.quantity}</p>
-                                        </div>
-                                      )}
-                                      {service.thickness && (
-                                        <div>
-                                          <span className="font-medium">Épaisseur:</span>
-                                          <p className="text-muted-foreground truncate">{service.thickness}</p>
-                                        </div>
-                                      )}
-                                      {service.colors && (
-                                        <div>
-                                          <span className="font-medium">Couleurs:</span>
-                                          <p className="text-muted-foreground truncate">{service.colors}</p>
-                                        </div>
-                                      )}
-                                      {service.finishing && (
-                                        <div>
-                                          <span className="font-medium">Finition:</span>
-                                          <p className="text-muted-foreground truncate">{service.finishing}</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            {/* Show a message if there are no services but there is a file */}
-                            {(!submission.services || !Array.isArray(submission.services) || submission.services.length === 0) && submission.has_file && (
-                              <div className="text-center py-2 text-muted-foreground text-sm">
-                                Aucun service demandé avec ce fichier.
-                              </div>
-                            )}
-                          </div>
-                        </details>
-                      </CardContent>
-                    </Card>
+                    <ProjectCard
+                      key={submission.id}
+                      id={submission.id}
+                      name={submission.name}
+                      message={submission.message}
+                      status={submission.status}
+                      createdAt={submission.created_at}
+                      hasFile={submission.has_file}
+                      fileInfo={submission.file_info}
+                      fileName={submission.file_name}
+                      filePath={submission.file_path}
+                      fileSize={submission.file_size}
+                      services={Array.isArray(submission.services) ? submission.services : []}
+                      project={submission.project}
+                      submissionGroup={submission.submission_group}
+                      userInfo={{
+                        name: submission.user_name,
+                        email: submission.email
+                      }}
+                      onStatusChange={updateSubmissionStatus}
+                      onDownloadFile={downloadFile}
+                      isAdmin={true}
+                    />
                   ))}
                 </div>
               </CardContent>
@@ -923,175 +763,25 @@ const Admin = () => {
               </p>
             ) : (
               userRequests.map((request) => (
-                <Card key={request.id} className="border-l-4 border-l-primary card-hover-effect">
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <h4 className="font-semibold text-lg">{request.name}</h4>
-                        <div className="flex items-center mt-1">
-                          <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span className="text-sm">{new Date(request.created_at).toLocaleString()}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {request.services && request.services.length > 0 && (
-                            <Badge variant="outline">
-                              {request.services.length} service{request.services.length > 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                          {request.submission_group && (
-                            <Badge variant="outline" className="bg-blue-50">
-                              ID: {getGroupId(request.submission_group)}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {request.project && (
-                      <div className="mb-3">
-                        <Badge variant="outline">Projet: {request.project}</Badge>
-                      </div>
-                    )}
-                    
-                    <div className="bg-gradient-to-r from-muted/40 to-muted/20 p-4 rounded-md border border-muted/50 mb-4">
-                      <h5 className="font-medium mb-2">Message:</h5>
-                      <details className="group">
-                        <summary className="cursor-pointer list-none">
-                          <div className="message-content">
-                            <p className="text-sm">{request.message}</p>
-                          </div>
-                          <span className="text-xs inline-flex items-center gap-1 text-primary font-medium mt-2 group-open:hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                            Voir plus
-                          </span>
-                          <span className="text-xs inline-flex items-center gap-1 text-primary font-medium mt-2 hidden group-open:inline-flex">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                            Voir moins
-                          </span>
-                        </summary>
-                      </details>
-                    </div>
-                    
-                    {/* File section */}
-                    {request.has_file && (
-                      <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <FileText className="h-6 w-6 text-green-600" />
-                            <div>
-                              <h5 className="text-sm font-medium text-green-800">Fichier vectoriel joint</h5>
-                              {request.file_info ? (
-                                <>
-                                  <p className="text-xs text-green-600">{request.file_info.name}</p>
-                                  <p className="text-xs text-green-500">{formatFileSize(request.file_info.size)}</p>
-                                </>
-                              ) : request.file_name ? (
-                                <>
-                                  <p className="text-xs text-green-600">{request.file_name}</p>
-                                  <p className="text-xs text-green-500">{request.file_size ? formatFileSize(request.file_size) : 'Taille inconnue'}</p>
-                                </>
-                              ) : (
-                                <p className="text-xs text-green-600">Fichier joint</p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-green-300 hover:bg-green-100"
-                              onClick={() => {
-                                const filePath = request.file_info?.path || request.file_path;
-                                const fileName = request.file_info?.name || request.file_name;
-                                if (filePath && fileName) {
-                                  downloadFile(filePath, fileName);
-                                }
-                              }}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Télécharger
-                            </Button>
-                            <FileContextMenu
-                              fileId={request.id}
-                              fileName={request.file_info?.name || request.file_name || 'file'}
-                              filePath={request.file_info?.path || request.file_path || ''}
-                              isAdmin={true}
-                              submissionId={request.id}
-                            >
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-green-300 hover:bg-green-100"
-                              >
-                                <FileText className="h-4 w-4 mr-2" />
-                                Options
-                              </Button>
-                            </FileContextMenu>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Show services if available */}
-                    {request.services && Array.isArray(request.services) && request.services.length > 0 && (
-                      <div className="space-y-4">
-                        <h5 className="font-medium">Services demandés ({request.services.length}):</h5>
-                        {Array.isArray(request.services) && request.services.map((service, index) => (
-                          <div key={index} className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
-                            <h6 className="font-medium mb-3 text-primary">
-                              Service {index + 1}: {service.serviceType || 'Non spécifié'}
-                            </h6>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                              {service.material && (
-                                <div>
-                                  <span className="font-medium">Matériau:</span>
-                                  <p className="text-muted-foreground">{service.material}</p>
-                                </div>
-                              )}
-                              {service.size && (
-                                <div>
-                                  <span className="font-medium">Taille:</span>
-                                  <p className="text-muted-foreground">{service.size}</p>
-                                </div>
-                              )}
-                              {service.quantity && (
-                                <div>
-                                  <span className="font-medium">Quantité:</span>
-                                  <p className="text-muted-foreground">{service.quantity}</p>
-                                </div>
-                              )}
-                              {service.thickness && (
-                                <div>
-                                  <span className="font-medium">Épaisseur:</span>
-                                  <p className="text-muted-foreground">{service.thickness}</p>
-                                </div>
-                              )}
-                              {service.colors && (
-                                <div>
-                                  <span className="font-medium">Couleurs:</span>
-                                  <p className="text-muted-foreground">{service.colors}</p>
-                                </div>
-                              )}
-                              {service.finishing && (
-                                <div>
-                                  <span className="font-medium">Finition:</span>
-                                  <p className="text-muted-foreground">{service.finishing}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* Show a message if there are no services but there is a file */}
-                    {(!request.services || !Array.isArray(request.services) || request.services.length === 0) && request.has_file && (
-                      <div className="text-center py-2 text-muted-foreground text-sm">
-                        Aucun service demandé avec ce fichier.
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <ProjectCard
+                  key={request.id}
+                  id={request.id}
+                  name={request.name}
+                  message={request.message}
+                  status={request.status || 'pending'}
+                  createdAt={request.created_at}
+                  hasFile={request.has_file}
+                  fileInfo={request.file_info}
+                  fileName={request.file_name}
+                  filePath={request.file_path}
+                  fileSize={request.file_size}
+                  services={Array.isArray(request.services) ? request.services : []}
+                  project={request.project}
+                  submissionGroup={request.submission_group}
+                  onDownloadFile={downloadFile}
+                  isAdmin={true}
+                  isExpanded={true}
+                />
               ))
             )}
           </div>
