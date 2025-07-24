@@ -20,7 +20,9 @@ interface ServiceCardProps {
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service = {}, index = 0, compact = false }) => {
   return (
-    <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-md border border-primary/20 hover:border-primary/40 transition-colors">
+    <div className={`bg-gradient-to-r from-primary/5 to-transparent rounded-md border border-primary/20 hover:border-primary/40 transition-colors ${
+      compact ? 'p-2' : 'p-4'
+    }`}>
       {!compact ? (
         <>
           <h6 className="font-medium mb-3 text-primary">
@@ -73,47 +75,41 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service = {}, index = 0, comp
         </>
       ) : (
         <>
-          <div className="flex items-center mb-2">
-            <Badge variant="secondary" className="text-xs mr-2">
+          <div className="flex items-center justify-between mb-2">
+            <Badge variant="secondary" className="text-xs">
               {service.serviceType || 'Service'} #{index + 1}
             </Badge>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div className="flex flex-wrap gap-2 text-xs">
             {service.material && (
-              <div>
-                <span className="font-medium">Matériau:</span>
-                <p className="text-muted-foreground truncate">{service.material}</p>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {service.material}
+              </Badge>
             )}
             {service.size && (
-              <div>
-                <span className="font-medium">Taille:</span>
-                <p className="text-muted-foreground truncate">{service.size}</p>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {service.size}
+              </Badge>
             )}
             {service.quantity && (
-              <div>
-                <span className="font-medium">Quantité:</span>
-                <p className="text-muted-foreground truncate">{service.quantity}</p>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                Qty: {service.quantity}
+              </Badge>
             )}
             {service.thickness && (
-              <div>
-                <span className="font-medium">Épaisseur:</span>
-                <p className="text-muted-foreground truncate">{service.thickness}</p>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {service.thickness}
+              </Badge>
             )}
             {service.colors && (
-              <div>
-                <span className="font-medium">Couleurs:</span>
-                <p className="text-muted-foreground truncate">{service.colors}</p>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {service.colors}
+              </Badge>
             )}
             {service.finishing && (
-              <div>
-                <span className="font-medium">Finition:</span>
-                <p className="text-muted-foreground truncate">{service.finishing}</p>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {service.finishing}
+              </Badge>
             )}
           </div>
         </>

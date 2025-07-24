@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -107,15 +107,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const displayGroupId = groupId || (submissionGroup ? getGroupId(submissionGroup) : undefined);
   
+  const [isLocalExpanded, setIsLocalExpanded] = useState(isExpanded);
+  const previewLength = 120;
+  const shouldTruncate = message.length > previewLength;
+  const truncatedMessage = shouldTruncate ? message.substring(0, previewLength) + '...' : message;
+
   return (
-    <Card className={`border-l-4 ${status === 'done' ? 'border-l-green-500 bg-green-50/50' : 'border-l-primary'} card-hover-effect`}>
+    <Card className={`border-l-4 transition-all duration-300 hover:shadow-md h-fit ${
+      status === 'done' ? 'border-l-green-500 bg-green-50/30' : 'border-l-primary'
+    }`}>
       <CardContent className="p-4">
-        <details className="group" open={isExpanded}>
-          <summary className="cursor-pointer list-none">
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold">{name}</h3>
+        <div className="space-y-3">
+          {/* Header Section */}
+          <div className="flex justify-between items-start">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <h3 className="font-semibold text-base truncate">{name}</h3>
+                <div className="flex flex-wrap gap-1">
                   <Badge variant={status === 'done' ? 'default' : 'secondary'} className="text-xs">
                     {status === 'done' ? 'Terminé' : 'En attente'}
                   </Badge>
@@ -132,97 +140,139 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   {hasFile && (
                     <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                       <Paperclip className="h-3 w-3 mr-1" />
-                      Fichier joint
+                      Fichier
                     </Badge>
                   )}
                 </div>
-                {userInfo && (
-                  <p className="text-xs text-muted-foreground mb-1">
-                    {userInfo.name} • {userInfo.email}
-                  </p>
-                )}
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {new Date(createdAt).toLocaleDateString()}
-                </div>
               </div>
+              {userInfo && (
+                <p className="text-sm text-muted-foreground mb-1 truncate">
+                  {userInfo.name} • {userInfo.email}
+                </p>
+              )}
+              <div className="flex items-center text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3 mr-1" />
+                {new Date(createdAt).toLocaleDateString()}
+              </div>
+            </div>
+            
+            {/* Actions */}
+            <div className="flex items-center gap-2 ml-4">
               {onStatusChange && (
                 <Button
                   size="sm"
                   variant={status === 'done' ? 'outline' : 'default'}
-                  onClick={() => onStatusChange(id, status === 'done' ? 'pending' : 'done')}
-                  className="ml-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStatusChange(id, status === 'done' ? 'pending' : 'done');
+                  }}
+                  className="shrink-0"
                 >
                   {status === 'done' ? (
                     <><Clock className="h-3 w-3 mr-1" />Rouvrir</>
                   ) : (
-                    <><Check className="h-3 w-3 mr-1" />Marquer terminé</>
+                    <><Check className="h-3 w-3 mr-1" />Terminé</>
                   )}
                 </Button>
               )}
             </div>
-            
-            {project && (
-              <div className="mb-2">
-                <Badge variant="outline" className="text-xs">
-                  Projet: {project}
-                </Badge>
-              </div>
-            )}
-            
-            <div className="bg-gradient-to-r from-muted/40 to-muted/20 p-4 rounded-md text-sm mb-3 border border-muted/50">
-              <div className="message-content">
-                <p>{message}</p>
-              </div>
-              <span className="text-xs inline-flex items-center gap-1 text-primary font-medium mt-2 group-open:hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                Voir plus
-              </span>
-              <span className="text-xs inline-flex items-center gap-1 text-primary font-medium mt-2 hidden group-open:inline-flex">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                Voir moins
-              </span>
-            </div>
-          </summary>
+          </div>
           
-          {/* Content shown when expanded */}
-          <div className="mt-4">
-            {/* File Download Section */}
-            {hasFile && (
-              <FileCard
-                fileInfo={fileInfo}
-                fileName={fileName}
-                filePath={filePath}
-                fileSize={fileSize}
-                submissionId={id}
-                isAdmin={isAdmin}
-                onDownload={onDownloadFile}
-              />
-            )}
-            
-            {/* Services Section */}
-            {Array.isArray(services) && services.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium">Services demandés ({services.length}):</h4>
-                {Array.isArray(services) && services.map((service, index) => (
-                  <ServiceCard 
-                    key={index} 
-                    service={service} 
-                    index={index} 
-                    compact={isAdmin}
+          {project && (
+            <div>
+              <Badge variant="outline" className="text-xs">
+                Projet: {project}
+              </Badge>
+            </div>
+          )}
+          
+          {/* Message Preview Section */}
+          <div className="bg-gradient-to-r from-muted/30 to-muted/10 p-3 rounded-lg border border-muted/30">
+            <div className="text-sm leading-relaxed">
+              <p className="whitespace-pre-wrap break-words">
+                {truncatedMessage}
+              </p>
+              {shouldTruncate && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsLocalExpanded(!isLocalExpanded);
+                  }}
+                  className="text-xs text-primary font-medium mt-2 hover:underline focus:outline-none focus:underline inline-flex items-center gap-1 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  Voir plus
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {/* Expanded Content */}
+          <div className={`transition-all duration-300 overflow-hidden ${
+            isLocalExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            {isLocalExpanded && (
+              <div className="space-y-3 pt-3 border-t border-muted/30">
+                {/* Full Message */}
+                <div className="bg-gradient-to-r from-muted/20 to-muted/5 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium mb-2">Message complet:</h4>
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                    {message}
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsLocalExpanded(false);
+                    }}
+                    className="text-xs text-primary font-medium mt-2 hover:underline focus:outline-none focus:underline inline-flex items-center gap-1 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    Voir moins
+                  </button>
+                </div>
+                
+                {/* File Download Section */}
+                {hasFile && (
+                  <FileCard
+                    fileInfo={fileInfo}
+                    fileName={fileName}
+                    filePath={filePath}
+                    fileSize={fileSize}
+                    submissionId={id}
+                    isAdmin={isAdmin}
+                    onDownload={onDownloadFile}
                   />
-                ))}
-              </div>
-            )}
-            
-            {/* Show a message if there are no services but there is a file */}
-            {(!Array.isArray(services) || services.length === 0) && hasFile && (
-              <div className="text-center py-2 text-muted-foreground text-sm">
-                Aucun service demandé avec ce fichier.
+                )}
+                
+                {/* Services Section */}
+                {Array.isArray(services) && services.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-muted-foreground">
+                      Services demandés ({services.length}):
+                    </h4>
+                    <div className="grid gap-2">
+                      {services.map((service, index) => (
+                        <ServiceCard 
+                          key={index} 
+                          service={service} 
+                          index={index} 
+                          compact={true}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Show a message if there are no services but there is a file */}
+                {(!Array.isArray(services) || services.length === 0) && hasFile && (
+                  <div className="text-center py-2 text-muted-foreground text-sm">
+                    Aucun service demandé avec ce fichier.
+                  </div>
+                )}
               </div>
             )}
           </div>
-        </details>
+        </div>
       </CardContent>
     </Card>
   );

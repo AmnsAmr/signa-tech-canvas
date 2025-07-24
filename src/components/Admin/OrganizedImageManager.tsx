@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Image as ImageIcon, Home, User, Info, FolderOpen, Building2, Star, Palette, AlertTriangle } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Image as ImageIcon, Home, User, Info, FolderOpen, Building2, Star, Palette, AlertTriangle, Settings } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { buildApiUrl, buildUploadUrl } from '@/config/api';
 import { IMAGE_USAGE_MAP, isCategoryFull, getPriorityColor } from '@/utils/imageOrganizer';
@@ -283,7 +284,7 @@ const OrganizedImageManager: React.FC = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {sectionImages.map((image, index) => {
                   const isFirstImage = index === 0;
                   const orderHint = section.key === 'hero' && index < 3 ? 
@@ -293,7 +294,7 @@ const OrganizedImageManager: React.FC = () => {
                     `Image ${index + 1}`;
                   
                   return (
-                    <Card key={image.id} className={`overflow-hidden relative flex flex-col h-full ${
+                    <Card key={image.id} className={`overflow-hidden relative group hover:shadow-lg transition-all duration-200 ${
                       isFirstImage ? 'ring-2 ring-primary ring-opacity-50' : ''
                     }`}>
                       {isFirstImage && (
@@ -301,7 +302,7 @@ const OrganizedImageManager: React.FC = () => {
                           Principale
                         </div>
                       )}
-                      <div className="aspect-square bg-gray-100 relative">
+                      <div className="relative bg-gray-100" style={{ height: '180px' }}>
                         <img
                           src={buildUploadUrl(image.filename)}
                           alt={image.original_name}
@@ -313,41 +314,49 @@ const OrganizedImageManager: React.FC = () => {
                         <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                           #{index + 1}
                         </div>
-                      </div>
-                      <CardContent className="p-3 flex-1 flex flex-col">
-                        <div>
-                          <div className="text-sm font-medium truncate mb-1">{image.original_name}</div>
-                          <div className="text-xs text-blue-600 mb-2 font-medium">{orderHint}</div>
-                          <div className="text-xs text-gray-500 mb-3">
-                            {Math.round(image.size / 1024)}KB • {new Date(image.created_at).toLocaleDateString()}
-                          </div>
+                        <div className="absolute top-2 right-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const input = document.createElement('input');
+                                  input.type = 'file';
+                                  input.accept = 'image/*';
+                                  input.onchange = (e) => {
+                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                    if (file) handleReplace(image.id, file);
+                                  };
+                                  input.click();
+                                }}
+                              >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Remplacer
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(image.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <div className="flex gap-2 mt-auto">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              const input = document.createElement('input');
-                              input.type = 'file';
-                              input.accept = 'image/*';
-                              input.onchange = (e) => {
-                                const file = (e.target as HTMLInputElement).files?.[0];
-                                if (file) handleReplace(image.id, file);
-                              };
-                              input.click();
-                            }}
-                          >
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                            Remplacer
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(image.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                      </div>
+                      <CardContent className="p-3">
+                        <div className="text-sm font-medium truncate mb-1">{image.original_name}</div>
+                        <div className="text-xs text-blue-600 mb-2 font-medium">{orderHint}</div>
+                        <div className="text-xs text-gray-500">
+                          {Math.round(image.size / 1024)}KB • {new Date(image.created_at).toLocaleDateString()}
                         </div>
                       </CardContent>
                     </Card>

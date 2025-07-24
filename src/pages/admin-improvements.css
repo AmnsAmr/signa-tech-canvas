@@ -1,0 +1,123 @@
+/* Admin UI Improvements */
+
+/* Image Grid Responsive Layout */
+.admin-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .admin-image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+/* Project Cards Responsive */
+.admin-project-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .admin-project-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .admin-project-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Ensure uniform card heights */
+.admin-project-cards > * {
+  height: fit-content;
+  align-self: start;
+}
+
+/* Card hover effects */
+.admin-project-cards .card {
+  transition: all 0.3s ease;
+}
+
+.admin-project-cards .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Responsive */
+.admin-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-table {
+  min-width: 100%;
+  width: max-content;
+}
+
+@media (max-width: 768px) {
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Settings Button Hover Effects */
+.admin-settings-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.admin-card:hover .admin-settings-btn,
+tr:hover .admin-settings-btn {
+  opacity: 1;
+}
+
+/* Message preview styling */
+.message-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+}
+
+/* Smooth expand/collapse animations */
+.expand-transition {
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* Ensure consistent card spacing */
+.submission-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Loading States */
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.admin-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

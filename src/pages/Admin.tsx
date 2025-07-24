@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import OrganizedImageManager from '@/components/Admin/OrganizedImageManager';
@@ -15,9 +16,11 @@ import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import FileContextMenu from '@/components/FileContextMenu';
+import './admin-improvements.css';
+
 
 interface User {
   id: number;
@@ -402,9 +405,9 @@ const Admin = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading admin data...</p>
+        <div className="admin-loading">
+          <div className="admin-spinner"></div>
+          <p className="text-muted-foreground ml-4">Loading admin data...</p>
         </div>
       </div>
     );
@@ -557,22 +560,34 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="images" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="images" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Images
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+            <TabsTrigger value="images" className="flex items-center gap-1 text-xs md:text-sm">
+              <Image className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Images</span>
             </TabsTrigger>
-            <TabsTrigger value="contact" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Contact
+            <TabsTrigger value="contact" className="flex items-center gap-1 text-xs md:text-sm">
+              <Phone className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Contact</span>
             </TabsTrigger>
-            <TabsTrigger value="admins" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Admins ({admins.length})
+            <TabsTrigger value="admins" className="flex items-center gap-1 text-xs md:text-sm">
+              <Shield className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Admins</span>
+              <span className="hidden md:inline">({admins.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="ratings">{t('admin.reviews')}</TabsTrigger>
-            <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
-            <TabsTrigger value="submissions">Submissions ({filteredSubmissions.length})</TabsTrigger>
+            <TabsTrigger value="ratings" className="text-xs md:text-sm">
+              <span className="hidden sm:inline">{t('admin.reviews')}</span>
+              <span className="sm:hidden">Reviews</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="text-xs md:text-sm">
+              <span className="hidden sm:inline">Users</span>
+              <span className="sm:hidden">U</span>
+              <span className="hidden md:inline">({filteredUsers.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="submissions" className="text-xs md:text-sm">
+              <span className="hidden sm:inline">Submissions</span>
+              <span className="sm:hidden">S</span>
+              <span className="hidden md:inline">({filteredSubmissions.length})</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="contact">
@@ -592,65 +607,89 @@ const Admin = () => {
                 <CardTitle>{t('admin.registered_users')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Registered</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleUserClick(user)}>
-                        <TableCell className="font-medium flex items-center">
-                          <Eye className="h-4 w-4 mr-2 text-muted-foreground" />
-                          {user.name}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {user.email}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {user.company ? (
-                            <div className="flex items-center">
-                              <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                              {user.company}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {user.phone ? (
-                            <div className="flex items-center">
-                              <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                              {user.phone}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                            {user.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {new Date(user.created_at).toLocaleDateString()}
-                          </div>
-                        </TableCell>
+                <div className="admin-table-container">
+                  <Table className="admin-table">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="hidden md:table-cell">Email</TableHead>
+                        <TableHead className="hidden lg:table-cell">Company</TableHead>
+                        <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                        <TableHead className="hidden sm:table-cell">Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Registered</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            <div className="flex items-center justify-between">
+                              <div className="flex flex-col sm:flex-row sm:items-center cursor-pointer min-w-0" onClick={() => handleUserClick(user)}>
+                                <div className="flex items-center">
+                                  <Eye className="h-4 w-4 mr-2 text-muted-foreground" />
+                                  <span className="truncate">{user.name}</span>
+                                </div>
+                                <div className="sm:hidden text-xs text-muted-foreground mt-1">
+                                  {user.email}
+                                </div>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 admin-settings-btn">
+                                    <Settings className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleUserClick(user)}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center">
+                              <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span className="truncate max-w-[200px]">{user.email}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {user.company ? (
+                              <div className="flex items-center">
+                                <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                                <span className="truncate max-w-[150px]">{user.company}</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {user.phone ? (
+                              <div className="flex items-center">
+                                <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                                {user.phone}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                              {user.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                              {new Date(user.created_at).toLocaleDateString()}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -714,7 +753,7 @@ const Admin = () => {
                 <CardTitle>Contact Submissions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="admin-project-cards">
                   {filteredSubmissions.map((submission) => (
                     <ProjectCard
                       key={submission.id}
