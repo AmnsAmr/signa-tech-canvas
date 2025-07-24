@@ -19,7 +19,8 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: 1fr;
-  align-items: start;
+  align-items: stretch;
+  width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -34,18 +35,21 @@
   }
 }
 
-/* Ensure uniform card heights */
+/* Ensure uniform card layout */
 .admin-project-cards > * {
-  height: fit-content;
-  align-self: start;
+  width: 100%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Card hover effects */
-.admin-project-cards .card {
+.admin-project-cards [data-card] {
   transition: all 0.3s ease;
+  flex: 1;
 }
 
-.admin-project-cards .card:hover {
+.admin-project-cards [data-card]:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

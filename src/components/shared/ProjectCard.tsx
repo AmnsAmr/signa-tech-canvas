@@ -113,9 +113,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   const truncatedMessage = shouldTruncate ? message.substring(0, previewLength) + '...' : message;
 
   return (
-    <Card className={`border-l-4 transition-all duration-300 hover:shadow-md h-fit ${
-      status === 'done' ? 'border-l-green-500 bg-green-50/30' : 'border-l-primary'
-    }`}>
+    <Card 
+      data-card
+      className={`border-l-4 transition-all duration-300 hover:shadow-md flex flex-col ${
+        status === 'done' ? 'border-l-green-500 bg-green-50/30' : 'border-l-primary'
+      }`}
+    >
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Header Section */}
@@ -190,88 +193,73 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           <div className="bg-gradient-to-r from-muted/30 to-muted/10 p-3 rounded-lg border border-muted/30">
             <div className="text-sm leading-relaxed">
               <p className="whitespace-pre-wrap break-words">
-                {truncatedMessage}
+                {isLocalExpanded ? message : truncatedMessage}
               </p>
-              {shouldTruncate && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsLocalExpanded(!isLocalExpanded);
-                  }}
-                  className="text-xs text-primary font-medium mt-2 hover:underline focus:outline-none focus:underline inline-flex items-center gap-1 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                  Voir plus
-                </button>
-              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLocalExpanded(!isLocalExpanded);
+                }}
+                className="text-xs text-primary font-medium mt-2 hover:underline focus:outline-none focus:underline inline-flex items-center gap-1 transition-colors"
+              >
+                {isLocalExpanded ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    Voir moins
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    Voir plus
+                  </>
+                )}
+              </button>
             </div>
           </div>
           
           {/* Expanded Content */}
-          <div className={`transition-all duration-300 overflow-hidden ${
-            isLocalExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-          }`}>
-            {isLocalExpanded && (
-              <div className="space-y-3 pt-3 border-t border-muted/30">
-                {/* Full Message */}
-                <div className="bg-gradient-to-r from-muted/20 to-muted/5 p-3 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">Message complet:</h4>
-                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                    {message}
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsLocalExpanded(false);
-                    }}
-                    className="text-xs text-primary font-medium mt-2 hover:underline focus:outline-none focus:underline inline-flex items-center gap-1 transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    Voir moins
-                  </button>
+          {isLocalExpanded && (
+            <div className="space-y-3 pt-3 border-t border-muted/30 animate-in slide-in-from-top-2 duration-300">
+              {/* File Download Section */}
+              {hasFile && (
+                <FileCard
+                  fileInfo={fileInfo}
+                  fileName={fileName}
+                  filePath={filePath}
+                  fileSize={fileSize}
+                  submissionId={id}
+                  isAdmin={isAdmin}
+                  onDownload={onDownloadFile}
+                />
+              )}
+              
+              {/* Services Section */}
+              {Array.isArray(services) && services.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Services demandés ({services.length}):
+                  </h4>
+                  <div className="grid gap-2">
+                    {services.map((service, index) => (
+                      <ServiceCard 
+                        key={index} 
+                        service={service} 
+                        index={index} 
+                        compact={true}
+                      />
+                    ))}
+                  </div>
                 </div>
-                
-                {/* File Download Section */}
-                {hasFile && (
-                  <FileCard
-                    fileInfo={fileInfo}
-                    fileName={fileName}
-                    filePath={filePath}
-                    fileSize={fileSize}
-                    submissionId={id}
-                    isAdmin={isAdmin}
-                    onDownload={onDownloadFile}
-                  />
-                )}
-                
-                {/* Services Section */}
-                {Array.isArray(services) && services.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Services demandés ({services.length}):
-                    </h4>
-                    <div className="grid gap-2">
-                      {services.map((service, index) => (
-                        <ServiceCard 
-                          key={index} 
-                          service={service} 
-                          index={index} 
-                          compact={true}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Show a message if there are no services but there is a file */}
-                {(!Array.isArray(services) || services.length === 0) && hasFile && (
-                  <div className="text-center py-2 text-muted-foreground text-sm">
-                    Aucun service demandé avec ce fichier.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+              
+              {/* Show a message if there are no services but there is a file */}
+              {(!Array.isArray(services) || services.length === 0) && hasFile && (
+                <div className="text-center py-2 text-muted-foreground text-sm">
+                  Aucun service demandé avec ce fichier.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
