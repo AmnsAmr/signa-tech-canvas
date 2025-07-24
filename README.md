@@ -54,15 +54,62 @@ npm run dev
 
 This project is built with:
 
+**Frontend:**
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
 
+**Backend:**
+- Node.js/Express
+- SQLite Database
+- Python Vector Analysis Microservice
+
+## Vector File Analysis
+
+This application includes a Python microservice for accurate vector file analysis:
+
+- **Supported Formats**: SVG, DXF, PDF, EPS
+- **Analysis Features**: Canvas dimensions, shape areas, path lengths
+- **Libraries Used**: PyMuPDF, ezdxf, shapely, svgpathtools
+
+### Running the Full Application
+
+To run both the Node.js backend and Python microservice:
+
+```bash
+# Option 1: Use the startup script (Windows)
+start-services.bat
+
+# Option 2: Manual startup
+# Terminal 1 - Python Service
+cd python-vector-service
+pip install -r requirements.txt
+python app.py
+
+# Terminal 2 - Node.js Server
+cd server
+npm install
+npm start
+
+# Terminal 3 - Frontend
+npm run dev
+```
+
+The Python service runs on port 5001, Node.js on port 3001, and the frontend on port 5173.
+
 ## How can I deploy this project?
 
+**For Lovable deployment:**
 Simply open [Lovable](https://lovable.dev/projects/70e6b9ba-9df7-4094-afca-84f22a0f6a30) and click on Share -> Publish.
+
+**For production deployment:**
+You'll need to deploy both services:
+1. Deploy the Python microservice (port 5001)
+2. Deploy the Node.js backend (port 3001) 
+3. Deploy the React frontend
+4. Set the `PYTHON_VECTOR_SERVICE_URL` environment variable in the Node.js backend
 
 ## Can I connect a custom domain to my Lovable project?
 

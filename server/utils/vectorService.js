@@ -5,7 +5,7 @@
  */
 
 const database = require('../config/database');
-const { analyzeVectorFile } = require('./vectorAnalyzer');
+const { analyzeVectorFile, checkPythonService } = require('./vectorAnalyzer');
 const path = require('path');
 
 const db = database.getDb();
@@ -21,6 +21,12 @@ const db = database.getDb();
 async function processVectorFile(submissionId, filePath, fileName, units = 'mm') {
   try {
     console.log(`Processing vector file for submission ${submissionId}: ${fileName}`);
+    
+    // Check if Python service is available
+    const serviceAvailable = await checkPythonService();
+    if (!serviceAvailable) {
+      throw new Error('Python vector analysis service is not available. Please ensure the service is running on port 5001.');
+    }
     
     // Analyze the vector file
     const analysisResult = await analyzeVectorFile(filePath, units);
@@ -119,5 +125,6 @@ async function getAnalysisResults(submissionId) {
 
 module.exports = {
   processVectorFile,
-  getAnalysisResults
+  getAnalysisResults,
+  checkPythonService
 };
