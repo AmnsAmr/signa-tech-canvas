@@ -119,8 +119,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         status === 'done' ? 'border-l-green-500 bg-green-50/30' : 'border-l-primary'
       }`}
     >
-      <CardContent className="p-4">
-        <div className="space-y-3">
+      <CardContent className="p-4 w-full max-w-full overflow-hidden">
+        <div className="space-y-3 w-full max-w-full">
           {/* Header Section */}
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">
