@@ -14,7 +14,7 @@ import Footer from '@/components/Footer';
 import OrganizedImageManager from '@/components/Admin/OrganizedImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
-import ThemeSettings from '@/components/Admin/ThemeSettings';
+import SimpleThemeSettings from '@/components/Admin/SimpleThemeSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette } from 'lucide-react';
@@ -596,7 +596,7 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="theme">
-            <ThemeSettings />
+            <SimpleThemeSettings />
           </TabsContent>
 
           <TabsContent value="contact">

@@ -10,15 +10,15 @@ import { Palette, RotateCcw, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import ThemePreview from './ThemePreview';
 
 const ThemeSettings = () => {
-  const { theme, updateTheme, toggleDarkMode, resetTheme, previewTheme, clearPreview, isLoading } = useTheme();
-  const [previewColors, setPreviewColors] = useState(theme.colors);
+  const { theme, updateTheme, resetTheme, previewTheme, clearPreview, isLoading } = useTheme();
+  const [previewColors, setPreviewColors] = useState(theme);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync preview colors when theme changes
   React.useEffect(() => {
-    setPreviewColors(theme.colors);
-  }, [theme.colors]);
+    setPreviewColors(theme);
+  }, [theme]);
 
   const colorPresets = [
     {
@@ -73,11 +73,10 @@ const ThemeSettings = () => {
   const applyTheme = async () => {
     setIsSaving(true);
     try {
-      await updateTheme({ colors: previewColors });
+      await updateTheme(previewColors);
       setIsPreviewMode(false);
     } catch (error) {
       console.error('Failed to apply theme:', error);
-      // Could show a toast notification here
     } finally {
       setIsSaving(false);
     }
@@ -173,18 +172,6 @@ const ThemeSettings = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Dark Mode Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {theme.darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              <Label>Dark Mode</Label>
-            </div>
-            <Switch
-              checked={theme.darkMode}
-              onCheckedChange={toggleDarkMode}
-            />
-          </div>
-
           {/* Color Presets */}
           <div>
             <Label className="text-sm font-medium mb-3 block">Color Presets</Label>

@@ -30,19 +30,23 @@ All colors MUST be HSL.
     --accent-light: 320 85% 90%;
     --accent-dark: 320 85% 50%;
 
-    /* Soft Gray */
+    /* Dynamic theme colors - updated by ThemeContext */
     --secondary: 260 10% 95%;
     --secondary-foreground: 260 20% 15%;
 
-    --muted: 260 10% 95%;
+    --muted: 260 15% 50%;
     --muted-foreground: 260 15% 50%;
 
-    /* Success Green */
     --success: 150 60% 50%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
+
+    /* Gradient variables - dynamically updated */
+    --gradientStart: 270 85% 60%;
+    --gradientEnd: 320 85% 65%;
+    --gradientDirection: 135deg;
 
     --border: 260 10% 90%;
     --input: 260 10% 90%;
@@ -50,19 +54,19 @@ All colors MUST be HSL.
 
     --radius: 1rem;
 
-    /* Creative gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 85% 60%), hsl(320 85% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(270 85% 60%) 0%, hsl(320 85% 65%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(260 10% 98%) 100%);
-    --gradient-creative: linear-gradient(180deg, hsl(270 85% 60%) 0%, hsl(320 85% 65%) 50%, hsl(280 85% 70%) 100%);
-    --gradient-subtle: linear-gradient(135deg, hsl(270 85% 95%) 0%, hsl(320 85% 95%) 100%);
+    /* Dynamic gradients - updated by ThemeContext */
+    --gradient-primary: linear-gradient(var(--gradientDirection), hsl(var(--gradientStart)), hsl(var(--gradientEnd)));
+    --gradient-hero: linear-gradient(var(--gradientDirection), hsl(var(--gradientStart)) 0%, hsl(var(--gradientEnd)) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
+    --gradient-creative: linear-gradient(180deg, hsl(var(--gradientStart)) 0%, hsl(var(--gradientEnd)) 50%, hsl(var(--primary)) 100%);
+    --gradient-subtle: linear-gradient(var(--gradientDirection), hsl(var(--gradientStart) / 0.05) 0%, hsl(var(--gradientEnd) / 0.05) 100%);
 
-    /* Creative shadows with gradient colors */
-    --shadow-soft: 0 4px 20px hsl(270 85% 60% / 0.1);
-    --shadow-medium: 0 8px 30px hsl(270 85% 60% / 0.15);
-    --shadow-strong: 0 20px 40px hsl(270 85% 60% / 0.2);
-    --shadow-glow: 0 0 40px hsl(270 85% 60% / 0.3);
-    --shadow-pink: 0 8px 30px hsl(320 85% 65% / 0.2);
+    /* Dynamic shadows using theme colors */
+    --shadow-soft: 0 4px 20px hsl(var(--primary) / 0.1);
+    --shadow-medium: 0 8px 30px hsl(var(--primary) / 0.15);
+    --shadow-strong: 0 20px 40px hsl(var(--primary) / 0.2);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+    --shadow-pink: 0 8px 30px hsl(var(--accent) / 0.2);
 
     /* Smooth animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

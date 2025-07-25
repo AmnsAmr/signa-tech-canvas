@@ -1,0 +1,15 @@
+{
+  "primary": "270 85% 60%",
+  "accent": "320 85% 65%",
+  "background": "0 0% 99%",
+  "foreground": "260 20% 15%",
+  "card": "0 0% 100%",
+  "border": "260 10% 90%",
+  "secondary": "260 10% 95%",
+  "muted": "260 15% 50%",
+  "success": "150 60% 50%",
+  "destructive": "0 84% 60%",
+  "gradientStart": "287 85% 60%",
+  "gradientEnd": "320 85% 65%",
+  "gradientDirection": "180deg"
+}

@@ -5,6 +5,7 @@ const path = require('path');
 const { PORT } = require('./config/constants');
 const MigrationHelper = require('./utils/migrationHelper');
 const StartupManager = require('./utils/startupManager');
+const { ensureThemeFile } = require('./utils/themeLoader');
 const { staticCache } = require('./middleware/cache');
 
 // Import database to initialize
@@ -14,6 +15,9 @@ require('./config/database');
 StartupManager.initialize().catch(err => {
   console.error('Startup initialization error:', err);
 });
+
+// Ensure theme file exists
+ensureThemeFile();
 
 // Import routes
 const authRoutes = require('./routes/auth');
