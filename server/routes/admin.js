@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const adminController = require('../controllers/adminController');
 const imageController = require('../controllers/imageController');
 const ratingController = require('../controllers/ratingController');
+const themeController = require('../controllers/themeController');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { uploadMiddleware } = require('../middleware/upload');
 
@@ -40,5 +41,8 @@ router.get('/images/categories', imageController.getCategories);
 router.get('/ratings', ratingController.getAllRatings);
 router.patch('/ratings/:id/status', ratingController.updateRatingStatus);
 router.delete('/ratings/:id', ratingController.deleteRating);
+
+// Theme management routes
+router.post('/theme', themeController.updateTheme);
 
 module.exports = router;

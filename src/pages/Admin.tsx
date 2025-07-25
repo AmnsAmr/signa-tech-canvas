@@ -14,9 +14,10 @@ import Footer from '@/components/Footer';
 import OrganizedImageManager from '@/components/Admin/OrganizedImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
+import ThemeSettings from '@/components/Admin/ThemeSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import FileContextMenu from '@/components/FileContextMenu';
 import './admin-improvements.css';
@@ -560,10 +561,14 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="images" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-1">
             <TabsTrigger value="images" className="flex items-center gap-1 text-xs md:text-sm">
               <Image className="h-3 w-3 md:h-4 md:w-4" />
               <span className="hidden sm:inline">Images</span>
+            </TabsTrigger>
+            <TabsTrigger value="theme" className="flex items-center gap-1 text-xs md:text-sm">
+              <Palette className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Theme</span>
             </TabsTrigger>
             <TabsTrigger value="contact" className="flex items-center gap-1 text-xs md:text-sm">
               <Phone className="h-3 w-3 md:h-4 md:w-4" />
@@ -589,6 +594,10 @@ const Admin = () => {
               <span className="hidden md:inline">({filteredSubmissions.length})</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="theme">
+            <ThemeSettings />
+          </TabsContent>
 
           <TabsContent value="contact">
             <Card>

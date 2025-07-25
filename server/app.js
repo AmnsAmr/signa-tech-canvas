@@ -22,6 +22,7 @@ const adminRoutes = require('./routes/admin');
 const imageRoutes = require('./routes/images');
 const ratingRoutes = require('./routes/ratings');
 const userRoutes = require('./routes/user');
+const themeRoutes = require('./routes/theme');
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/theme', themeRoutes);
 app.use('/api/contact-settings', require('./routes/contact-settings'));
 
 // Serve uploaded images from dynamic directory with caching

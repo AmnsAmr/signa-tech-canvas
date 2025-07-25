@@ -8,6 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Dynamic theme variables - can be overridden by ThemeProvider */
     --background: 0 0% 99%;
     --foreground: 260 20% 15%;
 
