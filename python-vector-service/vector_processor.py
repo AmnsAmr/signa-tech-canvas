@@ -47,69 +47,84 @@ class VectorProcessor:
             }
     
     def _analyze_svg(self, file_path, filename):
-        """Analyze SVG file using svgpathtools"""
+        """Analyze SVG file using svgpathtools with improved unit handling and area accuracy"""
         try:
             paths, attributes = svgpathtools.svg2paths(file_path)
-            
-            # Get SVG dimensions
+
+            # Get SVG dimensions and units
             tree = ET.parse(file_path)
             root = tree.getroot()
-            
-            # Extract viewBox or width/height
+            svg_ns = '{http://www.w3.org/2000/svg}'
+            width_attr = root.get('width')
+            height_attr = root.get('height')
             viewbox = root.get('viewBox')
-            if viewbox:
+            svg_unit = 'px'  # Default SVG unit
+
+            def extract_unit(val):
+                if val is None:
+                    return None, 'px'
+                m = re.match(r"([\d.]+)([a-z%]*)", val.strip())
+                if m:
+                    num, unit = m.groups()
+                    return float(num), unit if unit else 'px'
+                return float(val), 'px'
+
+            if width_attr and height_attr:
+                width, width_unit = extract_unit(width_attr)
+                height, height_unit = extract_unit(height_attr)
+                svg_unit = width_unit if width_unit == height_unit else 'px'
+            elif viewbox:
                 _, _, width, height = map(float, viewbox.split())
+                svg_unit = 'px'
             else:
-                width = self._parse_dimension(root.get('width', '100'))
-                height = self._parse_dimension(root.get('height', '100'))
-            
-            # Convert to mm for consistency
-            width_mm = self._convert_to_mm(width, 'px')
-            height_mm = self._convert_to_mm(height, 'px')
+                width, width_unit = 100, 'px'
+                height, height_unit = 100, 'px'
+                svg_unit = 'px'
+
+            width_mm = self._convert_to_mm(width, svg_unit)
+            height_mm = self._convert_to_mm(height, svg_unit)
             paper_area = f"{width_mm:.2f}x{height_mm:.2f} mm"
-            
+
             # Analyze paths
             total_length = 0
             total_area = 0
             shapes = []
-            
+            warnings = []
+
             for i, path in enumerate(paths):
-                length = path.length()
-                total_length += length
-                
-                # Check if path is closed for area calculation
-                area = 0
-                if path.isclosed():
-                    # Convert to polygon for area calculation
-                    points = []
-                    for j in range(0, 100):  # Sample 100 points
-                        t = j / 99.0
-                        point = path.point(t)
-                        points.append((point.real, point.imag))
-                    
-                    if len(points) > 2:
+                try:
+                    length = path.length()
+                    total_length += length
+                    area = 0
+                    if hasattr(path, 'isclosed') and path.isclosed():
+                        # Use svgpathtools' area if available (signed area, may be negative)
                         try:
-                            poly = Polygon(points)
-                            area = abs(poly.area)
-                            total_area += area
-                        except:
-                            area = 0
-                
-                # Convert to mm
-                length_mm = self._convert_to_mm(length, 'px')
-                area_mm = self._convert_to_mm(area, 'px') * self._convert_to_mm(1, 'px')
-                
-                shapes.append({
-                    'name': f'Path {i+1}',
-                    'length': f"{length_mm:.2f} mm",
-                    'area': f"{area_mm:.2f} mm²" if area > 0 else "Open path (no area)"
-                })
-            
+                            area = abs(path.area())
+                        except Exception:
+                            # Fallback to polygon sampling if area() fails
+                            points = [(path.point(t).real, path.point(t).imag) for t in [j/199.0 for j in range(200)]]
+                            if len(points) > 2:
+                                try:
+                                    poly = Polygon(points)
+                                    area = abs(poly.area)
+                                except Exception as e:
+                                    warnings.append(f"Path {i+1} area calc failed: {str(e)}")
+                                    area = 0
+                        total_area += area
+                    # Convert to mm
+                    length_mm = self._convert_to_mm(length, svg_unit)
+                    area_mm = self._convert_to_mm(area, svg_unit) * self._convert_to_mm(1, svg_unit)
+                    shapes.append({
+                        'name': f'Path {i+1}',
+                        'length': f"{length_mm:.2f} mm",
+                        'area': f"{area_mm:.2f} mm²" if area > 0 else "Open path (no area)"
+                    })
+                except Exception as e:
+                    warnings.append(f"Path {i+1} failed: {str(e)}")
             # Convert totals to mm
-            total_length_mm = self._convert_to_mm(total_length, 'px')
-            total_area_mm = self._convert_to_mm(total_area, 'px') * self._convert_to_mm(1, 'px')
-            
-            return {
+            total_length_mm = self._convert_to_mm(total_length, svg_unit)
+            total_area_mm = self._convert_to_mm(total_area, svg_unit) * self._convert_to_mm(1, svg_unit)
+            result = {
                 'fileName': filename,
                 'paperArea': paper_area,
                 'letterArea': f"{total_area_mm:.2f} mm²",
@@ -117,7 +132,9 @@ class VectorProcessor:
                 'shapes': shapes,
                 'units': 'mm'
             }
-            
+            if warnings:
+                result['warnings'] = warnings
+            return result
         except Exception as e:
             raise Exception(f"SVG analysis failed: {str(e)}")
     
