@@ -5,7 +5,7 @@ const imageController = require('../controllers/imageController');
 const ratingController = require('../controllers/ratingController');
 const themeController = require('../controllers/themeController');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { uploadMiddleware } = require('../middleware/upload');
+const { uploadMiddleware, generateThumbnail } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -32,9 +32,9 @@ router.get('/notifications/status', adminController.getNotificationStatus);
 
 // Image management routes
 router.get('/images', imageController.getImages);
-router.post('/images/upload', uploadMiddleware.single('image'), imageController.uploadImage);
+router.post('/images/upload', uploadMiddleware.single('image'), generateThumbnail, imageController.uploadImage);
 router.delete('/images/:id', imageController.deleteImage);
-router.put('/images/:id/replace', uploadMiddleware.single('image'), imageController.replaceImage);
+router.put('/images/:id/replace', uploadMiddleware.single('image'), generateThumbnail, imageController.replaceImage);
 router.get('/images/categories', imageController.getCategories);
 
 // Rating management routes

@@ -58,6 +58,14 @@ app.use('/uploads', staticCache, express.static(uploadDir, {
   lastModified: true
 }));
 
+// Serve thumbnails
+const thumbDir = path.join(uploadDir, 'thumbs');
+app.use('/uploads/thumbs', staticCache, express.static(thumbDir, {
+  maxAge: '1y',
+  etag: true,
+  lastModified: true
+}));
+
 // Static files - serve only for non-API routes with caching
 app.use(staticCache, express.static(path.join(__dirname, '../dist'), {
   maxAge: '1d', // Cache for 1 day

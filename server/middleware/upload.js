@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const { UPLOAD_LIMITS } = require('../config/constants');
 const MigrationHelper = require('../utils/migrationHelper');
 
@@ -28,6 +29,34 @@ const uploadMiddleware = multer({
   }
 });
 
+// Generate thumbnail after upload
+const generateThumbnail = async (req, res, next) => {
+  if (!req.file) return next();
+  
+  try {
+    const uploadDir = MigrationHelper.ensureUploadDir();
+    const thumbDir = path.join(uploadDir, 'thumbs');
+    
+    if (!fs.existsSync(thumbDir)) {
+      fs.mkdirSync(thumbDir, { recursive: true });
+    }
+    
+    const originalPath = req.file.path;
+    const thumbPath = path.join(thumbDir, req.file.filename);
+    
+    await sharp(originalPath)
+      .resize(300, 200, { fit: 'cover' })
+      .jpeg({ quality: 80 })
+      .toFile(thumbPath);
+      
+    next();
+  } catch (error) {
+    console.error('Thumbnail generation error:', error);
+    next(); // Continue even if thumbnail fails
+  }
+};
+
 module.exports = {
-  uploadMiddleware
+  uploadMiddleware,
+  generateThumbnail
 };

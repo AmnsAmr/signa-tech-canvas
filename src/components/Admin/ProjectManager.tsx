@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Save, X, FolderPlus, Image as ImageIcon } from 'lucide-react';
 import { buildApiUrl, buildUploadUrl } from '@/config/api';
 import { useAuth } from '@/contexts/AuthContext';
+import LazyImage from '@/components/LazyImage';
 
 interface Project {
   id: number;
@@ -42,6 +43,7 @@ const ProjectManager: React.FC = () => {
     display_order: 0
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadController, setImageUploadController] = useState<AbortController | null>(null);
   const [showNewSection, setShowNewSection] = useState(false);
   const [showNewProject, setShowNewProject] = useState<number | null>(null);
   const [availableImages, setAvailableImages] = useState<string[]>([]);
@@ -49,26 +51,30 @@ const ProjectManager: React.FC = () => {
   useEffect(() => {
     fetchSections();
     fetchAvailableImages();
+    
+    return () => {
+      if (imageUploadController) {
+        imageUploadController.abort();
+      }
+    };
   }, []);
 
   const fetchSections = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/projects/admin/sections'), {
+      const response = await fetch(buildApiUrl('/api/projects/sections'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       if (response.ok) {
         const data = await response.json();
         setSections(data);
-        
-        // Fetch projects for each section
-        for (let section of data) {
-          fetchProjectsForSection(section.id);
-        }
       }
     } catch (error) {
       console.error('Failed to fetch sections:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,6 +257,13 @@ const ProjectManager: React.FC = () => {
   };
 
   const handleImageUpload = async (projectId: number, file: File) => {
+    if (imageUploadController) {
+      imageUploadController.abort();
+    }
+    
+    const controller = new AbortController();
+    setImageUploadController(controller);
+    
     const formData = new FormData();
     formData.append('image', file);
 
@@ -259,7 +272,8 @@ const ProjectManager: React.FC = () => {
       const response = await fetch(buildApiUrl(`/api/projects/admin/projects/${projectId}/image`), {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
 
       if (response.ok) {
@@ -270,8 +284,12 @@ const ProjectManager: React.FC = () => {
         alert(`Failed to update image: ${errorData.message}`);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Error uploading image. Please try again.');
+      if (error.name !== 'AbortError') {
+        console.error('Error uploading image:', error);
+        alert('Error uploading image. Please try again.');
+      }
+    } finally {
+      setImageUploadController(null);
     }
   };
 
@@ -287,6 +305,8 @@ const ProjectManager: React.FC = () => {
   };
 
   const handleNewProjectImageUpload = async (file: File) => {
+    if (uploadingImage) return;
+    
     setUploadingImage(true);
     const formData = new FormData();
     formData.append('image', file);
@@ -302,8 +322,8 @@ const ProjectManager: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
-        setNewProject({ ...newProject, image_filename: result.filename });
-        fetchAvailableImages();
+        setNewProject(prev => ({ ...prev, image_filename: result.filename }));
+        await fetchAvailableImages();
         alert('Image uploaded successfully!');
       } else {
         const errorData = await response.json();
@@ -503,17 +523,12 @@ const ProjectManager: React.FC = () => {
                 {section.projects.map((project) => (
                   <Card key={project.id} className="overflow-hidden">
                     <div className="aspect-video bg-gray-100 relative group">
-                      {project.image_filename ? (
-                        <img
-                          src={buildUploadUrl(project.image_filename)}
-                          alt={project.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-gray-400" />
-                        </div>
-                      )}
+                      <LazyImage
+                        filename={project.image_filename}
+                        alt={project.title}
+                        className="w-full h-full"
+                        useThumbnail={true}
+                      />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <Button
                           size="sm"

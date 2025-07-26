@@ -6,35 +6,60 @@ const fs = require('fs');
 // Get all project sections with their projects
 const getSections = async (req, res) => {
   try {
-    const sections = await new Promise((resolve, reject) => {
+    // Single optimized query to get all data at once
+    const sectionsWithProjects = await new Promise((resolve, reject) => {
       db.all(`
-        SELECT ps.*, 
-          COUNT(p.id) as project_count
+        SELECT 
+          ps.id as section_id,
+          ps.name as section_name,
+          ps.display_order as section_order,
+          ps.is_active as section_active,
+          p.id as project_id,
+          p.title as project_title,
+          p.description as project_description,
+          p.image_filename as project_image,
+          p.display_order as project_order,
+          p.is_active as project_active
         FROM project_sections ps
         LEFT JOIN projects p ON ps.id = p.section_id AND p.is_active = 1
         WHERE ps.is_active = 1
-        GROUP BY ps.id
-        ORDER BY ps.display_order ASC
+        ORDER BY ps.display_order ASC, p.display_order ASC
       `, (err, rows) => {
         if (err) reject(err);
         else resolve(rows);
       });
     });
 
-    // Get projects for each section
-    for (let section of sections) {
-      const projects = await new Promise((resolve, reject) => {
-        db.all(`
-          SELECT * FROM projects 
-          WHERE section_id = ? AND is_active = 1 
-          ORDER BY display_order ASC
-        `, [section.id], (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
+    // Group results by section
+    const sectionsMap = new Map();
+    sectionsWithProjects.forEach(row => {
+      if (!sectionsMap.has(row.section_id)) {
+        sectionsMap.set(row.section_id, {
+          id: row.section_id,
+          name: row.section_name,
+          display_order: row.section_order,
+          is_active: row.section_active,
+          projects: []
         });
-      });
-      section.projects = projects;
-    }
+      }
+      
+      if (row.project_id) {
+        sectionsMap.get(row.section_id).projects.push({
+          id: row.project_id,
+          section_id: row.section_id,
+          title: row.project_title,
+          description: row.project_description,
+          image_filename: row.project_image,
+          display_order: row.project_order,
+          is_active: row.project_active
+        });
+      }
+    });
+
+    const sections = Array.from(sectionsMap.values()).map(section => ({
+      ...section,
+      project_count: section.projects.length
+    }));
 
     res.json(sections);
   } catch (error) {
