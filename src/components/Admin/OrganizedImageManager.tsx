@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Trash2, RefreshCw, Image as ImageIcon, Home, User, Info, FolderOpen, Building2, Star, Palette, AlertTriangle, Settings } from 'lucide-react';
+import { Upload, Trash2, RefreshCw, Image as ImageIcon, Home, User, Info, FolderOpen, Building2, Star, Palette, AlertTriangle, Settings, Plus, Edit, FolderPlus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { buildApiUrl, buildUploadUrl } from '@/config/api';
@@ -27,6 +28,23 @@ interface ImageSection {
   usage: string;
   maxImages?: number;
   priority: 'high' | 'medium' | 'low';
+}
+
+interface ProjectSection {
+  id: number;
+  name: string;
+  display_order: number;
+  is_active: boolean;
+}
+
+interface Project {
+  id: number;
+  section_id: number;
+  title: string;
+  description?: string;
+  image_filename?: string;
+  display_order: number;
+  is_active: boolean;
 }
 
 const sections: ImageSection[] = [
@@ -59,10 +77,10 @@ const sections: ImageSection[] = [
   },
   { 
     key: 'portfolio', 
-    title: 'Galerie Portfolio', 
+    title: 'Portfolio Carousel', 
     icon: Star, 
-    description: 'Collection complète des projets pour la galerie portfolio', 
-    usage: 'Portfolio page main gallery',
+    description: 'Images pour le système de carousel organisé par sections', 
+    usage: 'Portfolio page carousel sections',
     priority: 'low'
   }
 ];
@@ -72,9 +90,16 @@ const OrganizedImageManager: React.FC = () => {
   const [images, setImages] = useState<Record<string, SiteImage[]>>({});
   const [loading, setLoading] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({});
+  const [projectSections, setProjectSections] = useState<ProjectSection[]>([]);
+  const [projects, setProjects] = useState<Record<number, Project[]>>({});
+  const [showNewSection, setShowNewSection] = useState(false);
+  const [newSection, setNewSection] = useState({ name: '', display_order: 0 });
+  const [showNewProject, setShowNewProject] = useState<number | null>(null);
+  const [newProject, setNewProject] = useState({ title: '', description: '', image_filename: '', display_order: 0 });
 
   useEffect(() => {
     fetchAllImages();
+    fetchProjectSections();
   }, []);
 
   const fetchAllImages = async () => {
@@ -172,6 +197,109 @@ const OrganizedImageManager: React.FC = () => {
       }
     } catch (error) {
       console.error('Replace failed:', error);
+    }
+  };
+
+  const fetchProjectSections = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/projects/admin/sections'), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const sections = await response.json();
+        setProjectSections(sections);
+        
+        // Fetch projects for each section
+        for (let section of sections) {
+          fetchProjectsForSection(section.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch project sections:', error);
+    }
+  };
+
+  const fetchProjectsForSection = async (sectionId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/projects/admin/sections/${sectionId}/projects`), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const sectionProjects = await response.json();
+        setProjects(prev => ({ ...prev, [sectionId]: sectionProjects }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch projects:', error);
+    }
+  };
+
+  const createSection = async () => {
+    if (!newSection.name.trim()) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/projects/admin/sections'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(newSection)
+      });
+
+      if (response.ok) {
+        setNewSection({ name: '', display_order: 0 });
+        setShowNewSection(false);
+        fetchProjectSections();
+      }
+    } catch (error) {
+      console.error('Failed to create section:', error);
+    }
+  };
+
+  const createProject = async (sectionId: number) => {
+    if (!newProject.title.trim()) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/projects/admin/projects'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...newProject, section_id: sectionId })
+      });
+
+      if (response.ok) {
+        setNewProject({ title: '', description: '', image_filename: '', display_order: 0 });
+        setShowNewProject(null);
+        fetchProjectsForSection(sectionId);
+      }
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
+  };
+
+  const deleteProject = async (id: number, sectionId: number) => {
+    if (!confirm('Supprimer ce projet ?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/projects/admin/projects/${id}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        fetchProjectsForSection(sectionId);
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error);
     }
   };
 
@@ -370,10 +498,179 @@ const OrganizedImageManager: React.FC = () => {
                   <p>Aucune image dans cette section</p>
                 </div>
               )}
+
+              {/* Carousel Management for Portfolio Section */}
+              {section.key === 'portfolio' && (
+                <div className="mt-8 border-t pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold">Organisation du Carousel</h4>
+                    <Button onClick={() => setShowNewSection(true)} size="sm">
+                      <FolderPlus className="h-4 w-4 mr-2" />
+                      Nouvelle Section
+                    </Button>
+                  </div>
+
+                  {/* New Section Form */}
+                  {showNewSection && (
+                    <Card className="mb-4">
+                      <CardContent className="p-4 space-y-3">
+                        <Input
+                          placeholder="Nom de la section (ex: Projets Web)"
+                          value={newSection.name}
+                          onChange={(e) => setNewSection({ ...newSection, name: e.target.value })}
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Ordre d'affichage"
+                          value={newSection.display_order}
+                          onChange={(e) => setNewSection({ ...newSection, display_order: parseInt(e.target.value) || 0 })}
+                        />
+                        <div className="flex gap-2">
+                          <Button onClick={createSection} size="sm">
+                            Créer
+                          </Button>
+                          <Button variant="outline" onClick={() => setShowNewSection(false)} size="sm">
+                            Annuler
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Project Sections */}
+                  <div className="space-y-4">
+                    {projectSections.map((projectSection) => (
+                      <Card key={projectSection.id} className="border-l-4 border-l-blue-500">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-base">{projectSection.name}</CardTitle>
+                            <Button
+                              onClick={() => setShowNewProject(projectSection.id)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Projet
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {/* New Project Form */}
+                          {showNewProject === projectSection.id && (
+                            <Card className="mb-4 bg-muted/30">
+                              <CardContent className="p-4 space-y-3">
+                                <Input
+                                  placeholder="Titre du projet"
+                                  value={newProject.title}
+                                  onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                                />
+                                <Textarea
+                                  placeholder="Description (optionnelle)"
+                                  value={newProject.description}
+                                  onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                                />
+                                <select
+                                  className="w-full p-2 border rounded"
+                                  value={newProject.image_filename}
+                                  onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
+                                >
+                                  <option value="">Sélectionner une image</option>
+                                  {sectionImages.map(img => (
+                                    <option key={img.filename} value={img.filename}>{img.original_name}</option>
+                                  ))}
+                                </select>
+                                <div className="flex gap-2">
+                                  <Button onClick={() => createProject(projectSection.id)} size="sm">
+                                    Créer
+                                  </Button>
+                                  <Button variant="outline" onClick={() => setShowNewProject(null)} size="sm">
+                                    Annuler
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+
+                          {/* Projects List */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {(projects[projectSection.id] || []).map((project) => (
+                              <Card key={project.id} className="overflow-hidden">
+                                <div className="aspect-video bg-gray-100 relative">
+                                  {project.image_filename ? (
+                                    <img
+                                      src={buildUploadUrl(project.image_filename)}
+                                      alt={project.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <ImageIcon className="h-8 w-8 text-gray-400" />
+                                    </div>
+                                  )}
+                                </div>
+                                <CardContent className="p-3">
+                                  <h5 className="font-medium text-sm mb-1">{project.title}</h5>
+                                  {project.description && (
+                                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                      {project.description}
+                                    </p>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="text-xs px-2 py-1 h-auto"
+                                    onClick={() => deleteProject(project.id, projectSection.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+
+                          {(!projects[projectSection.id] || projects[projectSection.id].length === 0) && (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              Aucun projet dans cette section
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {projectSections.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Aucune section créée. Créez votre première section pour organiser vos projets.
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         );
       })}
+
+      {/* Instructions for Portfolio Carousel */}
+      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <Star className="h-8 w-8 text-green-600 mt-1" />
+            <div>
+              <h3 className="text-xl font-bold text-green-900 mb-2">Système de Carousel Portfolio</h3>
+              <p className="text-green-700 mb-4">
+                Le portfolio utilise maintenant un système de carousel organisé par sections. 
+                Ajoutez vos images dans la section "Portfolio Carousel" ci-dessus, puis organisez-les en projets.
+              </p>
+              <div className="space-y-2 text-sm text-green-600">
+                <p><strong>1.</strong> Uploadez vos images dans la section Portfolio Carousel</p>
+                <p><strong>2.</strong> Créez des sections (ex: "Projets Web", "Applications Mobiles")</p>
+                <p><strong>3.</strong> Ajoutez des projets à chaque section avec titre, description et image</p>
+                <p><strong>4.</strong> Les visiteurs verront un carousel moderne avec vos projets organisés</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

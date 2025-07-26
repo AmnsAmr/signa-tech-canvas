@@ -1,66 +1,56 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEOHead from '@/components/SEOHead';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Star, 
   ArrowRight,
-  Zap,
-  ChevronLeft,
-  ChevronRight
+  Zap
 } from 'lucide-react';
-import { useImageCache } from '@/hooks/useImageCache';
-import { buildUploadUrl } from '@/config/api';
-import { throttle } from '@/utils/performance';
+import { buildApiUrl } from '@/config/api';
+import ProjectCarousel from '@/components/ProjectCarousel';
+
+interface Project {
+  id: number;
+  title: string;
+  description?: string;
+  image_filename?: string;
+}
+
+interface ProjectSection {
+  id: number;
+  name: string;
+  display_order: number;
+  is_active: boolean;
+  projects: Project[];
+}
 
 const Portfolio = () => {
   const { t } = useLanguage();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const { images: portfolioImages, loading } = useImageCache('portfolio');
-  
-  const images = portfolioImages.map(img => buildUploadUrl(img.filename));
-
-  const nextImage = useMemo(() => throttle(() => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  }, 300), [images.length]);
-
-  const prevImage = useMemo(() => throttle(() => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  }, 300), [images.length]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) nextImage();
-    if (isRightSwipe) prevImage();
-  };
+  const [sections, setSections] = useState<ProjectSection[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prevImage();
-      if (e.key === 'ArrowRight') nextImage();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    fetchProjectSections();
   }, []);
+
+  const fetchProjectSections = async () => {
+    try {
+      const response = await fetch(buildApiUrl('/api/projects/sections'));
+      if (response.ok) {
+        const data = await response.json();
+        setSections(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch project sections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,120 +88,37 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* Stacked Image Gallery */}
+      {/* Project Carousels */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-primary rounded-full blur-3xl opacity-10 animate-float"></div>
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black text-foreground mb-4">Nos Réalisations</h2>
             <p className="text-muted-foreground text-lg">
-              {loading ? 'Chargement...' : `Découvrez notre portfolio de ${images.length} projets créatifs`}
+              {loading ? 'Chargement...' : 'Découvrez notre portfolio organisé par catégories'}
             </p>
           </div>
           
-          <div className="max-w-4xl mx-auto">
-            <div 
-              className="relative h-[500px] lg:h-[700px] cursor-pointer select-none flex items-center justify-center"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onClick={nextImage}
-            >
-              {!loading && images.map((image, index) => {
-                const offset = (index - currentIndex + images.length) % images.length;
-                const isVisible = offset < 8;
-                const rotation = (Math.random() - 0.5) * 6; // Random rotation between -3 and 3 degrees
-                
-                return (
-                  <div
-                    key={index}
-                    className={`absolute transition-all duration-500 ease-out ${
-                      isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                    }`}
-                    style={{
-                      transform: `
-                        translateX(${offset * 2}px) 
-                        translateY(${-offset * 3}px) 
-                        rotate(${offset === 0 ? 0 : rotation}deg)
-                        scale(${offset === 0 ? 1 : 0.98})
-                      `,
-                      zIndex: images.length - offset,
-                    }}
-                  >
-                    <div 
-                      className="w-80 h-96 lg:w-[480px] lg:h-[600px] bg-white rounded-xl overflow-hidden transition-all duration-300 hover:scale-105"
-                      style={{
-                        boxShadow: offset === 0 
-                          ? '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-                          : `0 ${4 + offset * 2}px ${8 + offset * 4}px -${offset}px rgba(0, 0, 0, ${0.1 + offset * 0.05})`
-                      }}
-                    >
-                      <img 
-                        src={image} 
-                        alt={`Portfolio ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        draggable={false}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/placeholder.svg';
-                        }}
-                      />
-                      {offset === 0 && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 lg:p-6">
-                          <div className="text-white">
-                            <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-2 text-xs lg:text-sm">
-                              {currentIndex + 1} / {images.length}
-                            </Badge>
-                            <h3 className="text-sm lg:text-lg font-bold">Réalisation Signa Tech</h3>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Chargement des projets...</p>
             </div>
-            
-            {/* Navigation Controls */}
-            <div className="flex items-center justify-center mt-8 space-x-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={prevImage}
-                className="w-12 h-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              
-              <div className="flex space-x-2">
-                {images.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentIndex 
-                        ? 'bg-primary scale-125' 
-                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/60'
-                    }`}
-                  />
-                ))}
-              </div>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={nextImage}
-                className="w-12 h-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+          ) : sections.length > 0 ? (
+            <div className="space-y-16">
+              {sections.map((section) => (
+                <ProjectCarousel
+                  key={section.id}
+                  title={section.name}
+                  projects={section.projects}
+                />
+              ))}
             </div>
-            
-            <div className="text-center mt-6">
-              <p className="text-muted-foreground text-sm">
-                Cliquez, glissez ou utilisez les flèches pour naviguer
-              </p>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">Aucun projet disponible pour le moment.</p>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

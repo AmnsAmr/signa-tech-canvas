@@ -241,4 +241,51 @@ All colors MUST be HSL.
   .cursor-context-menu:hover::after {
     opacity: 1;
   }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Project carousel enhancements */
+  .project-carousel-container {
+    position: relative;
+  }
+
+  .project-carousel-container::before,
+  .project-carousel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .project-carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, hsl(var(--background)), transparent);
+  }
+
+  .project-carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, hsl(var(--background)), transparent);
+  }
+
+  /* Smooth scroll behavior */
+  .project-carousel-scroll {
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+  }
+
+  .project-carousel-item {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
 }
