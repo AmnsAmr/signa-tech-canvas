@@ -33,7 +33,7 @@ const ProjectManager: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [editingSection, setEditingSection] = useState<number | null>(null);
   const [editingProject, setEditingProject] = useState<number | null>(null);
-  const [newSection, setNewSection] = useState({ name: '', display_order: 0 });
+  const [newSection, setNewSection] = useState({ name: '' });
   const [newProject, setNewProject] = useState({
     section_id: 0,
     title: '',
@@ -41,6 +41,7 @@ const ProjectManager: React.FC = () => {
     image_filename: '',
     display_order: 0
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [showNewSection, setShowNewSection] = useState(false);
   const [showNewProject, setShowNewProject] = useState<number | null>(null);
   const [availableImages, setAvailableImages] = useState<string[]>([]);
@@ -117,11 +118,11 @@ const ProjectManager: React.FC = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(newSection)
+        body: JSON.stringify({ ...newSection, display_order: sections.length })
       });
 
       if (response.ok) {
-        setNewSection({ name: '', display_order: 0 });
+        setNewSection({ name: '' });
         setShowNewSection(false);
         fetchSections();
       }
@@ -249,6 +250,84 @@ const ProjectManager: React.FC = () => {
     }
   };
 
+  const handleImageUpload = async (projectId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/projects/admin/projects/${projectId}/image`), {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      if (response.ok) {
+        alert('Image updated successfully!');
+        fetchSections();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update image: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image. Please try again.');
+    }
+  };
+
+  const triggerImageUpload = (projectId: number) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) handleImageUpload(projectId, file);
+    };
+    input.click();
+  };
+
+  const handleNewProjectImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('category', 'portfolio');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/admin/images'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setNewProject({ ...newProject, image_filename: result.filename });
+        fetchAvailableImages();
+        alert('Image uploaded successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to upload image: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const triggerNewProjectImageUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) handleNewProjectImageUpload(file);
+    };
+    input.click();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -270,12 +349,6 @@ const ProjectManager: React.FC = () => {
               placeholder="Nom de la section"
               value={newSection.name}
               onChange={(e) => setNewSection({ ...newSection, name: e.target.value })}
-            />
-            <Input
-              type="number"
-              placeholder="Ordre d'affichage"
-              value={newSection.display_order}
-              onChange={(e) => setNewSection({ ...newSection, display_order: parseInt(e.target.value) || 0 })}
             />
             <div className="flex gap-2">
               <Button onClick={createSection} disabled={loading}>
@@ -378,16 +451,32 @@ const ProjectManager: React.FC = () => {
                 value={newProject.description}
                 onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
               />
-              <select
-                className="w-full p-2 border rounded"
-                value={newProject.image_filename}
-                onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
-              >
-                <option value="">Sélectionner une image</option>
-                {availableImages.map(filename => (
-                  <option key={filename} value={filename}>{filename}</option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <select
+                    className="flex-1 p-2 border rounded"
+                    value={newProject.image_filename}
+                    onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
+                  >
+                    <option value="">Sélectionner une image existante</option>
+                    {availableImages.map(filename => (
+                      <option key={filename} value={filename}>{filename}</option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={triggerNewProjectImageUpload}
+                    disabled={uploadingImage}
+                    className="whitespace-nowrap"
+                  >
+                    {uploadingImage ? 'Upload...' : 'Upload New'}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Choisissez une image existante ou uploadez-en une nouvelle depuis votre PC
+                </p>
+              </div>
               <Input
                 type="number"
                 placeholder="Ordre d'affichage"
@@ -413,7 +502,7 @@ const ProjectManager: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {section.projects.map((project) => (
                   <Card key={project.id} className="overflow-hidden">
-                    <div className="aspect-video bg-gray-100 relative">
+                    <div className="aspect-video bg-gray-100 relative group">
                       {project.image_filename ? (
                         <img
                           src={buildUploadUrl(project.image_filename)}
@@ -425,6 +514,17 @@ const ProjectManager: React.FC = () => {
                           <ImageIcon className="h-8 w-8 text-gray-400" />
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => triggerImageUpload(project.id)}
+                          className="bg-white/90 hover:bg-white text-black"
+                        >
+                          <ImageIcon className="h-4 w-4 mr-1" />
+                          {project.image_filename ? 'Replace' : 'Add'}
+                        </Button>
+                      </div>
                     </div>
                     <CardContent className="p-3">
                       <h5 className="font-medium text-sm mb-1">{project.title}</h5>

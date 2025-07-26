@@ -15,9 +15,10 @@ import OrganizedImageManager from '@/components/Admin/OrganizedImageManager';
 import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
 import SimpleThemeSettings from '@/components/Admin/SimpleThemeSettings';
+import ProjectManager from '@/components/Admin/ProjectManager';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import FileContextMenu from '@/components/FileContextMenu';
 import './admin-improvements.css';
@@ -561,10 +562,14 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="images" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
             <TabsTrigger value="images" className="flex items-center gap-1 text-xs md:text-sm">
               <Image className="h-3 w-3 md:h-4 md:w-4" />
               <span className="hidden sm:inline">Images</span>
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="flex items-center gap-1 text-xs md:text-sm">
+              <FolderOpen className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Projects</span>
             </TabsTrigger>
             <TabsTrigger value="theme" className="flex items-center gap-1 text-xs md:text-sm">
               <Palette className="h-3 w-3 md:h-4 md:w-4" />
@@ -705,6 +710,10 @@ const Admin = () => {
 
           <TabsContent value="images">
             <OrganizedImageManager />
+          </TabsContent>
+
+          <TabsContent value="projects">
+            <ProjectManager />
           </TabsContent>
 
           <TabsContent value="admins">
