@@ -111,6 +111,7 @@ const Portfolio = () => {
                   key={section.id}
                   title={section.name}
                   projects={section.projects}
+                  onProjectUpdate={fetchProjectSections}
                 />
               ))}
             </div>

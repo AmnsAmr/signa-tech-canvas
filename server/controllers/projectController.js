@@ -1,5 +1,7 @@
 const database = require('../config/database');
 const db = database.getDb();
+const path = require('path');
+const fs = require('fs');
 
 // Get all project sections with their projects
 const getSections = async (req, res) => {
@@ -236,6 +238,39 @@ const deleteProject = async (req, res) => {
   }
 };
 
+// Admin: Update project image
+const updateProjectImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    const filename = req.file.filename;
+    
+    const changes = await new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE projects SET image_filename = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        [filename, id],
+        function(err) {
+          if (err) reject(err);
+          else resolve(this.changes);
+        }
+      );
+    });
+
+    if (changes === 0) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.json({ message: 'Project image updated successfully', filename });
+  } catch (error) {
+    console.error('Update project image error:', error);
+    res.status(500).json({ message: 'Failed to update project image' });
+  }
+};
+
 module.exports = {
   getSections,
   getAllSections,
@@ -245,5 +280,6 @@ module.exports = {
   getProjectsBySection,
   createProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  updateProjectImage
 };

@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { buildUploadUrl } from '@/config/api';
+import { ChevronLeft, ChevronRight, Upload, RefreshCw } from 'lucide-react';
+import { buildUploadUrl, buildApiUrl } from '@/config/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Project {
   id: number;
@@ -14,9 +15,11 @@ interface Project {
 interface ProjectCarouselProps {
   projects: Project[];
   title: string;
+  onProjectUpdate?: () => void;
 }
 
-const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects, title }) => {
+const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects, title, onProjectUpdate }) => {
+  const { isAdmin } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -44,6 +47,42 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects, title }) =>
       const newScrollLeft = scrollRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
       scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
     }
+  };
+
+  const handleImageUpload = async (projectId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/projects/admin/projects/${projectId}/image`), {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      if (response.ok) {
+        alert('Image updated successfully!');
+        onProjectUpdate?.();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update image: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image. Please try again.');
+    }
+  };
+
+  const triggerImageUpload = (projectId: number) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) handleImageUpload(projectId, file);
+    };
+    input.click();
   };
 
   if (!projects.length) return null;
@@ -84,7 +123,7 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects, title }) =>
               key={project.id}
               className="project-carousel-item w-80 group hover:shadow-lg transition-all duration-300 transform hover:scale-105 border-0 shadow-soft hover:shadow-pink"
             >
-            <div className="aspect-[4/3] overflow-hidden rounded-t-lg">
+            <div className="aspect-[4/3] overflow-hidden rounded-t-lg relative group">
               {project.image_filename ? (
                 <img
                   src={buildUploadUrl(project.image_filename)}
@@ -97,6 +136,19 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects, title }) =>
               ) : (
                 <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
                   <span className="text-white text-lg font-medium">{project.title}</span>
+                </div>
+              )}
+              {isAdmin && (
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => triggerImageUpload(project.id)}
+                    className="bg-white/90 hover:bg-white text-black"
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    {project.image_filename ? 'Replace' : 'Add'}
+                  </Button>
                 </div>
               )}
             </div>
