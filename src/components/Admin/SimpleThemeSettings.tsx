@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Palette, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { Palette, RotateCcw, Eye, EyeOff, History } from 'lucide-react';
 import ThemePreview from './ThemePreview';
 
 const SimpleThemeSettings = () => {
@@ -12,10 +12,34 @@ const SimpleThemeSettings = () => {
   const [previewColors, setPreviewColors] = useState(theme);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [themeHistory, setThemeHistory] = useState<typeof theme[]>([]);
 
   React.useEffect(() => {
     setPreviewColors(theme);
   }, [theme]);
+
+  // Load theme history from localStorage
+  React.useEffect(() => {
+    const saved = localStorage.getItem('themeHistory');
+    if (saved) {
+      try {
+        setThemeHistory(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to load theme history:', e);
+      }
+    }
+  }, []);
+
+  const saveToHistory = (themeToSave: typeof theme) => {
+    const newHistory = [themeToSave, ...themeHistory.filter(h => JSON.stringify(h) !== JSON.stringify(themeToSave))].slice(0, 10);
+    setThemeHistory(newHistory);
+    localStorage.setItem('themeHistory', JSON.stringify(newHistory));
+  };
+
+  const loadFromHistory = (historicTheme: typeof theme) => {
+    setPreviewColors(historicTheme);
+    if (isPreviewMode) previewTheme(historicTheme);
+  };
 
   const colorPresets = [
     { 
@@ -67,6 +91,7 @@ const SimpleThemeSettings = () => {
   const applyTheme = async () => {
     setIsSaving(true);
     try {
+      saveToHistory(theme); // Save current theme before applying new one
       await updateTheme(previewColors);
       setIsPreviewMode(false);
     } catch (error) {
@@ -323,22 +348,65 @@ const SimpleThemeSettings = () => {
 
                 <div className="md:col-span-2">
                   <Label htmlFor="gradient-direction" className="text-xs">Gradient Direction</Label>
-                  <select
-                    id="gradient-direction"
-                    value={previewColors.gradientDirection}
-                    onChange={(e) => handleColorChange('gradientDirection', e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background"
-                  >
-                    <option value="135deg">Diagonal (↘)</option>
-                    <option value="90deg">Vertical (↓)</option>
-                    <option value="0deg">Horizontal (→)</option>
-                    <option value="45deg">Diagonal (↗)</option>
-                    <option value="180deg">Horizontal (←)</option>
-                    <option value="270deg">Vertical (↑)</option>
-                  </select>
+                  <div className="space-y-2">
+                    <select
+                      id="gradient-direction"
+                      value={previewColors.gradientDirection}
+                      onChange={(e) => handleColorChange('gradientDirection', e.target.value)}
+                      className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                    >
+                      <option value="135deg">Diagonal Down-Right (↘)</option>
+                      <option value="90deg">Top to Bottom (↓)</option>
+                      <option value="0deg">Left to Right (→)</option>
+                      <option value="45deg">Diagonal Up-Right (↗)</option>
+                      <option value="180deg">Right to Left (←)</option>
+                      <option value="270deg">Bottom to Top (↑)</option>
+                      <option value="225deg">Diagonal Down-Left (↙)</option>
+                      <option value="315deg">Diagonal Up-Left (↖)</option>
+                    </select>
+                    <div 
+                      className="h-8 rounded border"
+                      style={{
+                        background: `linear-gradient(${previewColors.gradientDirection}, ${hslToHex(previewColors.gradientStart)}, ${hslToHex(previewColors.gradientEnd)})`
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Theme History */}
+            {themeHistory.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  Theme History
+                </Label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                  {themeHistory.map((historicTheme, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => loadFromHistory(historicTheme)}
+                      className="justify-start gap-2 h-auto p-2"
+                    >
+                      <div className="flex gap-1">
+                        <div 
+                          className="w-3 h-3 rounded-full border"
+                          style={{ backgroundColor: hslToHex(historicTheme.primary) }}
+                        />
+                        <div 
+                          className="w-3 h-3 rounded-full border"
+                          style={{ backgroundColor: hslToHex(historicTheme.accent) }}
+                        />
+                      </div>
+                      <span className="text-xs">Theme {index + 1}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2 pt-4 border-t">

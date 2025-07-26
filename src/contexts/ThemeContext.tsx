@@ -88,16 +88,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.style.setProperty(`--${key}`, value);
     });
     
-    // Apply dynamic gradients
-    const gradientPrimary = `linear-gradient(${themeSettings.gradientDirection}, hsl(${themeSettings.gradientStart}), hsl(${themeSettings.gradientEnd}))`;
-    const gradientHero = `linear-gradient(${themeSettings.gradientDirection}, hsl(${themeSettings.gradientStart}) 0%, hsl(${themeSettings.gradientEnd}) 100%)`;
-    const gradientSubtle = `linear-gradient(${themeSettings.gradientDirection}, hsl(${themeSettings.gradientStart} / 0.05) 0%, hsl(${themeSettings.gradientEnd} / 0.05) 100%)`;
+    // Apply dynamic gradients with proper direction handling
+    const direction = themeSettings.gradientDirection || '135deg';
+    const gradientPrimary = `linear-gradient(${direction}, hsl(${themeSettings.gradientStart}), hsl(${themeSettings.gradientEnd}))`;
+    const gradientHero = `linear-gradient(${direction}, hsl(${themeSettings.gradientStart}) 0%, hsl(${themeSettings.gradientEnd}) 100%)`;
+    const gradientSubtle = `linear-gradient(${direction}, hsl(${themeSettings.gradientStart} / 0.05) 0%, hsl(${themeSettings.gradientEnd} / 0.05) 100%)`;
     const gradientCard = `linear-gradient(145deg, hsl(${themeSettings.card}) 0%, hsl(${themeSettings.secondary}) 100%)`;
     
     root.style.setProperty('--gradient-primary', gradientPrimary);
     root.style.setProperty('--gradient-hero', gradientHero);
     root.style.setProperty('--gradient-subtle', gradientSubtle);
     root.style.setProperty('--gradient-card', gradientCard);
+    
+    // Force update gradient direction variable
+    root.style.setProperty('--gradientDirection', direction);
     
     // Update shadow colors
     root.style.setProperty('--shadow-soft', `0 4px 20px hsl(${themeSettings.primary} / 0.1)`);
