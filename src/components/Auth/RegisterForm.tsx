@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { User, Mail, Lock, Building, Phone, UserPlus } from 'lucide-react';
+import { buildApiUrl } from '@/config/api';
+import EmailVerificationForm from './EmailVerificationForm';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -11,7 +13,7 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess }) => {
-  const { register } = useAuth();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -21,6 +23,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationData, setVerificationData] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,14 +32,49 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
     setError('');
 
     try {
-      await register(formData);
-      onSuccess?.();
+      const response = await fetch(buildApiUrl('/api/auth/register'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setVerificationData(data);
+        setShowVerification(true);
+      } else {
+        setError(data.message || 'Erreur lors de l\'inscription');
+      }
     } catch (err: any) {
-      setError(err.message);
+      setError('Erreur de connexion');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleVerificationSuccess = async (token: string, user: any) => {
+    localStorage.setItem('token', token);
+    // Set user directly since we already have the token and user data
+    window.location.reload(); // Refresh to update auth state
+    onSuccess?.();
+  };
+
+  const handleBackToRegister = () => {
+    setShowVerification(false);
+    setVerificationData(null);
+  };
+
+  if (showVerification && verificationData) {
+    return (
+      <EmailVerificationForm
+        email={verificationData.email}
+        userData={verificationData.tempData}
+        onSuccess={handleVerificationSuccess}
+        onBack={handleBackToRegister}
+      />
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">

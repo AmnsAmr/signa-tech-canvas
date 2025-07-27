@@ -11,7 +11,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -92,7 +92,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (credentials: { email: string; password: string } | string) => {
+    let email: string, password: string;
+    
+    if (typeof credentials === 'string') {
+      // Handle legacy string parameter (email)
+      email = credentials;
+      password = '';
+    } else {
+      email = credentials.email;
+      password = credentials.password;
+    }
+    
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

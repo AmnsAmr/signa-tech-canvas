@@ -47,7 +47,7 @@ class DbMigrationManager {
             if (migration.up) {
               await migration.up(db);
             } else if (migration.runMigration) {
-              await migration.runMigration();
+              await migration.runMigration(db);
             } else {
               throw new Error(`Migration ${migrationName} has no up() or runMigration() method`);
             }

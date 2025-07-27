@@ -4,7 +4,7 @@ const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
 const database = require('../config/database');
 const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/constants');
-const { sendResetEmail } = require('../utils/emailService');
+const { sendResetEmail, sendVerificationEmail } = require('../utils/emailService');
 
 const googleClient = new OAuth2Client(
   GOOGLE_CLIENT_ID,
@@ -36,22 +36,29 @@ class AuthController {
         return res.status(400).json({ message: 'User already exists' });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      
-      const userId = await new Promise((resolve, reject) => {
-        db.run("INSERT INTO users (name, email, password, company, phone) VALUES (?, ?, ?, ?, ?)",
-          [name, email, hashedPassword, company || null, phone || null], 
-          function(err) {
+      // Generate verification code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Store verification code
+      await new Promise((resolve, reject) => {
+        db.run("INSERT INTO email_verifications (email, code, expires_at) VALUES (?, ?, ?)",
+          [email, code, expiresAt.toISOString()], (err) => {
             if (err) reject(err);
-            else resolve(this.lastID);
+            else resolve();
           });
       });
 
-      const token = jwt.sign({ id: userId, email, role: 'client' }, JWT_SECRET, { expiresIn: '24h' });
+      // Send verification email
+      await sendVerificationEmail(email, code);
+      
+      // Store user data temporarily (without creating account yet)
+      const hashedPassword = await bcrypt.hash(password, 10);
       
       res.json({ 
-        token, 
-        user: { id: userId, name, email, company, phone, role: 'client' } 
+        message: 'Code de vérification envoyé à votre email',
+        email,
+        tempData: { name, email, hashedPassword, company, phone }
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -240,6 +247,86 @@ class AuthController {
     } catch (error) {
       console.error('Reset password error:', error);
       res.status(500).json({ message: 'Failed to reset password' });
+    }
+  }
+
+  async verifyEmail(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ message: errors.array()[0].msg });
+      }
+
+      const { email, code, userData } = req.body;
+      
+      const verification = await new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM email_verifications WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime('now') ORDER BY created_at DESC LIMIT 1`,
+          [email, code], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
+      });
+
+      if (!verification) {
+        return res.status(400).json({ message: 'Code invalide ou expiré' });
+      }
+      
+      // Create user account
+      const { name, hashedPassword, company, phone } = userData;
+      const userId = await new Promise((resolve, reject) => {
+        db.run("INSERT INTO users (name, email, password, company, phone, email_verified) VALUES (?, ?, ?, ?, ?, 1)",
+          [name, email, hashedPassword, company || null, phone || null], 
+          function(err) {
+            if (err) reject(err);
+            else resolve(this.lastID);
+          });
+      });
+      
+      // Mark verification as used
+      await new Promise((resolve, reject) => {
+        db.run("UPDATE email_verifications SET used = 1 WHERE id = ?", [verification.id], (err) => {
+          if (err) console.error('Failed to mark verification as used:', err);
+          resolve();
+        });
+      });
+
+      const token = jwt.sign({ id: userId, email, role: 'client' }, JWT_SECRET, { expiresIn: '24h' });
+      
+      res.json({ 
+        token, 
+        user: { id: userId, name, email, company, phone, role: 'client', email_verified: true },
+        message: 'Compte créé avec succès'
+      });
+    } catch (error) {
+      console.error('Email verification error:', error);
+      res.status(500).json({ message: 'Verification failed' });
+    }
+  }
+
+  async resendVerificationCode(req, res) {
+    try {
+      const { email } = req.body;
+      
+      // Generate new verification code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+      // Store new verification code
+      await new Promise((resolve, reject) => {
+        db.run("INSERT INTO email_verifications (email, code, expires_at) VALUES (?, ?, ?)",
+          [email, code, expiresAt.toISOString()], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+      });
+
+      // Send verification email
+      await sendVerificationEmail(email, code);
+      
+      res.json({ message: 'Nouveau code envoyé' });
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      res.status(500).json({ message: 'Failed to resend code' });
     }
   }
 

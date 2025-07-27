@@ -63,6 +63,22 @@ class EmailService {
     return this.transporter.sendMail(mailOptions);
   }
 
+  async sendVerificationEmail(email, code) {
+    const mailOptions = {
+      from: EMAIL_USER,
+      to: email,
+      subject: 'Vérification de votre compte - SignaTech',
+      html: `
+        <h2>Bienvenue chez SignaTech!</h2>
+        <p>Votre code de vérification est: <strong>${code}</strong></p>
+        <p>Ce code expire dans 15 minutes.</p>
+        <p>Entrez ce code pour activer votre compte.</p>
+      `
+    };
+
+    return this.transporter.sendMail(mailOptions);
+  }
+
   async toggleAdminNotifications(adminId, enabled) {
     console.log(`EmailService: Toggling notifications for admin ${adminId} to ${enabled ? 'enabled' : 'disabled'}`);
     
