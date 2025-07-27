@@ -17,7 +17,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import UserDashboard from "./pages/UserDashboard";
 import Ratings from "./pages/Ratings";
 import NotFound from "./pages/NotFound";
-import Debug from "./pages/Debug";
+
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -41,7 +41,7 @@ const App = () => (
               <Route path="/dashboard" element={<ErrorBoundary fallback={<DashboardFallback />}><UserDashboard /></ErrorBoundary>} />
               <Route path="/ratings" element={<Ratings />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/debug" element={<Debug />} />
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
