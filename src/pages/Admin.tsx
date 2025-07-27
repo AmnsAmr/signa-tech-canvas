@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import OrganizedImageManager from '@/components/Admin/OrganizedImageManager';
@@ -129,6 +131,9 @@ const Admin = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+  const [deleteUserName, setDeleteUserName] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isAdmin) {
@@ -171,7 +176,11 @@ const Admin = () => {
       const token = localStorage.getItem('token');
       if (!token) {
         console.error('No authentication token found');
-        alert('Erreur d\'authentification. Veuillez vous reconnecter.');
+        toast({
+          variant: "destructive",
+          title: "Erreur d'authentification",
+          description: "Veuillez vous reconnecter."
+        });
         return;
       }
       
@@ -190,13 +199,24 @@ const Admin = () => {
       
       if (response.ok) {
         setNotificationsEnabled(!notificationsEnabled);
-        alert(data.message || `Notifications ${!notificationsEnabled ? 'activées' : 'désactivées'} avec succès`);
+        toast({
+          title: "Notifications mises à jour",
+          description: data.message || `Notifications ${!notificationsEnabled ? 'activées' : 'désactivées'} avec succès`
+        });
       } else {
-        alert(data.message || 'Erreur lors de la modification des paramètres de notification');
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: data.message || 'Erreur lors de la modification des paramètres de notification'
+        });
       }
     } catch (error) {
       console.error('Failed to toggle notifications:', error);
-      alert('Erreur lors de la modification des paramètres de notification. Veuillez réessayer.');
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: 'Erreur lors de la modification des paramètres de notification. Veuillez réessayer.'
+      });
     } finally {
       setLoadingNotifications(false);
     }
@@ -349,11 +369,19 @@ const Admin = () => {
       } else {
         console.error('Download failed with status:', response.status);
         console.error('Response text:', await response.text());
-        alert(`Failed to download file: ${response.status} ${response.statusText}`);
+        toast({
+          variant: "destructive",
+          title: "Échec du téléchargement",
+          description: `Erreur ${response.status}: ${response.statusText}`
+        });
       }
     } catch (error) {
       console.error('File download error:', error);
-      alert(`Failed to download file: ${error.message || 'Unknown error'}`);
+      toast({
+        variant: "destructive",
+        title: "Erreur de téléchargement",
+        description: error.message || 'Erreur inconnue'
+      });
     }
   };
 
@@ -365,28 +393,45 @@ const Admin = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const deleteUser = async (userId: number, userName: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer le compte de ${userName} ? Cette action est irréversible.`)) {
-      return;
-    }
+  const confirmDeleteUser = (userId: number, userName: string) => {
+    setDeleteUserId(userId);
+    setDeleteUserName(userName);
+  };
+
+  const deleteUser = async () => {
+    if (!deleteUserId) return;
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/users/${userId}`), {
+      const response = await fetch(buildApiUrl(`/api/admin/users/${deleteUserId}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.ok) {
-        alert('Utilisateur supprimé avec succès');
+        toast({
+          title: "Utilisateur supprimé",
+          description: "L'utilisateur a été supprimé avec succès"
+        });
         fetchData();
       } else {
         const errorData = await response.json();
-        alert(`Erreur: ${errorData.message}`);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: errorData.message
+        });
       }
     } catch (error) {
       console.error('Failed to delete user:', error);
-      alert('Erreur lors de la suppression');
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: 'Erreur lors de la suppression'
+      });
+    } finally {
+      setDeleteUserId(null);
+      setDeleteUserName('');
     }
   };
 
@@ -407,13 +452,25 @@ const Admin = () => {
         setAdmins(prev => [...prev, result.admin]);
         setNewAdmin({ name: '', email: '', password: '' });
         setShowCreateAdmin(false);
+        toast({
+          title: "Admin créé",
+          description: "Le nouvel administrateur a été créé avec succès"
+        });
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to create admin');
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: error.message || 'Échec de la création de l\'admin'
+        });
       }
     } catch (error) {
       console.error('Failed to create admin:', error);
-      alert('Failed to create admin');
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: 'Échec de la création de l\'admin'
+      });
     }
   };
 
@@ -686,7 +743,7 @@ const Admin = () => {
                                   </DropdownMenuItem>
                                   {u.id !== Number(user?.id)&& (
                                     <DropdownMenuItem 
-                                      onClick={() => deleteUser(u.id, u.name)}
+                                      onClick={() => confirmDeleteUser(u.id, u.name)}
                                       className="text-red-600"
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
@@ -925,6 +982,24 @@ const Admin = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={deleteUserId !== null} onOpenChange={() => { setDeleteUserId(null); setDeleteUserName(''); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer le compte de <strong>{deleteUserName}</strong> ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteUser} className="bg-red-600 hover:bg-red-700">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Footer />
     </div>

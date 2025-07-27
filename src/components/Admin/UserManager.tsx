@@ -111,7 +111,7 @@ const UserManager: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {userData.id !== user?.id && (
+                  {userData.id !==Number( user?.id) && (
                     <Button
                       variant="destructive"
                       size="sm"
@@ -122,7 +122,7 @@ const UserManager: React.FC = () => {
                       Supprimer
                     </Button>
                   )}
-                  {userData.id === user?.id && (
+                  {userData.id ===Number (user?.id) && (
                     <Badge variant="outline">Votre compte</Badge>
                   )}
                 </div>

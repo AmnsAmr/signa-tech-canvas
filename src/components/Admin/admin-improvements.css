@@ -87,7 +87,8 @@
   transition: opacity 0.2s ease-in-out;
 }
 
-.admin-card:hover .admin-settings-btn {
+.admin-card:hover .admin-settings-btn,
+tr:hover .admin-settings-btn {
   opacity: 1;
 }
 
