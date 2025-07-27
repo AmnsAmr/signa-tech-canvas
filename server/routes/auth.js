@@ -52,6 +52,9 @@ router.post('/resend-verification', body('email').isEmail(), authController.rese
 router.get('/google', authController.googleAuth);
 router.get('/google/callback', authController.googleCallback);
 
+// Profile update
+router.put('/profile', authenticateToken, authController.updateProfile);
+
 // Account deletion
 router.delete('/account', authenticateToken, authController.deleteAccount);
 

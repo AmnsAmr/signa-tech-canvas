@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (credentials: { email: string; password: string }) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
@@ -137,6 +138,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newUser);
   };
 
+  const refreshUser = async () => {
+    await checkAuthStatus();
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -148,6 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login,
       register,
       logout,
+      refreshUser,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',
       loading

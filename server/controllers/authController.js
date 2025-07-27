@@ -4,7 +4,7 @@ const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
 const database = require('../config/database');
 const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/constants');
-const { sendResetEmail, sendVerificationEmail } = require('../utils/emailService');
+const emailService = require('../utils/emailService');
 
 const googleClient = new OAuth2Client(
   GOOGLE_CLIENT_ID,
@@ -50,7 +50,7 @@ class AuthController {
       });
 
       // Send verification email
-      await sendVerificationEmail(email, code);
+      await emailService.sendVerificationEmail(email, code);
       
       // Store user data temporarily (without creating account yet)
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -169,7 +169,7 @@ class AuthController {
           });
       });
 
-      await sendResetEmail(email, code);
+      await emailService.sendResetEmail(email, code);
       
       res.json({ message: 'Code de vérification envoyé à votre email' });
     } catch (error) {
@@ -321,12 +321,79 @@ class AuthController {
       });
 
       // Send verification email
-      await sendVerificationEmail(email, code);
+      await emailService.sendVerificationEmail(email, code);
       
       res.json({ message: 'Nouveau code envoyé' });
     } catch (error) {
       console.error('Resend verification error:', error);
       res.status(500).json({ message: 'Failed to resend code' });
+    }
+  }
+
+  async updateProfile(req, res) {
+    try {
+      const { name, currentPassword, newPassword } = req.body;
+      const userId = req.user.id;
+      
+      const user = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE id = ?", [userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // If changing password, verify current password
+      if (newPassword) {
+        if (user.oauth_provider) {
+          return res.status(400).json({ message: 'Cannot change password for OAuth accounts' });
+        }
+        
+        if (!currentPassword) {
+          return res.status(400).json({ message: 'Current password required' });
+        }
+        
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+          return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+      }
+      
+      // Update user data
+      const updates = [];
+      const values = [];
+      
+      if (name && name !== user.name) {
+        updates.push('name = ?');
+        values.push(name);
+      }
+      
+      if (newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        updates.push('password = ?');
+        values.push(hashedPassword);
+      }
+      
+      if (updates.length === 0) {
+        return res.status(400).json({ message: 'No changes to update' });
+      }
+      
+      values.push(userId);
+      
+      await new Promise((resolve, reject) => {
+        db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values, function(err) {
+          if (err) reject(err);
+          else resolve(this.changes);
+        });
+      });
+      
+      res.json({ message: 'Profile updated successfully' });
+    } catch (error) {
+      console.error('Update profile error:', error);
+      res.status(500).json({ message: 'Failed to update profile' });
     }
   }
 

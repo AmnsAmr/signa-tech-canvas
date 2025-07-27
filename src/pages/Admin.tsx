@@ -700,32 +700,32 @@ const Admin = () => {
                           <TableCell className="hidden md:table-cell">
                             <div className="flex items-center">
                               <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                              <span className="truncate max-w-[200px]">{user.email}</span>
+                              <span className="truncate max-w-[200px]">{u.email}</span>
                             </div>
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
-                            {user.company ? (
+                            {u.company ? (
                               <div className="flex items-center">
                                 <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <span className="truncate max-w-[150px]">{user.company}</span>
+                                <span className="truncate max-w-[150px]">{u.company}</span>
                               </div>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
-                            {user.phone ? (
+                            {u.phone ? (
                               <div className="flex items-center">
                                 <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                                {user.phone}
+                                {u.phone}
                               </div>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
-                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                              {user.role}
+                            <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                              {u.role}
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
