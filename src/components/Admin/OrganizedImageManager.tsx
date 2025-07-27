@@ -52,8 +52,8 @@ const sections: ImageSection[] = [
     key: 'logo', 
     title: 'Logo du Site', 
     icon: Building2, 
-    description: 'Logo principal affiché dans l\'en-tête', 
-    usage: 'Header navigation',
+    description: 'Logo principal affiché dans l\'en-tête et utilisé comme favicon (icône de l\'onglet)', 
+    usage: 'Header navigation + Browser tab icon (favicon)',
     maxImages: 1,
     priority: 'high'
   },
@@ -373,6 +373,16 @@ const OrganizedImageManager: React.FC = () => {
                   <span className="text-sm text-orange-700">
                     Limite atteinte ({section.maxImages} images max). Supprimez une image pour en ajouter une nouvelle.
                   </span>
+                </div>
+              )}
+              
+              {section.key === 'logo' && (
+                <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg mb-4">
+                  <Info className="h-4 w-4 text-purple-600" />
+                  <div className="text-sm text-purple-700">
+                    <p><strong>Favicon Automatique:</strong> Cette image sera automatiquement utilisée comme favicon (icône dans l'onglet du navigateur).</p>
+                    <p className="mt-1">Formats recommandés: PNG, SVG, ICO. L'image sera redimensionnée automatiquement par le navigateur.</p>
+                  </div>
                 </div>
               )}
               

@@ -19,17 +19,18 @@ import Ratings from "./pages/Ratings";
 import NotFound from "./pages/NotFound";
 
 import ScrollToTop from "./components/ScrollToTop";
+import { useFavicon } from "./hooks/useFavicon";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
+const AppContent = () => {
+  // Initialize favicon management
+  useFavicon();
+  
+  return (
+    <>
+      <Toaster />
+      <BrowserRouter>
             <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
@@ -45,12 +46,24 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
+      </BrowserRouter>
+    </>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <AppContent />
           </TooltipProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
+;
 
 export default App;

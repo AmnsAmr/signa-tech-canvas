@@ -22,7 +22,7 @@ import { buildApiUrl } from '@/config/api';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import FileContextMenu from '@/components/FileContextMenu';
-import './admin-improvements.css';
+import '@/components/Admin/admin-improvements.css';
 
 
 interface User {
