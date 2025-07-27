@@ -11,45 +11,37 @@ class RatingController {
         return res.status(400).json({ message: errors.array()[0].msg });
       }
 
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentification requise pour donner un avis' });
+      }
+
       const { rating, comment } = req.body;
-      const userId = req.user?.id || null;
+      const userId = req.user.id;
+      const name = req.user.name || 'Utilisateur';
+      const email = req.user.email;
       
-      let name, email;
-      if (req.user) {
-        // Authenticated user - check restrictions
-        name = req.user.name || 'Utilisateur';
-        email = req.user.email;
-        
-        // Check if user already has a rating
-        const existingRating = await new Promise((resolve, reject) => {
-          db.get("SELECT id FROM ratings WHERE user_id = ?", [userId], (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-          });
+      // Check if user already has a rating
+      const existingRating = await new Promise((resolve, reject) => {
+        db.get("SELECT id FROM ratings WHERE user_id = ?", [userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
         });
-        
-        if (existingRating) {
-          return res.status(400).json({ message: 'Vous avez déjà donné votre avis' });
-        }
-        
-        // Check if user has at least one completed submission
-        const completedSubmission = await new Promise((resolve, reject) => {
-          db.get("SELECT id FROM contact_submissions WHERE user_id = ? AND status = 'done' LIMIT 1", [userId], (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-          });
+      });
+      
+      if (existingRating) {
+        return res.status(400).json({ message: 'Vous avez déjà donné votre avis' });
+      }
+      
+      // Check if user has at least one completed submission
+      const completedSubmission = await new Promise((resolve, reject) => {
+        db.get("SELECT id FROM contact_submissions WHERE user_id = ? AND status = 'done' LIMIT 1", [userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
         });
-        
-        if (!completedSubmission) {
-          return res.status(400).json({ message: 'Vous devez avoir au moins une demande terminée pour donner un avis' });
-        }
-      } else {
-        // Guest user
-        name = req.body.name;
-        email = req.body.email;
-        if (!name) {
-          return res.status(400).json({ message: 'Name is required' });
-        }
+      });
+      
+      if (!completedSubmission) {
+        return res.status(400).json({ message: 'Vous devez avoir au moins une demande terminée pour donner un avis' });
       }
 
       console.log('Submitting rating:', { userId, name, email, rating, comment });
@@ -184,7 +176,7 @@ class RatingController {
   async canUserRate(req, res) {
     try {
       if (!req.user) {
-        return res.json({ canRate: true, reason: 'guest' });
+        return res.status(401).json({ message: 'Authentification requise' });
       }
 
       const userId = req.user.id;

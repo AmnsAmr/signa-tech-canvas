@@ -11,11 +11,7 @@ const ratingValidation = [
   body('comment').isLength({ min: 10, max: 500 }).withMessage('Comment must be between 10 and 500 characters')
 ];
 
-const guestRatingValidation = [
-  ...ratingValidation,
-  body('name').notEmpty().withMessage('Name is required'),
-  body('email').optional().isEmail().withMessage('Valid email required')
-];
+
 
 // Public routes
 router.get('/', ratingController.getPublicRatings);
@@ -26,11 +22,6 @@ router.get('/can-rate', authenticateToken, ratingController.canUserRate);
 router.post('/submit', authenticateToken, ratingValidation, ratingController.submitRating);
 router.delete('/my-rating', authenticateToken, ratingController.deleteUserRating);
 
-// Guest rating submission
-router.post('/guest-submit', guestRatingValidation, (req, res) => {
-  // Temporarily set req.user to null for guest submissions
-  req.user = null;
-  ratingController.submitRating(req, res);
-});
+
 
 module.exports = router;

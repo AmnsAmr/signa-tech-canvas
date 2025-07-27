@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Send, Clock } from 'lucide-react';
+import { Star, Send, Clock, LogIn } from 'lucide-react';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -16,8 +15,7 @@ const RatingForm: React.FC = () => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [name, setName] = useState(isAuthenticated ? user?.name || '' : '');
-  const [email, setEmail] = useState(isAuthenticated ? user?.email || '' : '');
+
   const [loading, setLoading] = useState(false);
   const [canRate, setCanRate] = useState(true);
   const [ratingReason, setRatingReason] = useState('');
@@ -51,6 +49,15 @@ const RatingForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour donner un avis",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (rating === 0) {
       toast({
         title: "Erreur",
@@ -63,27 +70,15 @@ const RatingForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const endpoint = isAuthenticated ? '/api/ratings/submit' : '/api/ratings/guest-submit';
       const token = localStorage.getItem('token');
       
-      const headers: any = {
-        'Content-Type': 'application/json'
-      };
-      
-      if (isAuthenticated && token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const body: any = { rating, comment };
-      if (!isAuthenticated) {
-        body.name = name;
-        body.email = email;
-      }
-
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/ratings/submit', {
         method: 'POST',
-        headers,
-        body: JSON.stringify(body)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rating, comment })
       });
 
       const result = await response.json();
@@ -96,13 +91,7 @@ const RatingForm: React.FC = () => {
         
         setRating(0);
         setComment('');
-        if (!isAuthenticated) {
-          setName('');
-          setEmail('');
-        } else {
-          // Refresh eligibility for authenticated users
-          checkRatingEligibility();
-        }
+        checkRatingEligibility();
       } else {
         toast({
           title: "Erreur",
@@ -132,7 +121,24 @@ const RatingForm: React.FC = () => {
     );
   }
 
-  if (isAuthenticated && !canRate) {
+  if (!isAuthenticated) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>{t('rating.give_review')}</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <LogIn className="h-12 w-12 mx-auto mb-4 text-primary" />
+          <h3 className="font-semibold mb-2">Connexion requise</h3>
+          <p className="text-gray-600">
+            Vous devez être connecté pour donner un avis sur nos services.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!canRate) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -165,28 +171,6 @@ const RatingForm: React.FC = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!isAuthenticated && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-2">Nom *</label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Votre nom"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Email (optionnel)</label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                />
-              </div>
-            </>
-          )}
           
           <div>
             <label className="block text-sm font-medium mb-2">Note *</label>
