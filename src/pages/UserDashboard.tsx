@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FileText, Star, BarChart3, MessageSquare, Clock, CheckCircle, Download, Paperclip } from 'lucide-react';
 import FileContextMenu from '@/components/FileContextMenu';
 import { ProjectCard } from '@/components/shared';
+import AccountSettings from '@/components/User/AccountSettings';
 
 interface UserSubmission {
   id: number;
@@ -239,6 +240,7 @@ const UserDashboard: React.FC = () => {
             <TabsTrigger value="submissions">Mes Demandes</TabsTrigger>
             <TabsTrigger value="ratings">Mes {t('rating.reviews')}</TabsTrigger>
             <TabsTrigger value="new-rating">{t('rating.give_review')}</TabsTrigger>
+            <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
           <TabsContent value="submissions">
@@ -348,6 +350,10 @@ const UserDashboard: React.FC = () => {
             <div className="flex justify-center">
               <RatingForm />
             </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <AccountSettings />
           </TabsContent>
         </Tabs>
       </div>

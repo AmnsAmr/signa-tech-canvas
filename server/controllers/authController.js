@@ -330,6 +330,52 @@ class AuthController {
     }
   }
 
+  async deleteAccount(req, res) {
+    try {
+      const { password } = req.body;
+      const userId = req.user.id;
+      
+      // Get user data
+      const user = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE id = ?", [userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Verify password for non-OAuth users
+      if (user.password && !user.oauth_provider) {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return res.status(400).json({ message: 'Invalid password' });
+        }
+      }
+      
+      // Delete user and related data
+      await new Promise((resolve, reject) => {
+        db.serialize(() => {
+          db.run('DELETE FROM contact_submissions WHERE user_id = ?', [userId]);
+          db.run('DELETE FROM ratings WHERE user_id = ?', [userId]);
+          db.run('DELETE FROM password_resets WHERE email = ?', [user.email]);
+          db.run('DELETE FROM email_verifications WHERE email = ?', [user.email]);
+          db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
+            if (err) reject(err);
+            else resolve(this.changes);
+          });
+        });
+      });
+      
+      res.json({ message: 'Account deleted successfully' });
+    } catch (error) {
+      console.error('Delete account error:', error);
+      res.status(500).json({ message: 'Failed to delete account' });
+    }
+  }
+
   async googleAuth(req, res) {
     try {
       const authUrl = googleClient.generateAuthUrl({

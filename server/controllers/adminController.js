@@ -227,6 +227,49 @@ class AdminController {
     }
   }
 
+  async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
+      const adminId = req.user.id;
+      
+      // Prevent admin from deleting themselves
+      if (parseInt(id) === adminId) {
+        return res.status(400).json({ message: 'Cannot delete your own account' });
+      }
+      
+      // Check if user exists
+      const user = await new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE id = ?", [id], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Delete user and related data
+      await new Promise((resolve, reject) => {
+        db.serialize(() => {
+          db.run('DELETE FROM contact_submissions WHERE user_id = ?', [id]);
+          db.run('DELETE FROM ratings WHERE user_id = ?', [id]);
+          db.run('DELETE FROM password_resets WHERE email = ?', [user.email]);
+          db.run('DELETE FROM email_verifications WHERE email = ?', [user.email]);
+          db.run('DELETE FROM users WHERE id = ?', [id], function(err) {
+            if (err) reject(err);
+            else resolve(this.changes);
+          });
+        });
+      });
+      
+      res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error('Delete user error:', error);
+      res.status(500).json({ message: 'Failed to delete user' });
+    }
+  }
+
   // Helper method to get all admin emails for notifications
   static async getAdminEmails() {
     return new Promise((resolve, reject) => {

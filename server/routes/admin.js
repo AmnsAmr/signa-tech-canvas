@@ -23,6 +23,7 @@ router.post('/admins', [
 
 // User routes
 router.get('/users', adminController.getUsers);
+router.delete('/users/:id', adminController.deleteUser);
 router.get('/submissions', adminController.getSubmissions);
 router.patch('/submissions/:id/status', adminController.updateSubmissionStatus);
 

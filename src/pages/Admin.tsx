@@ -16,6 +16,7 @@ import AdminRatings from '@/components/Admin/AdminRatings';
 import ContactSettings from '@/components/Admin/ContactSettings';
 import SimpleThemeSettings from '@/components/Admin/SimpleThemeSettings';
 import ProjectManager from '@/components/Admin/ProjectManager';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen } from 'lucide-react';
@@ -364,6 +365,31 @@ const Admin = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const deleteUser = async (userId: number, userName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le compte de ${userName} ? Cette action est irréversible.`)) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/admin/users/${userId}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        alert('Utilisateur supprimé avec succès');
+        fetchData();
+      } else {
+        const errorData = await response.json();
+        alert(`Erreur: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Erreur lors de la suppression');
+    }
+  };
+
   const createAdmin = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -658,6 +684,15 @@ const Admin = () => {
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
                                   </DropdownMenuItem>
+                                  {user.id !== user?.id && (
+                                    <DropdownMenuItem 
+                                      onClick={() => deleteUser(user.id, user.name)}
+                                      className="text-red-600"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete User
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
