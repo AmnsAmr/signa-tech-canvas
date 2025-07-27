@@ -660,17 +660,17 @@ const Admin = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((user) => (
-                        <TableRow key={user.id} className="hover:bg-muted/50">
+                      {filteredUsers.map((u) => (
+                        <TableRow key={u.id} className="hover:bg-muted/50">
                           <TableCell className="font-medium">
                             <div className="flex items-center justify-between">
-                              <div className="flex flex-col sm:flex-row sm:items-center cursor-pointer min-w-0" onClick={() => handleUserClick(user)}>
+                              <div className="flex flex-col sm:flex-row sm:items-center cursor-pointer min-w-0" onClick={() => handleUserClick(u)}>
                                 <div className="flex items-center">
                                   <Eye className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  <span className="truncate">{user.name}</span>
+                                  <span className="truncate">{u.name}</span>
                                 </div>
                                 <div className="sm:hidden text-xs text-muted-foreground mt-1">
-                                  {user.email}
+                                  {u.email}
                                 </div>
                               </div>
                               <DropdownMenu>
@@ -680,13 +680,13 @@ const Admin = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleUserClick(user)}>
+                                  <DropdownMenuItem onClick={() => handleUserClick(u)}>
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
                                   </DropdownMenuItem>
-                                  {user.id !== user?.id && (
+                                  {u.id !== Number(user?.id)&& (
                                     <DropdownMenuItem 
-                                      onClick={() => deleteUser(user.id, user.name)}
+                                      onClick={() => deleteUser(u.id, u.name)}
                                       className="text-red-600"
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
@@ -731,7 +731,7 @@ const Admin = () => {
                           <TableCell className="hidden md:table-cell">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                              {new Date(user.created_at).toLocaleDateString()}
+                              {new Date(u.created_at).toLocaleDateString()}
                             </div>
                           </TableCell>
                         </TableRow>
