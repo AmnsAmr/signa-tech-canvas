@@ -382,8 +382,8 @@ const Contact: React.FC = () => {
                   {isAuthenticated ? (
                     // Authenticated user form - pre-filled with user data
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
-                      <p className="text-sm text-green-700 mb-2">Connecté en tant que: <strong>{user?.name}</strong></p>
-                      <p className="text-xs text-green-600">Vos informations sont pré-remplies</p>
+                      <p className="text-sm text-green-700 mb-2">{t('contact.logged_in_as')}: <strong>{user?.name}</strong></p>
+                      <p className="text-xs text-green-600">{t('contact.info_prefilled')}</p>
                     </div>
                   ) : (
                     // Non-authenticated user form
@@ -419,14 +419,14 @@ const Contact: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Email
+                            {t('contact.form.email.label')}
                           </label>
                           <Input 
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="votre@email.com (optionnel)"
+                            placeholder={t('contact.form.email.placeholder')}
                             className="border-border/50 focus:border-primary transition-colors"
                           />
                         </div>
@@ -491,7 +491,7 @@ const Contact: React.FC = () => {
                   {/* Service Management Section */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-foreground">Services Requis</h3>
+                      <h3 className="text-lg font-semibold text-foreground">{t('contact.required_services')}</h3>
                       <Button
                         type="button"
                         onClick={() => {
@@ -516,7 +516,7 @@ const Contact: React.FC = () => {
                         className="bg-gradient-primary hover:opacity-90"
                       >
                         <Settings className="h-4 w-4 mr-2" />
-                        Ajouter un Service
+                        {t('contact.add_service')}
                       </Button>
                     </div>
 
@@ -528,12 +528,12 @@ const Contact: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <h4 className="font-medium text-foreground mb-1">
-                                  Service {index + 1}: {service.serviceType || 'Non spécifié'}
+                                  {t('contact.service')} {index + 1}: {service.serviceType || t('contact.not_specified')}
                                 </h4>
                                 <div className="text-sm text-muted-foreground space-y-1">
-                                  {service.material && <p>Matériau: {service.material}</p>}
-                                  {service.size && <p>Taille: {service.size}</p>}
-                                  {service.quantity && <p>Quantité: {service.quantity}</p>}
+                                  {service.material && <p>{t('contact.material')}: {service.material}</p>}
+                                  {service.size && <p>{t('contact.size')}: {service.size}</p>}
+                                  {service.quantity && <p>{t('contact.quantity')}: {service.quantity}</p>}
                                 </div>
                               </div>
                               <div className="flex space-x-2">
@@ -547,7 +547,7 @@ const Contact: React.FC = () => {
                                     setShowServiceModal(true);
                                   }}
                                 >
-                                  Modifier
+                                  {t('contact.edit')}
                                 </Button>
                                 <Button
                                   type="button"
@@ -560,7 +560,7 @@ const Contact: React.FC = () => {
                                     }));
                                   }}
                                 >
-                                  Supprimer
+                                  {t('contact.delete')}
                                 </Button>
                               </div>
                             </div>
@@ -575,10 +575,10 @@ const Contact: React.FC = () => {
                   {!isAuthenticated && (
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                       <p className="text-sm text-blue-700 mb-2">
-                        💡 <strong>Conseil:</strong> Créez un compte pour une expérience plus rapide!
+                        💡 <strong>{t('contact.tip')}:</strong> {t('contact.create_account_tip')}
                       </p>
                       <p className="text-xs text-blue-600">
-                        Les utilisateurs connectés n'ont pas besoin de ressaisir leurs informations.
+                        {t('contact.logged_users_benefit')}
                       </p>
                     </div>
                   )}
@@ -649,8 +649,8 @@ const Contact: React.FC = () => {
       <section className="py-24 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Trouvez-nous</h2>
-            <p className="text-muted-foreground">Zone Industrielle Gzenaya, Tanger</p>
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('contact.find_us')}</h2>
+            <p className="text-muted-foreground">{t('contact.location')}</p>
           </div>
           
           <Card className="overflow-hidden border-0 shadow-strong">
@@ -687,7 +687,7 @@ const Contact: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-foreground">
-                  {editingServiceId ? 'Modifier le Service' : 'Ajouter un Service'}
+                  {editingServiceId ? t('contact.edit_service') : t('contact.add_service')}
                 </h3>
                 <Button
                   type="button"
@@ -704,20 +704,20 @@ const Contact: React.FC = () => {
                 {/* Service Type Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Type de Service *
+                    {t('contact.service_type')} *
                   </label>
                   <Select 
                     value={currentService.serviceType} 
                     onValueChange={(value) => setCurrentService(prev => ({ ...prev, serviceType: value }))}
                   >
                     <SelectTrigger className="border-border/50 focus:border-primary">
-                      <SelectValue placeholder="Sélectionnez un service" />
+                      <SelectValue placeholder={t('contact.select_service')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="printing">Impression</SelectItem>
-                      <SelectItem value="cutting">Découpe</SelectItem>
-                      <SelectItem value="cnc">CNC</SelectItem>
-                      <SelectItem value="laser">Laser</SelectItem>
+                      <SelectItem value="printing">{t('contact.printing')}</SelectItem>
+                      <SelectItem value="cutting">{t('contact.cutting')}</SelectItem>
+                      <SelectItem value="cnc">{t('contact.cnc')}</SelectItem>
+                      <SelectItem value="laser">{t('contact.laser')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -728,7 +728,7 @@ const Contact: React.FC = () => {
                     {/* Material Selection */}
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-3">
-                        Matériau
+                        {t('contact.material')}
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {(() => {
@@ -763,23 +763,23 @@ const Contact: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Taille
+                          {t('contact.size')}
                         </label>
                         <Input 
                           value={currentService.size}
                           onChange={(e) => setCurrentService(prev => ({ ...prev, size: e.target.value }))}
-                          placeholder="ex: 100cm × 70cm"
+                          placeholder={t('contact.size_example')}
                           className="border-border/50 focus:border-primary transition-colors"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Quantité
+                          {t('contact.quantity')}
                         </label>
                         <Input 
                           value={currentService.quantity}
                           onChange={(e) => setCurrentService(prev => ({ ...prev, quantity: e.target.value }))}
-                          placeholder="ex: 10 pièces"
+                          placeholder={t('contact.quantity_example')}
                           className="border-border/50 focus:border-primary transition-colors"
                         />
                       </div>
@@ -789,12 +789,12 @@ const Contact: React.FC = () => {
                     {(currentService.serviceType === 'cutting' || currentService.serviceType === 'cnc' || currentService.serviceType === 'laser') && (
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Épaisseur
+                          {t('contact.thickness')}
                         </label>
                         <Input 
                           value={currentService.thickness}
                           onChange={(e) => setCurrentService(prev => ({ ...prev, thickness: e.target.value }))}
-                          placeholder="ex: 3mm"
+                          placeholder={t('contact.thickness_example')}
                           className="border-border/50 focus:border-primary transition-colors"
                         />
                       </div>
@@ -803,12 +803,12 @@ const Contact: React.FC = () => {
                     {currentService.serviceType === 'cutting' && (
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Couleurs
+                          {t('contact.colors')}
                         </label>
                         <Input 
                           value={currentService.colors}
                           onChange={(e) => setCurrentService(prev => ({ ...prev, colors: e.target.value }))}
-                          placeholder="Rouge, bleu, blanc..."
+                          placeholder={t('contact.colors_example')}
                           className="border-border/50 focus:border-primary transition-colors"
                         />
                       </div>
@@ -817,12 +817,12 @@ const Contact: React.FC = () => {
                     {currentService.serviceType === 'printing' && (
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Finition
+                          {t('contact.finishing')}
                         </label>
                         <Input 
                           value={currentService.finishing}
                           onChange={(e) => setCurrentService(prev => ({ ...prev, finishing: e.target.value }))}
-                          placeholder="Mat, brillant, laminé, monté..."
+                          placeholder={t('contact.finishing_example')}
                           className="border-border/50 focus:border-primary transition-colors"
                         />
                       </div>
@@ -837,7 +837,7 @@ const Contact: React.FC = () => {
                     variant="outline"
                     onClick={() => setShowServiceModal(false)}
                   >
-                    Annuler
+                    {t('contact.cancel')}
                   </Button>
                   <Button
                     type="button"
@@ -876,7 +876,7 @@ const Contact: React.FC = () => {
                     className="bg-gradient-primary hover:opacity-90"
                     disabled={!currentService.serviceType}
                   >
-                    {editingServiceId ? 'Modifier' : 'Ajouter'}
+                    {editingServiceId ? t('contact.edit') : t('contact.add')}
                   </Button>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Mail, Lock, LogIn } from 'lucide-react';
 
 interface LoginFormProps {
@@ -14,6 +15,7 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToForgotPassword, onSuccess }) => {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -38,14 +40,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
     <Card className="w-full max-w-md mx-auto">
       <CardContent className="p-8">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Connexion</h2>
-          <p className="text-muted-foreground">Connectez-vous pour accéder au formulaire</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">{t('auth.login')}</h2>
+          <p className="text-muted-foreground">{t('auth.login_desc')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Email
+              {t('auth.email')}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -53,7 +55,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="votre@email.com"
+                placeholder={t('auth.email_placeholder')}
                 className="pl-10"
                 required
               />
@@ -63,14 +65,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-foreground">
-                Mot de passe
+                {t('auth.password')}
               </label>
               <button
                 type="button"
                 onClick={onSwitchToForgotPassword || (() => navigate('/forgot-password'))}
                 className="text-sm text-primary hover:underline"
               >
-                Mot de passe oublié ?
+                {t('auth.forgot_password')}
               </button>
             </div>
             <div className="relative">
@@ -79,7 +81,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="••••••••"
+                placeholder={t('auth.password_placeholder')}
                 className="pl-10"
                 required
               />
@@ -96,7 +98,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
             disabled={loading}
           >
             <LogIn className="mr-2 h-4 w-4" />
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? t('auth.logging_in') : t('auth.login_button')}
           </Button>
         </form>
 
@@ -106,7 +108,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Ou</span>
+              <span className="bg-background px-2 text-muted-foreground">{t('auth.or')}</span>
             </div>
           </div>
         </div>
@@ -123,17 +125,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Continuer avec Google
+          {t('auth.continue_google')}
         </Button>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Pas encore de compte ?{' '}
+            {t('auth.no_account')} {' '}
             <button
               onClick={onSwitchToRegister}
               className="text-primary hover:underline font-medium"
             >
-              Créer un compte
+              {t('auth.create_account')}
             </button>
           </p>
         </div>

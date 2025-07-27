@@ -93,16 +93,16 @@ const Portfolio = () => {
         <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-primary rounded-full blur-3xl opacity-10 animate-float"></div>
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-black text-foreground mb-4">Nos Réalisations</h2>
+            <h2 className="text-4xl font-black text-foreground mb-4">{t('portfolio.our_work')}</h2>
             <p className="text-muted-foreground text-lg">
-              {loading ? 'Chargement...' : 'Découvrez notre portfolio organisé par catégories'}
+              {loading ? t('portfolio.loading') : t('portfolio.organized_portfolio')}
             </p>
           </div>
           
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Chargement des projets...</p>
+              <p className="mt-4 text-muted-foreground">{t('portfolio.loading_projects')}</p>
             </div>
           ) : sections.length > 0 ? (
             <div className="space-y-16">
@@ -117,7 +117,7 @@ const Portfolio = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">Aucun projet disponible pour le moment.</p>
+              <p className="text-muted-foreground text-lg">{t('portfolio.no_projects')}</p>
             </div>
           )}
         </div>

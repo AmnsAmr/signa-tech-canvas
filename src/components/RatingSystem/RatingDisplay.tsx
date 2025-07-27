@@ -122,7 +122,7 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-bold text-foreground group-hover:text-white text-lg transition-colors duration-500">{rating.name}</div>
-                  <div className="text-muted-foreground group-hover:text-white/80 transition-colors duration-500">Client SignaTech</div>
+                  <div className="text-muted-foreground group-hover:text-white/80 transition-colors duration-500">{t('rating.signatech_client')}</div>
                 </div>
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -148,7 +148,7 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
           >
             {showAll ? (
               <>
-                Voir moins <ChevronUp className="h-4 w-4" />
+                {t('rating.view_less')} <ChevronUp className="h-4 w-4" />
               </>
             ) : (
               <>

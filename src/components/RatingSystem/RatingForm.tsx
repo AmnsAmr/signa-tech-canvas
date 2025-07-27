@@ -115,7 +115,7 @@ const RatingForm: React.FC = () => {
       <Card className="w-full max-w-md">
         <CardContent className="p-6 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Vérification...</p>
+          <p>{t('rating.checking')}</p>
         </CardContent>
       </Card>
     );
@@ -129,9 +129,9 @@ const RatingForm: React.FC = () => {
         </CardHeader>
         <CardContent className="text-center">
           <LogIn className="h-12 w-12 mx-auto mb-4 text-primary" />
-          <h3 className="font-semibold mb-2">Connexion requise</h3>
+          <h3 className="font-semibold mb-2">{t('rating.login_required')}</h3>
           <p className="text-gray-600">
-            Vous devez être connecté pour donner un avis sur nos services.
+            {t('rating.login_required_desc')}
           </p>
         </CardContent>
       </Card>
@@ -173,7 +173,7 @@ const RatingForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           
           <div>
-            <label className="block text-sm font-medium mb-2">Note *</label>
+            <label className="block text-sm font-medium mb-2">{t('rating.rating_label')} *</label>
             <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -197,18 +197,18 @@ const RatingForm: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Commentaire *</label>
+            <label className="block text-sm font-medium mb-2">{t('rating.comment_label')} *</label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Partagez votre expérience..."
+              placeholder={t('rating.comment_placeholder')}
               rows={4}
               minLength={10}
               maxLength={500}
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              {comment.length}/500 caractères (minimum 10)
+              {comment.length}/500 {t('rating.characters')} ({t('rating.minimum')} 10)
             </p>
           </div>
 
@@ -218,7 +218,7 @@ const RatingForm: React.FC = () => {
             disabled={loading || rating === 0 || comment.length < 10}
           >
             <Send className="h-4 w-4 mr-2" />
-            {loading ? 'Envoi...' : t('rating.send_review')}
+            {loading ? t('rating.sending') : t('rating.send_review')}
           </Button>
         </form>
       </CardContent>

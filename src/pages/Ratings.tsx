@@ -23,7 +23,7 @@ const Ratings: React.FC = () => {
             {t('rating.customer_reviews')}
           </h1>
           <p className="text-xl text-muted-foreground">
-            Découvrez ce que nos clients pensent de nos services
+            {t('rating.discover_feedback')}
           </p>
         </div>
 

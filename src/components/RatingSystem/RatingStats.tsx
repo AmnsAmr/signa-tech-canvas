@@ -57,7 +57,7 @@ const RatingStats: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-          Évaluations Clients
+          {t('rating.client_evaluations')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

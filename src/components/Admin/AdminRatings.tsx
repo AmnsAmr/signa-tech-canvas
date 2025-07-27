@@ -69,7 +69,7 @@ const AdminRatings: React.FC = () => {
       }
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: t('common.error'),
         description: t('rating.update_error'),
         variant: "destructive"
       });
@@ -95,7 +95,7 @@ const AdminRatings: React.FC = () => {
       }
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: t('common.error'),
         description: t('rating.delete_error'),
         variant: "destructive"
       });

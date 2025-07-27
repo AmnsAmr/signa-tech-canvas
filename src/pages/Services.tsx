@@ -35,8 +35,8 @@ const Services = () => {
         t('services.design.feature1'),
         t('services.design.feature2'),
         t('services.design.feature3'),
-        "Consultation stratégique",
-        "Recherche et tendances"
+        t('services.design.feature4'),
+        t('services.design.feature5')
       ],
       highlight: t('services.design.highlight')
     },
@@ -49,8 +49,8 @@ const Services = () => {
         t('services.retail.feature1'),
         t('services.retail.feature2'),
         t('services.retail.feature3'),
-        "Solutions modulaires",
-        "Aménagement d'espaces"
+        t('services.retail.feature4'),
+        t('services.retail.feature5')
       ],
       highlight: t('services.retail.highlight')
     },
@@ -63,8 +63,8 @@ const Services = () => {
         t('services.seasonal.feature1'),
         t('services.seasonal.feature2'),
         t('services.seasonal.feature3'),
-        "Événements spéciaux",
-        "Installation express"
+        t('services.seasonal.feature4'),
+        t('services.seasonal.feature5')
       ],
       highlight: t('services.seasonal.highlight')
     },
@@ -77,8 +77,8 @@ const Services = () => {
         t('services.signage.feature1'),
         t('services.signage.feature2'),
         t('services.signage.feature3'),
-        "Totems et pylônes",
-        "Marquage au sol"
+        t('services.signage.feature4'),
+        t('services.signage.feature5')
       ],
       highlight: t('services.signage.highlight')
     }
