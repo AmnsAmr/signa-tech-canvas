@@ -3,29 +3,59 @@ const { body } = require('express-validator');
 const contactController = require('../controllers/contactController');
 const { authenticateToken } = require('../middleware/auth');
 const { uploadContactFile } = require('../middleware/fileUpload');
+const { validationSchemas, handleValidationErrors, validateFileUpload } = require('../middleware/security');
 
 const router = express.Router();
 
-// Validation rules
+// Enhanced validation rules with security
 const guestContactValidation = [
-  body('name').notEmpty().withMessage('Name is required'),
-  body('phone').notEmpty().withMessage('Phone is required'),
-  body('message').notEmpty().withMessage('Message is required')
+  ...validationSchemas.contact
 ];
 
 const userContactValidation = [
-  body('message').notEmpty().withMessage('Message is required').trim()
+  body('message')
+    .trim()
+    .isLength({ min: 10, max: 2000 })
+    .withMessage('Message must be between 10 and 2000 characters')
 ];
 
-// Routes with file upload support
-router.post('/guest-submit', uploadContactFile, guestContactValidation, contactController.submitGuestContact);
-router.post('/submit', authenticateToken, uploadContactFile, userContactValidation, contactController.submitUserContact);
+// File upload validation for vector files
+const vectorFileValidation = validateFileUpload(
+  ['svg', 'dxf', 'pdf', 'eps'], // Allowed file types
+  10 * 1024 * 1024 // 10MB max size
+);
+
+// Routes with enhanced security validation
+router.post('/guest-submit', 
+  uploadContactFile, 
+  vectorFileValidation,
+  guestContactValidation, 
+  handleValidationErrors,
+  contactController.submitGuestContact
+);
+
+router.post('/submit', 
+  authenticateToken, 
+  uploadContactFile, 
+  vectorFileValidation,
+  userContactValidation, 
+  handleValidationErrors,
+  contactController.submitUserContact
+);
 
 // Route to download uploaded files (admin or file owner)
-router.get('/download/:filename', require('../middleware/optionalAuth'), require('../controllers/fileDownloadController').downloadFile);
+router.get('/download/:filename', 
+  require('../middleware/optionalAuth'), 
+  require('../controllers/fileDownloadController').downloadFile
+);
 
 // Route to analyze a vector file directly (admin only)
-router.post('/analyze-vector', authenticateToken, uploadContactFile, contactController.analyzeVectorFile);
+router.post('/analyze-vector', 
+  authenticateToken, 
+  uploadContactFile, 
+  vectorFileValidation,
+  contactController.analyzeVectorFile
+);
 
 // Route to get vector analysis for a specific file or submission (admin or file owner)
 router.get('/analyze-file/:fileId', authenticateToken, require('../controllers/fileAnalysisController').getFileVectorAnalysis);

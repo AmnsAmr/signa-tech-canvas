@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { User, Mail, Lock, Building, Phone, UserPlus } from 'lucide-react';
-import { buildApiUrl } from '@/config/api';
+import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 import EmailVerificationForm from './EmailVerificationForm';
 
 interface RegisterFormProps {
@@ -32,7 +32,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
     setError('');
 
     try {
-      const response = await fetch(buildApiUrl('/api/auth/register'), {
+      const response = await secureApiRequest('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -44,7 +44,25 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
         setVerificationData(data);
         setShowVerification(true);
       } else {
-        setError(data.message || 'Erreur lors de l\'inscription');
+        if (handleCSRFError(data)) {
+          // Retry once with new CSRF token
+          const retryResponse = await secureApiRequest('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          
+          const retryData = await retryResponse.json();
+          
+          if (retryResponse.ok) {
+            setVerificationData(retryData);
+            setShowVerification(true);
+          } else {
+            setError(retryData.message || 'Erreur lors de l\'inscription');
+          }
+        } else {
+          setError(data.message || 'Erreur lors de l\'inscription');
+        }
       }
     } catch (err: any) {
       setError('Erreur de connexion');

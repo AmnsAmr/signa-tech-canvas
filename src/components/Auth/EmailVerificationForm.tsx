@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Mail, Shield, RotateCcw } from 'lucide-react';
-import { buildApiUrl } from '@/config/api';
+import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 
 interface EmailVerificationFormProps {
   email: string;
@@ -42,7 +42,7 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
     setError('');
 
     try {
-      const response = await fetch(buildApiUrl('/api/auth/verify-email'), {
+      const response = await secureApiRequest('/api/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code, userData })
@@ -53,7 +53,24 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
       if (response.ok) {
         onSuccess(data.token, data.user);
       } else {
-        setError(data.message || 'Code invalide');
+        if (handleCSRFError(data)) {
+          // Retry once with new CSRF token
+          const retryResponse = await secureApiRequest('/api/auth/verify-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code, userData })
+          });
+          
+          const retryData = await retryResponse.json();
+          
+          if (retryResponse.ok) {
+            onSuccess(retryData.token, retryData.user);
+          } else {
+            setError(retryData.message || 'Code invalide');
+          }
+        } else {
+          setError(data.message || 'Code invalide');
+        }
       }
     } catch (err) {
       setError('Erreur de connexion');
@@ -67,7 +84,7 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
     setError('');
 
     try {
-      const response = await fetch(buildApiUrl('/api/auth/resend-verification'), {
+      const response = await secureApiRequest('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -79,7 +96,25 @@ const EmailVerificationForm: React.FC<EmailVerificationFormProps> = ({
         setCountdown(60);
         setCode('');
       } else {
-        setError(data.message || 'Erreur lors du renvoi');
+        if (handleCSRFError(data)) {
+          // Retry once with new CSRF token
+          const retryResponse = await secureApiRequest('/api/auth/resend-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          
+          const retryData = await retryResponse.json();
+          
+          if (retryResponse.ok) {
+            setCountdown(60);
+            setCode('');
+          } else {
+            setError(retryData.message || 'Erreur lors du renvoi');
+          }
+        } else {
+          setError(data.message || 'Erreur lors du renvoi');
+        }
       }
     } catch (err) {
       setError('Erreur de connexion');

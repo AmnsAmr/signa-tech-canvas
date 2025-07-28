@@ -14,65 +14,68 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    // Sanitize filename
-    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    // Enhanced filename sanitization
+    const ext = path.extname(file.originalname).toLowerCase();
+    const baseName = path.basename(file.originalname, ext);
+    const sanitizedBaseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${uniqueSuffix}-${sanitizedName}`);
+    cb(null, `${uniqueSuffix}-${sanitizedBaseName}${ext}`);
   }
 });
 
-// File filter for vector formats
+// Enhanced file filter with security checks
 const fileFilter = (req, file, cb) => {
-  const allowedExtensions = ['.svg', '.dxf', '.ai', '.pdf', '.eps', '.gcode', '.nc'];
-  const allowedMimeTypes = [
-    'image/svg+xml',                 // SVG files
-    'application/dxf',               // DXF files
-    'application/postscript',        // EPS files
-    'application/pdf',               // PDF files
-    'application/illustrator',       // AI files
-    'application/vnd.adobe.illustrator', // AI files alternative
-    'text/plain',                   // For .gcode and .nc files
-    'application/octet-stream',      // Fallback for various formats
-    'application/acad',              // AutoCAD DXF alternative
-    'application/x-dxf',             // DXF alternative
-    'drawing/x-dxf',                 // DXF alternative
-    'image/vnd.dxf',                 // DXF alternative
-    'image/x-dxf'                    // DXF alternative
+  const allowedExtensions = ['.svg', '.dxf', '.pdf', '.eps'];
+  const allowedMimeTypes = {
+    '.svg': ['image/svg+xml', 'text/xml', 'application/xml'],
+    '.dxf': ['application/dxf', 'application/x-dxf', 'text/plain', 'application/octet-stream'],
+    '.pdf': ['application/pdf'],
+    '.eps': ['application/postscript']
+  };
+  
+  // Security checks
+  if (!file.originalname || file.originalname.length > 255) {
+    return cb(new Error('Invalid filename'), false);
+  }
+  
+  // Check for dangerous patterns
+  const dangerousPatterns = [
+    /\.\./, // Directory traversal
+    /[<>:"|?*]/, // Invalid filename characters
+    /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i // Windows reserved names
   ];
   
-  // Log file information for debugging
-  console.log('File upload attempt:', {
-    originalname: file.originalname,
-    mimetype: file.mimetype,
-    size: file.size
-  });
+  if (dangerousPatterns.some(pattern => pattern.test(file.originalname))) {
+    return cb(new Error('Invalid filename'), false);
+  }
   
   const ext = path.extname(file.originalname).toLowerCase();
   
-  // Always accept files with the correct extension regardless of mimetype
-  if (allowedExtensions.includes(ext)) {
-    console.log('File accepted by extension:', file.originalname);
-    cb(null, true);
-    return;
+  // Check if extension is allowed
+  if (!allowedExtensions.includes(ext)) {
+    return cb(new Error(`File type not allowed. Allowed types: ${allowedExtensions.join(', ')}`), false);
   }
   
-  // If extension check fails, check mimetype
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    console.log('File accepted by mimetype:', file.originalname);
-    cb(null, true);
-    return;
+  // Check MIME type matches extension
+  const validMimeTypes = allowedMimeTypes[ext];
+  if (!validMimeTypes.includes(file.mimetype)) {
+    console.log(`MIME type mismatch for ${file.originalname}: expected ${validMimeTypes.join(' or ')}, got ${file.mimetype}`);
+    // Allow with warning for now, as MIME types can be inconsistent
   }
   
-  // If both checks fail, reject the file
-  console.log('File rejected:', file.originalname, file.mimetype);
-  cb(new Error(`Invalid file type. Only these formats are allowed: ${allowedExtensions.join(', ')}`), false);
+  console.log('File accepted:', file.originalname, file.mimetype);
+  cb(null, true);
 };
 
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 1, // Only one file at a time
+    fields: 20, // Limit form fields
+    fieldNameSize: 100, // Limit field name size
+    fieldSize: 1024 * 1024 // 1MB limit for field values
   }
 });
 

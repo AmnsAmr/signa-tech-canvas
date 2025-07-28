@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 
 interface User {
   id: string;
@@ -105,37 +106,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password = credentials.password;
     }
     
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    try {
+      const response = await secureApiRequest('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      if (!response.ok) {
+        const error = await response.json();
+        if (handleCSRFError(error)) {
+          // Retry once with new CSRF token
+          const retryResponse = await secureApiRequest('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          
+          if (!retryResponse.ok) {
+            const retryError = await retryResponse.json();
+            throw new Error(retryError.message || 'Login failed');
+          }
+          
+          const { token, user: userData } = await retryResponse.json();
+          localStorage.setItem('token', token);
+          setUser(userData);
+          return;
+        }
+        throw new Error(error.message || 'Login failed');
+      }
+
+      const { token, user: userData } = await response.json();
+      localStorage.setItem('token', token);
+      setUser(userData);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
     }
-
-    const { token, user: userData } = await response.json();
-    localStorage.setItem('token', token);
-    setUser(userData);
   };
 
   const register = async (userData: RegisterData) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
+    try {
+      const response = await secureApiRequest('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
+      if (!response.ok) {
+        const error = await response.json();
+        if (handleCSRFError(error)) {
+          // Retry once with new CSRF token
+          const retryResponse = await secureApiRequest('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+          });
+          
+          if (!retryResponse.ok) {
+            const retryError = await retryResponse.json();
+            throw new Error(retryError.message || 'Registration failed');
+          }
+          
+          const { token, user: newUser } = await retryResponse.json();
+          localStorage.setItem('token', token);
+          setUser(newUser);
+          return;
+        }
+        throw new Error(error.message || 'Registration failed');
+      }
+
+      const { token, user: newUser } = await response.json();
+      localStorage.setItem('token', token);
+      setUser(newUser);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      throw error;
     }
-
-    const { token, user: newUser } = await response.json();
-    localStorage.setItem('token', token);
-    setUser(newUser);
   };
 
   const refreshUser = async () => {

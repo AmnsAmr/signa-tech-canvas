@@ -2,11 +2,20 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const { PORT } = require('./config/constants');
 const MigrationHelper = require('./utils/migrationHelper');
 const StartupManager = require('./utils/startupManager');
 const { ensureThemeFile } = require('./utils/themeLoader');
 const { staticCache } = require('./middleware/cache');
+const { 
+  rateLimits, 
+  sanitizeInput, 
+  csrfMiddleware, 
+  securityHeaders,
+  generateCSRFToken 
+} = require('./middleware/security');
 
 // Import database to initialize
 require('./config/database');
@@ -31,23 +40,51 @@ const projectRoutes = require('./routes/projects');
 
 const app = express();
 
-// Middleware
+// Security middleware - apply first
+app.use(securityHeaders);
+app.use(cookieParser());
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// CORS configuration
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:3000'],
+  origin: ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/contact', contactRoutes);
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Apply general rate limiting to all routes
+app.use(rateLimits.general);
+
+// Input sanitization - apply to all routes
+app.use(sanitizeInput);
+
+// CSRF protection - apply to all routes except GET and specific endpoints
+app.use(csrfMiddleware);
+
+// CSRF token endpoint
+app.get('/api/csrf-token', generateCSRFToken);
+
+// Routes with specific rate limiting
+app.use('/api/auth', rateLimits.auth, authRoutes);
+app.use('/api/contact', rateLimits.contact, contactRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/images', imageRoutes);
+app.use('/api/images', rateLimits.upload, imageRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/theme', themeRoutes);
-app.use('/api/projects', projectRoutes);
+app.use('/api/projects', rateLimits.upload, projectRoutes);
 app.use('/api/contact-settings', require('./routes/contact-settings'));
 
 // Serve uploaded images from dynamic directory with caching
