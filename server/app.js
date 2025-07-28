@@ -9,6 +9,8 @@ const MigrationHelper = require('./utils/migrationHelper');
 const StartupManager = require('./utils/startupManager');
 const { ensureThemeFile } = require('./utils/themeLoader');
 const { staticCache } = require('./middleware/cache');
+const { cacheManager, cacheMiddleware } = require('./utils/cacheManager');
+const { imageOptimization } = require('./middleware/imageOptimization');
 const { 
   rateLimits, 
   sanitizeInput, 
@@ -76,20 +78,20 @@ app.use(csrfMiddleware);
 // CSRF token endpoint
 app.get('/api/csrf-token', generateCSRFToken);
 
-// Routes with specific rate limiting
+// Routes with specific rate limiting and caching
 app.use('/api/auth', rateLimits.auth, authRoutes);
 app.use('/api/contact', rateLimits.contact, contactRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/images', rateLimits.upload, imageRoutes);
-app.use('/api/ratings', ratingRoutes);
+app.use('/api/images', rateLimits.upload, cacheMiddleware(3600), imageRoutes);
+app.use('/api/ratings', cacheMiddleware(300), ratingRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/theme', themeRoutes);
-app.use('/api/projects', rateLimits.upload, projectRoutes);
-app.use('/api/contact-settings', require('./routes/contact-settings'));
+app.use('/api/theme', cacheMiddleware(1800), themeRoutes);
+app.use('/api/projects', rateLimits.upload, cacheMiddleware(600), projectRoutes);
+app.use('/api/contact-settings', cacheMiddleware(1800), require('./routes/contact-settings'));
 
-// Serve uploaded images from dynamic directory with caching
+// Serve uploaded images with optimization and caching
 const uploadDir = MigrationHelper.ensureUploadDir();
-app.use('/uploads', staticCache, express.static(uploadDir, {
+app.use('/uploads', imageOptimization, staticCache, express.static(uploadDir, {
   maxAge: '1y', // Cache for 1 year
   etag: true,
   lastModified: true

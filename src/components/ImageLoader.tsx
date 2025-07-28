@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { buildUploadUrl } from '@/config/api';
-import { lazyLoadImage } from '@/utils/performance';
+import LazyImage from './shared/LazyImage';
 
 interface ImageLoaderProps {
   filename?: string;
@@ -18,36 +18,31 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
   className = '', 
   style,
   onError,
-  priority = false,
-  fetchPriority = 'auto'
+  priority = false
 }) => {
-  const imgRef = useRef<HTMLImageElement>(null);
   const src = filename ? buildUploadUrl(filename) : '/placeholder.svg';
 
-  useEffect(() => {
-    if (imgRef.current && filename && !priority) {
-      // Only use lazy loading for non-priority images
-      lazyLoadImage(imgRef.current, src);
-    }
-  }, [src, filename, priority]);
-
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    (e.target as HTMLImageElement).src = '/placeholder.svg';
-    if (onError) onError(e);
-  };
+  if (priority) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        style={style}
+        onError={onError}
+        loading="eager"
+        fetchPriority="high"
+        decoding="sync"
+      />
+    );
+  }
 
   return (
-    <img
-      ref={imgRef}
-      src={priority && filename ? src : (filename ? undefined : '/placeholder.svg')}
-      data-src={!priority ? src : undefined}
+    <LazyImage
+      src={src}
       alt={alt}
       className={className}
-      style={style}
-      onError={handleError}
-      loading={priority ? 'eager' : 'lazy'}
-      fetchPriority={priority ? 'high' : fetchPriority}
-      decoding={priority ? 'sync' : 'async'}
+      onError={onError}
     />
   );
 };
