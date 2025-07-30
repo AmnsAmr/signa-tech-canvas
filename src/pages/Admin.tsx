@@ -14,7 +14,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star, Menu, ChevronLeft } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import '@/components/Admin/admin-improvements.css';
 
@@ -94,6 +94,7 @@ const Admin = () => {
   const { user, isAdmin } = useAuth();
   const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -668,9 +669,19 @@ const Admin = () => {
       
       <div className="flex pt-24">
         {/* Sidebar */}
-        <div className="w-64 bg-card border-r border-border h-screen sticky top-24 overflow-y-auto">
+        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border h-screen sticky top-24 overflow-y-auto transition-all duration-300`}>
           <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Admin Panel</h2>
+            <div className="flex items-center justify-between mb-4">
+              {!sidebarCollapsed && <h2 className="text-lg font-semibold">Admin Panel</h2>}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="h-8 w-8 p-0"
+              >
+                {sidebarCollapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              </Button>
+            </div>
             <nav className="space-y-2">
               {menuItems.map((item) => {
                 const Icon = item.icon;
@@ -678,17 +689,22 @@ const Admin = () => {
                   <button
                     key={item.id}
                     onClick={() => setActiveSection(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2 rounded-lg text-left transition-colors ${
                       activeSection === item.id
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                     }`}
+                    title={sidebarCollapsed ? item.label : undefined}
                   >
                     <Icon className="h-4 w-4" />
-                    {item.label}
-                    {item.id === 'admins' && <span className="ml-auto text-xs">({admins.length})</span>}
-                    {item.id === 'users' && <span className="ml-auto text-xs">({users.length})</span>}
-                    {item.id === 'submissions' && <span className="ml-auto text-xs">({submissions.length})</span>}
+                    {!sidebarCollapsed && (
+                      <>
+                        {item.label}
+                        {item.id === 'admins' && <span className="ml-auto text-xs">({admins.length})</span>}
+                        {item.id === 'users' && <span className="ml-auto text-xs">({users.length})</span>}
+                        {item.id === 'submissions' && <span className="ml-auto text-xs">({submissions.length})</span>}
+                      </>
+                    )}
                   </button>
                 );
               })}
