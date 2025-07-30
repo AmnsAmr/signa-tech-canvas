@@ -621,36 +621,37 @@ const Admin = () => {
         );
       case 'submissions':
         return (
-          <Card>
-            <CardHeader>
+          <Card className="h-full flex flex-col">
+            <CardHeader className="flex-shrink-0">
               <CardTitle>Contact Submissions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="admin-project-cards">
+            <CardContent className="flex-1 overflow-hidden p-0">
+              <div className="h-full overflow-y-auto p-6 space-y-4">
                 {filteredSubmissions.map((submission) => (
-                  <ProjectCard
-                    key={submission.id}
-                    id={submission.id}
-                    name={submission.name}
-                    message={submission.message}
-                    status={submission.status}
-                    createdAt={submission.created_at}
-                    hasFile={submission.has_file}
-                    fileInfo={submission.file_info}
-                    fileName={submission.file_name}
-                    filePath={submission.file_path}
-                    fileSize={submission.file_size}
-                    services={Array.isArray(submission.services) ? submission.services : []}
-                    project={submission.project}
-                    submissionGroup={submission.submission_group}
-                    userInfo={{
-                      name: submission.user_name,
-                      email: submission.email
-                    }}
-                    onStatusChange={updateSubmissionStatus}
-                    onDownloadFile={downloadFile}
-                    isAdmin={true}
-                  />
+                  <div key={submission.id} className="flex-shrink-0">
+                    <ProjectCard
+                      id={submission.id}
+                      name={submission.name}
+                      message={submission.message}
+                      status={submission.status}
+                      createdAt={submission.created_at}
+                      hasFile={submission.has_file}
+                      fileInfo={submission.file_info}
+                      fileName={submission.file_name}
+                      filePath={submission.file_path}
+                      fileSize={submission.file_size}
+                      services={Array.isArray(submission.services) ? submission.services : []}
+                      project={submission.project}
+                      submissionGroup={submission.submission_group}
+                      userInfo={{
+                        name: submission.user_name,
+                        email: submission.email
+                      }}
+                      onStatusChange={updateSubmissionStatus}
+                      onDownloadFile={downloadFile}
+                      isAdmin={true}
+                    />
+                  </div>
                 ))}
               </div>
             </CardContent>
@@ -662,89 +663,95 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="header-hover-container">
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="header-hover-container flex-shrink-0">
         <Header />
       </div>
       
-      <div className="flex pt-24">
+      <div className="flex flex-1 pt-24 overflow-hidden">
         {/* Sidebar */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border h-screen sticky top-24 overflow-y-auto transition-all duration-300`}>
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              {!sidebarCollapsed && <h2 className="text-lg font-semibold">Admin Panel</h2>}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="h-8 w-8 p-0"
-              >
-                {sidebarCollapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-              </Button>
+        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border flex-shrink-0 transition-all duration-300`}>
+          <div className="h-full overflow-y-auto">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                {!sidebarCollapsed && <h2 className="text-lg font-semibold">Admin Panel</h2>}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="h-8 w-8 p-0"
+                >
+                  {sidebarCollapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                </Button>
+              </div>
+              <nav className="space-y-2">
+                {menuItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id)}
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2 rounded-lg text-left transition-colors ${
+                        activeSection === item.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                      title={sidebarCollapsed ? item.label : undefined}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {!sidebarCollapsed && (
+                        <>
+                          {item.label}
+                          {item.id === 'admins' && <span className="ml-auto text-xs">({admins.length})</span>}
+                          {item.id === 'users' && <span className="ml-auto text-xs">({users.length})</span>}
+                          {item.id === 'submissions' && <span className="ml-auto text-xs">({submissions.length})</span>}
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
-            <nav className="space-y-2">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2 rounded-lg text-left transition-colors ${
-                      activeSection === item.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                    }`}
-                    title={sidebarCollapsed ? item.label : undefined}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {!sidebarCollapsed && (
-                      <>
-                        {item.label}
-                        {item.id === 'admins' && <span className="ml-auto text-xs">({admins.length})</span>}
-                        {item.id === 'users' && <span className="ml-auto text-xs">({users.length})</span>}
-                        {item.id === 'submissions' && <span className="ml-auto text-xs">({submissions.length})</span>}
-                      </>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6">
-          {/* Search and Filters - only show for relevant sections */}
-          {(activeSection === 'users' || activeSection === 'submissions') && (
-            <div className="mb-6 flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users, submissions, or content..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              {activeSection === 'submissions' && (
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="done">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="flex-shrink-0 p-6 pb-0">
+            {/* Search and Filters - only show for relevant sections */}
+            {(activeSection === 'users' || activeSection === 'submissions') && (
+              <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users, submissions, or content..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              )}
-            </div>
-          )}
+                {activeSection === 'submissions' && (
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="done">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           
-          {renderContent()}
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
+            {renderContent()}
+          </div>
         </div>
       </div>
 
@@ -853,7 +860,9 @@ const Admin = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Footer />
+      <div className="flex-shrink-0">
+        <Footer />
+      </div>
     </div>
   );
 };
