@@ -169,6 +169,11 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
       const headers = { Authorization: `Bearer ${token}` };
 
       const [usersRes, adminsRes, submissionsRes] = await Promise.all([
@@ -176,6 +181,12 @@ const Admin = () => {
         fetch(buildApiUrl('/api/admin/admins'), { headers }),
         fetch(buildApiUrl('/api/admin/submissions'), { headers })
       ]);
+
+      if (usersRes.status === 403 || adminsRes.status === 403 || submissionsRes.status === 403) {
+        localStorage.removeItem('token');
+        window.location.reload();
+        return;
+      }
 
       if (usersRes.ok) {
         const usersData = await usersRes.json();
@@ -208,6 +219,11 @@ const Admin = () => {
   const updateSubmissionStatus = async (submissionId: number, newStatus: 'pending' | 'done') => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        toast({ title: "Error", description: "Please log in again", variant: "destructive" });
+        return;
+      }
+      
       const response = await fetch(buildApiUrl(`/api/admin/submissions/${submissionId}/status`), {
         method: 'PATCH',
         headers: {
@@ -217,13 +233,22 @@ const Admin = () => {
         body: JSON.stringify({ status: newStatus })
       });
       
+      if (response.status === 403) {
+        toast({ title: "Access Denied", description: "Please log in again", variant: "destructive" });
+        localStorage.removeItem('token');
+        window.location.reload();
+        return;
+      }
+      
       if (response.ok) {
         setSubmissions(prev => prev.map(sub => 
           sub.id === submissionId ? { ...sub, status: newStatus } : sub
         ));
+        toast({ title: "Success", description: "Status updated successfully" });
       }
     } catch (error) {
       console.error('Failed to update status:', error);
+      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
     }
   };
 
