@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Palette, RotateCcw, Eye, EyeOff, History } from 'lucide-react';
 import ThemePreview from './ThemePreview';
 
 const SimpleThemeSettings = () => {
   const { theme, updateTheme, resetTheme, previewTheme, clearPreview, isLoading } = useTheme();
+  const { t } = useLanguage();
   const [previewColors, setPreviewColors] = useState(theme);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -43,28 +45,28 @@ const SimpleThemeSettings = () => {
 
   const colorPresets = [
     { 
-      name: 'Default Purple', 
+      name: t('theme_settings.default_purple'), 
       primary: '270 85% 60%', 
       accent: '320 85% 65%',
       gradientStart: '270 85% 60%',
       gradientEnd: '320 85% 65%'
     },
     { 
-      name: 'Ocean Blue', 
+      name: t('theme_settings.ocean_blue'), 
       primary: '210 100% 60%', 
       accent: '190 100% 65%',
       gradientStart: '210 100% 60%',
       gradientEnd: '190 100% 65%'
     },
     { 
-      name: 'Forest Green', 
+      name: t('theme_settings.forest_green'), 
       primary: '150 60% 50%', 
       accent: '120 60% 55%',
       gradientStart: '150 60% 50%',
       gradientEnd: '120 60% 55%'
     },
     { 
-      name: 'Sunset Orange', 
+      name: t('theme_settings.sunset_orange'), 
       primary: '25 95% 60%', 
       accent: '45 95% 65%',
       gradientStart: '25 95% 60%',
@@ -175,7 +177,7 @@ const SimpleThemeSettings = () => {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading theme settings...</p>
+            <p className="text-muted-foreground">{t('theme_settings.loading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -189,13 +191,13 @@ const SimpleThemeSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Theme Settings
+              {t('theme_settings.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Color Presets */}
             <div>
-              <Label className="text-sm font-medium mb-3 block">Color Presets</Label>
+              <Label className="text-sm font-medium mb-3 block">{t('theme_settings.color_presets')}</Label>
               <div className="grid grid-cols-2 gap-2">
                 {colorPresets.map((preset) => (
                   <Button
@@ -223,11 +225,11 @@ const SimpleThemeSettings = () => {
 
             {/* Custom Colors */}
             <div className="space-y-4">
-              <Label className="text-sm font-medium">Custom Colors</Label>
+              <Label className="text-sm font-medium">{t('theme_settings.custom_colors')}</Label>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="primary-color" className="text-xs">Primary Color</Label>
+                  <Label htmlFor="primary-color" className="text-xs">{t('theme_settings.primary_color')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="primary-color"
@@ -246,7 +248,7 @@ const SimpleThemeSettings = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="accent-color" className="text-xs">Accent Color</Label>
+                  <Label htmlFor="accent-color" className="text-xs">{t('theme_settings.accent_color')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="accent-color"
@@ -265,7 +267,7 @@ const SimpleThemeSettings = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="background-color" className="text-xs">Background</Label>
+                  <Label htmlFor="background-color" className="text-xs">{t('theme_settings.background')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="background-color"
@@ -284,7 +286,7 @@ const SimpleThemeSettings = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="card-color" className="text-xs">Card Background</Label>
+                  <Label htmlFor="card-color" className="text-xs">{t('theme_settings.card_background')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="card-color"
@@ -305,11 +307,11 @@ const SimpleThemeSettings = () => {
             </div>
 
             <div className="space-y-4">
-              <Label className="text-sm font-medium">Gradient Settings</Label>
+              <Label className="text-sm font-medium">{t('theme_settings.gradient_settings')}</Label>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="gradient-start" className="text-xs">Gradient Start</Label>
+                  <Label htmlFor="gradient-start" className="text-xs">{t('theme_settings.gradient_start')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="gradient-start"
@@ -328,7 +330,7 @@ const SimpleThemeSettings = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="gradient-end" className="text-xs">Gradient End</Label>
+                  <Label htmlFor="gradient-end" className="text-xs">{t('theme_settings.gradient_end')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="gradient-end"
@@ -347,7 +349,7 @@ const SimpleThemeSettings = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <Label htmlFor="gradient-direction" className="text-xs">Gradient Direction</Label>
+                  <Label htmlFor="gradient-direction" className="text-xs">{t('theme_settings.gradient_direction')}</Label>
                   <div className="space-y-2">
                     <select
                       id="gradient-direction"
@@ -355,14 +357,14 @@ const SimpleThemeSettings = () => {
                       onChange={(e) => handleColorChange('gradientDirection', e.target.value)}
                       className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background text-foreground"
                     >
-                      <option value="135deg">Diagonal Down-Right (↘)</option>
-                      <option value="90deg">Top to Bottom (↓)</option>
-                      <option value="0deg">Left to Right (→)</option>
-                      <option value="45deg">Diagonal Up-Right (↗)</option>
-                      <option value="180deg">Right to Left (←)</option>
-                      <option value="270deg">Bottom to Top (↑)</option>
-                      <option value="225deg">Diagonal Down-Left (↙)</option>
-                      <option value="315deg">Diagonal Up-Left (↖)</option>
+                      <option value="135deg">{t('theme_settings.diagonal_down_right')}</option>
+                      <option value="90deg">{t('theme_settings.top_to_bottom')}</option>
+                      <option value="0deg">{t('theme_settings.left_to_right')}</option>
+                      <option value="45deg">{t('theme_settings.diagonal_up_right')}</option>
+                      <option value="180deg">{t('theme_settings.right_to_left')}</option>
+                      <option value="270deg">{t('theme_settings.bottom_to_top')}</option>
+                      <option value="225deg">{t('theme_settings.diagonal_down_left')}</option>
+                      <option value="315deg">{t('theme_settings.diagonal_up_left')}</option>
                     </select>
                     <div 
                       className="h-8 rounded border"
@@ -380,7 +382,7 @@ const SimpleThemeSettings = () => {
               <div className="space-y-3">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <History className="h-4 w-4" />
-                  Theme History
+                  {t('theme_settings.theme_history')}
                 </Label>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   {themeHistory.map((historicTheme, index) => (
@@ -401,7 +403,7 @@ const SimpleThemeSettings = () => {
                           style={{ backgroundColor: hslToHex(historicTheme.accent) }}
                         />
                       </div>
-                      <span className="text-xs">Theme {index + 1}</span>
+                      <span className="text-xs">{t('theme_settings.theme')} {index + 1}</span>
                     </Button>
                   ))}
                 </div>
@@ -417,7 +419,7 @@ const SimpleThemeSettings = () => {
                 className="flex items-center gap-2"
               >
                 {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {isPreviewMode ? 'Stop Preview' : 'Preview'}
+                {isPreviewMode ? t('theme_settings.stop_preview') : t('theme_settings.preview')}
               </Button>
               
               <Button
@@ -425,7 +427,7 @@ const SimpleThemeSettings = () => {
                 disabled={!isPreviewMode || isSaving}
                 className="flex items-center gap-2"
               >
-                {isSaving ? 'Saving...' : 'Apply Theme'}
+                {isSaving ? t('theme_settings.saving') : t('theme_settings.apply_theme')}
               </Button>
               
               <Button
@@ -435,7 +437,7 @@ const SimpleThemeSettings = () => {
                 className="flex items-center gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                Reset
+                {t('theme_settings.reset')}
               </Button>
             </div>
           </CardContent>

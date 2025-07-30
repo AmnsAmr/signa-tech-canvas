@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Save, X, FolderPlus, Image as ImageIcon } from 'lucide-react';
 import { buildApiUrl, buildUploadUrl } from '@/config/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Project {
   id: number;
@@ -29,6 +30,7 @@ interface ProjectSection {
 
 const ProjectManager: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [sections, setSections] = useState<ProjectSection[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingSection, setEditingSection] = useState<number | null>(null);
@@ -158,7 +160,7 @@ const ProjectManager: React.FC = () => {
   };
 
   const deleteSection = async (id: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette section et tous ses projets ?')) return;
+    if (!confirm(t('project_manager.delete_section_confirm'))) return;
     
     setLoading(true);
     try {
@@ -230,7 +232,7 @@ const ProjectManager: React.FC = () => {
   };
 
   const deleteProject = async (id: number, sectionId: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
+    if (!confirm(t('project_manager.delete_project_confirm'))) return;
     
     setLoading(true);
     try {
@@ -263,15 +265,15 @@ const ProjectManager: React.FC = () => {
       });
 
       if (response.ok) {
-        alert('Image updated successfully!');
+        alert(t('project_manager.image_updated'));
         fetchSections();
       } else {
         const errorData = await response.json();
-        alert(`Failed to update image: ${errorData.message}`);
+        alert(`${t('project_manager.image_update_failed')}: ${errorData.message}`);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image. Please try again.');
+      alert(t('project_manager.image_upload_error'));
     }
   };
 
@@ -304,14 +306,14 @@ const ProjectManager: React.FC = () => {
         const result = await response.json();
         setNewProject({ ...newProject, image_filename: result.filename });
         fetchAvailableImages();
-        alert('Image uploaded successfully!');
+        alert(t('project_manager.image_uploaded'));
       } else {
         const errorData = await response.json();
-        alert(`Failed to upload image: ${errorData.message}`);
+        alert(`${t('project_manager.image_upload_failed')}: ${errorData.message}`);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image. Please try again.');
+      alert(t('project_manager.image_upload_error'));
     } finally {
       setUploadingImage(false);
     }
@@ -331,10 +333,10 @@ const ProjectManager: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Gestion des Projets</h2>
+        <h2 className="text-2xl font-bold">{t('project_manager.title')}</h2>
         <Button onClick={() => setShowNewSection(true)} disabled={loading}>
           <FolderPlus className="h-4 w-4 mr-2" />
-          Nouvelle Section
+          {t('project_manager.new_section')}
         </Button>
       </div>
 
@@ -342,22 +344,22 @@ const ProjectManager: React.FC = () => {
       {showNewSection && (
         <Card>
           <CardHeader>
-            <CardTitle>Nouvelle Section</CardTitle>
+            <CardTitle>{t('project_manager.new_section')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder="Nom de la section"
+              placeholder={t('project_manager.section_name')}
               value={newSection.name}
               onChange={(e) => setNewSection({ ...newSection, name: e.target.value })}
             />
             <div className="flex gap-2">
               <Button onClick={createSection} disabled={loading}>
                 <Save className="h-4 w-4 mr-2" />
-                Créer
+                {t('admin.create')}
               </Button>
               <Button variant="outline" onClick={() => setShowNewSection(false)}>
                 <X className="h-4 w-4 mr-2" />
-                Annuler
+                {t('admin.cancel')}
               </Button>
             </div>
           </CardContent>
@@ -404,9 +406,9 @@ const ProjectManager: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <CardTitle>{section.name}</CardTitle>
                     <Badge variant={section.is_active ? "default" : "secondary"}>
-                      {section.is_active ? 'Actif' : 'Inactif'}
+                      {section.is_active ? t('project_manager.active') : t('project_manager.inactive')}
                     </Badge>
-                    <Badge variant="outline">{section.project_count} projets</Badge>
+                    <Badge variant="outline">{section.project_count} {t('project_manager.projects')}</Badge>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -415,7 +417,7 @@ const ProjectManager: React.FC = () => {
                       onClick={() => setShowNewProject(section.id)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Projet
+                      {t('organized_images.project')}
                     </Button>
                     <Button
                       size="sm"
@@ -440,14 +442,14 @@ const ProjectManager: React.FC = () => {
           {/* New Project Form */}
           {showNewProject === section.id && (
             <CardContent className="border-t space-y-4">
-              <h4 className="font-medium">Nouveau Projet</h4>
+              <h4 className="font-medium">{t('project_manager.new_project')}</h4>
               <Input
-                placeholder="Titre du projet"
+                placeholder={t('project_manager.project_title')}
                 value={newProject.title}
                 onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
               />
               <Textarea
-                placeholder="Description (optionnelle)"
+                placeholder={t('project_manager.description_optional')}
                 value={newProject.description}
                 onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
               />
@@ -458,7 +460,7 @@ const ProjectManager: React.FC = () => {
                     value={newProject.image_filename}
                     onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
                   >
-                    <option value="">Sélectionner une image existante</option>
+                    <option value="">{t('project_manager.select_existing_image')}</option>
                     {availableImages.map(filename => (
                       <option key={filename} value={filename}>{filename}</option>
                     ))}
@@ -470,27 +472,27 @@ const ProjectManager: React.FC = () => {
                     disabled={uploadingImage}
                     className="whitespace-nowrap"
                   >
-                    {uploadingImage ? 'Upload...' : 'Upload New'}
+                    {uploadingImage ? t('image_manager.uploading') : t('project_manager.upload_new')}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Choisissez une image existante ou uploadez-en une nouvelle depuis votre PC
+                  {t('project_manager.choose_existing_or_upload')}
                 </p>
               </div>
               <Input
                 type="number"
-                placeholder="Ordre d'affichage"
+                placeholder={t('project_manager.display_order')}
                 value={newProject.display_order}
                 onChange={(e) => setNewProject({ ...newProject, display_order: parseInt(e.target.value) || 0 })}
               />
               <div className="flex gap-2">
                 <Button onClick={() => createProject(section.id)} disabled={loading}>
                   <Save className="h-4 w-4 mr-2" />
-                  Créer
+                  {t('admin.create')}
                 </Button>
                 <Button variant="outline" onClick={() => setShowNewProject(null)}>
                   <X className="h-4 w-4 mr-2" />
-                  Annuler
+                  {t('admin.cancel')}
                 </Button>
               </div>
             </CardContent>
@@ -522,7 +524,7 @@ const ProjectManager: React.FC = () => {
                           className="bg-white/90 hover:bg-white text-black"
                         >
                           <ImageIcon className="h-4 w-4 mr-1" />
-                          {project.image_filename ? 'Replace' : 'Add'}
+                          {project.image_filename ? t('project_manager.replace') : t('project_manager.add')}
                         </Button>
                       </div>
                     </div>

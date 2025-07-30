@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Mail, Phone, MapPin, Clock, MessageCircle, Building } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContactSettings {
   company_name: string;
@@ -22,6 +23,7 @@ interface ContactSettings {
 }
 
 const ContactSettings = () => {
+  const { t } = useLanguage();
   const [settings, setSettings] = useState<ContactSettings>({
     company_name: '',
     company_tagline: '',
@@ -91,8 +93,8 @@ const ContactSettings = () => {
 
       if (response.ok) {
         toast({
-          title: 'Paramètres sauvegardés',
-          description: 'Les informations de contact ont été mises à jour avec succès.'
+          title: t('contact_settings.saved'),
+          description: t('contact_settings.saved_success')
         });
         // Trigger a refresh of the contact settings across the app
         window.dispatchEvent(new CustomEvent('contactSettingsUpdated'));
@@ -102,8 +104,8 @@ const ContactSettings = () => {
     } catch (error) {
       console.error('Failed to save settings:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de sauvegarder les paramètres.',
+        title: t('common.error'),
+        description: t('contact_settings.save_error'),
         variant: 'destructive'
       });
     } finally {
@@ -125,12 +127,12 @@ const ContactSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Informations de l'entreprise
+            {t('contact_settings.company_info')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="company_name">Nom de l'entreprise</Label>
+            <Label htmlFor="company_name">{t('contact_settings.company_name')}</Label>
             <Input
               id="company_name"
               value={settings.company_name}
@@ -139,7 +141,7 @@ const ContactSettings = () => {
             />
           </div>
           <div>
-            <Label htmlFor="company_tagline">Slogan/Tagline</Label>
+            <Label htmlFor="company_tagline">{t('contact_settings.company_tagline')}</Label>
             <Input
               id="company_tagline"
               value={settings.company_tagline}
@@ -154,12 +156,12 @@ const ContactSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Coordonnées
+            {t('contact_settings.coordinates')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="email">Adresse Email</Label>
+            <Label htmlFor="email">{t('contact_settings.email_address')}</Label>
             <Input
               id="email"
               type="email"
@@ -169,7 +171,7 @@ const ContactSettings = () => {
             />
           </div>
           <div>
-            <Label htmlFor="phone">Téléphone</Label>
+            <Label htmlFor="phone">{t('contact_settings.telephone')}</Label>
             <Input
               id="phone"
               value={settings.phone}
@@ -178,7 +180,7 @@ const ContactSettings = () => {
             />
           </div>
           <div>
-            <Label htmlFor="whatsapp">WhatsApp</Label>
+            <Label htmlFor="whatsapp">{t('contact_settings.whatsapp')}</Label>
             <Input
               id="whatsapp"
               value={settings.whatsapp}
@@ -193,12 +195,12 @@ const ContactSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Adresse
+            {t('contact_settings.address')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="address_fr">Adresse (Français)</Label>
+            <Label htmlFor="address_fr">{t('contact_settings.address_french')}</Label>
             <Textarea
               id="address_fr"
               value={settings.address_fr}
@@ -208,7 +210,7 @@ const ContactSettings = () => {
             />
           </div>
           <div>
-            <Label htmlFor="address_en">Adresse (English)</Label>
+            <Label htmlFor="address_en">{t('contact_settings.address_english')}</Label>
             <Textarea
               id="address_en"
               value={settings.address_en}
@@ -257,14 +259,14 @@ const ContactSettings = () => {
             <p className="text-sm text-muted-foreground mt-1">Séparez les lignes avec | (pipe)</p>
           </div>
           <div>
-            <Label htmlFor="hours_detailed_en">Horaires détaillés (English)</Label>
+            <Label htmlFor="hours_detailed_en">{t('contact_settings.detailed_hours_english')}</Label>
             <Input
               id="hours_detailed_en"
               value={settings.hours_detailed_en}
               onChange={(e) => handleChange('hours_detailed_en', e.target.value)}
               placeholder="Mon - Fri: 8:00 AM - 6:00 PM|Saturday: 8:00 AM - 1:00 PM|Sunday: Closed"
             />
-            <p className="text-sm text-muted-foreground mt-1">Séparez les lignes avec | (pipe)</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('contact_settings.separate_lines')}</p>
           </div>
         </CardContent>
       </Card>
@@ -276,7 +278,7 @@ const ContactSettings = () => {
           className="bg-gradient-primary hover:opacity-90"
         >
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          {saving ? t('contact_settings.saving') : t('contact_settings.save')}
         </Button>
       </div>
     </div>

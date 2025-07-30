@@ -6,11 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Palette, RotateCcw, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import ThemePreview from './ThemePreview';
 
 const ThemeSettings = () => {
   const { theme, updateTheme, resetTheme, previewTheme, clearPreview, isLoading } = useTheme();
+  const { t } = useLanguage();
   const [previewColors, setPreviewColors] = useState(theme);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -22,28 +24,28 @@ const ThemeSettings = () => {
 
   const colorPresets = [
     {
-      name: 'Default Purple',
+      name: t('theme_settings.default_purple'),
       colors: {
         primary: '270 85% 60%',
         accent: '320 85% 65%'
       }
     },
     {
-      name: 'Ocean Blue',
+      name: t('theme_settings.ocean_blue'),
       colors: {
         primary: '210 100% 60%',
         accent: '190 100% 65%'
       }
     },
     {
-      name: 'Forest Green',
+      name: t('theme_settings.forest_green'),
       colors: {
         primary: '150 60% 50%',
         accent: '120 60% 55%'
       }
     },
     {
-      name: 'Sunset Orange',
+      name: t('theme_settings.sunset_orange'),
       colors: {
         primary: '25 95% 60%',
         accent: '45 95% 65%'
@@ -153,7 +155,7 @@ const ThemeSettings = () => {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading theme settings...</p>
+            <p className="text-muted-foreground">{t('theme_settings.loading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -168,13 +170,13 @@ const ThemeSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
-            Theme Settings
+            {t('theme_settings.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Color Presets */}
           <div>
-            <Label className="text-sm font-medium mb-3 block">Color Presets</Label>
+            <Label className="text-sm font-medium mb-3 block">{t('theme_settings.color_presets')}</Label>
             <div className="grid grid-cols-2 gap-2">
               {colorPresets.map((preset) => (
                 <Button
@@ -202,11 +204,11 @@ const ThemeSettings = () => {
 
           {/* Custom Colors */}
           <div className="space-y-4">
-            <Label className="text-sm font-medium">Custom Colors</Label>
+            <Label className="text-sm font-medium">{t('theme_settings.custom_colors')}</Label>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="primary-color" className="text-xs">Primary Color</Label>
+                <Label htmlFor="primary-color" className="text-xs">{t('theme_settings.primary_color')}</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="primary-color"
@@ -225,7 +227,7 @@ const ThemeSettings = () => {
               </div>
 
               <div>
-                <Label htmlFor="accent-color" className="text-xs">Accent Color</Label>
+                <Label htmlFor="accent-color" className="text-xs">{t('theme_settings.accent_color')}</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="accent-color"
@@ -244,7 +246,7 @@ const ThemeSettings = () => {
               </div>
 
               <div>
-                <Label htmlFor="background-color" className="text-xs">Background</Label>
+                <Label htmlFor="background-color" className="text-xs">{t('theme_settings.background')}</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="background-color"
@@ -263,7 +265,7 @@ const ThemeSettings = () => {
               </div>
 
               <div>
-                <Label htmlFor="foreground-color" className="text-xs">Text Color</Label>
+                <Label htmlFor="foreground-color" className="text-xs">{t('theme_settings.text_color')}</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="foreground-color"
@@ -292,7 +294,7 @@ const ThemeSettings = () => {
               className="flex items-center gap-2"
             >
               {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {isPreviewMode ? 'Stop Preview' : 'Preview'}
+              {isPreviewMode ? t('theme_settings.stop_preview') : t('theme_settings.preview')}
             </Button>
             
             <Button
@@ -300,7 +302,7 @@ const ThemeSettings = () => {
               disabled={!isPreviewMode || isSaving}
               className="flex items-center gap-2"
             >
-              {isSaving ? 'Saving...' : 'Apply Theme'}
+              {isSaving ? t('theme_settings.saving') : t('theme_settings.apply_theme')}
             </Button>
             
             <Button
@@ -310,14 +312,14 @@ const ThemeSettings = () => {
               className="flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset
+              {t('theme_settings.reset')}
             </Button>
           </div>
 
           {isPreviewMode && (
             <Badge variant="secondary" className="w-fit">
               <Eye className="h-3 w-3 mr-1" />
-              Preview Mode Active
+              {t('theme_settings.preview_mode_active')}
             </Badge>
           )}
         </CardContent>

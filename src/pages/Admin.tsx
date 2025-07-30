@@ -80,15 +80,15 @@ interface Submission {
 }
 
 const menuItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Settings },
-  { id: 'images', label: 'Images', icon: Image },
-  { id: 'projects', label: 'Projects', icon: FolderOpen },
-  { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'contact', label: 'Contact', icon: Phone },
-  { id: 'admins', label: 'Admins', icon: Shield },
-  { id: 'ratings', label: 'Reviews', icon: Star },
-  { id: 'users', label: 'Users', icon: Users },
-  { id: 'submissions', label: 'Submissions', icon: FileText },
+  { id: 'dashboard', labelKey: 'admin.dashboard', icon: Settings },
+  { id: 'images', labelKey: 'admin.images', icon: Image },
+  { id: 'projects', labelKey: 'admin.projects', icon: FolderOpen },
+  { id: 'theme', labelKey: 'admin.theme', icon: Palette },
+  { id: 'contact', labelKey: 'admin.contact', icon: Phone },
+  { id: 'admins', labelKey: 'admin.admins', icon: Shield },
+  { id: 'ratings', labelKey: 'admin.reviews', icon: Star },
+  { id: 'users', labelKey: 'admin.users', icon: Users },
+  { id: 'submissions', labelKey: 'admin.submissions', icon: FileText },
 ];
 
 const Admin = () => {
@@ -156,8 +156,8 @@ const Admin = () => {
       if (response.ok) {
         setNotificationsEnabled(!notificationsEnabled);
         toast({
-          title: "Notifications mises à jour",
-          description: `Notifications ${!notificationsEnabled ? 'activées' : 'désactivées'} avec succès`
+          title: t('admin.notifications_updated'),
+          description: !notificationsEnabled ? t('admin.notifications_enabled') : t('admin.notifications_disabled')
         });
       }
     } catch (error) {
@@ -296,8 +296,8 @@ const Admin = () => {
 
       if (response.ok) {
         toast({
-          title: "Utilisateur supprimé",
-          description: "L'utilisateur a été supprimé avec succès"
+          title: t('admin.user_deleted'),
+          description: t('admin.user_deleted_success')
         });
         fetchData();
       }
@@ -327,8 +327,8 @@ const Admin = () => {
         setNewAdmin({ name: '', email: '', password: '' });
         setShowCreateAdmin(false);
         toast({
-          title: "Admin créé",
-          description: "Le nouvel administrateur a été créé avec succès"
+          title: t('admin.admin_created'),
+          description: t('admin.admin_created_success')
         });
       }
     } catch (error) {
@@ -341,8 +341,8 @@ const Admin = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-24 text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Access Denied</h1>
-          <p className="text-muted-foreground">You don't have permission to access this page.</p>
+          <h1 className="text-4xl font-bold text-foreground mb-4">{t('admin.access_denied')}</h1>
+          <p className="text-muted-foreground">{t('admin.no_permission')}</p>
         </div>
         <Footer />
       </div>
@@ -354,7 +354,7 @@ const Admin = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="admin-loading">
           <div className="admin-spinner"></div>
-          <p className="text-muted-foreground ml-4">Loading admin data...</p>
+          <p className="text-muted-foreground ml-4">{t('admin.loading_admin_data')}</p>
         </div>
       </div>
     );
@@ -382,8 +382,8 @@ const Admin = () => {
         return (
           <div className="space-y-6">
             <div className="mb-8">
-              <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Manage users and view contact submissions</p>
+              <h1 className="text-4xl font-bold text-foreground mb-2">{t('admin.dashboard_title')}</h1>
+              <p className="text-muted-foreground">{t('admin.dashboard_desc')}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className={notificationsEnabled ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white" : "bg-gradient-to-r from-gray-500 to-slate-600 text-white"}>
@@ -391,11 +391,11 @@ const Admin = () => {
                   <CardTitle className="text-sm font-medium text-white">
                     {notificationsEnabled ? (
                       <span className="flex items-center">
-                        <Bell className="h-4 w-4 mr-2" /> Notifications Email
+                        <Bell className="h-4 w-4 mr-2" /> {t('admin.notifications.email')}
                       </span>
                     ) : (
                       <span className="flex items-center">
-                        <BellOff className="h-4 w-4 mr-2" /> Notifications Email
+                        <BellOff className="h-4 w-4 mr-2" /> {t('admin.notifications.email')}
                       </span>
                     )}
                   </CardTitle>
@@ -404,7 +404,7 @@ const Admin = () => {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div className="text-2xl font-bold text-white">
-                      {notificationsEnabled ? 'Activées' : 'Désactivées'}
+                      {notificationsEnabled ? t('admin.notifications.enabled') : t('admin.notifications.disabled')}
                     </div>
                     <Button
                       size="sm"
@@ -415,17 +415,17 @@ const Admin = () => {
                     >
                       {loadingNotifications ? (
                         <span className="flex items-center">
-                          <span className="animate-spin mr-1">⟳</span> Chargement...
+                          <span className="animate-spin mr-1">⟳</span> {t('debug.loading')}
                         </span>
                       ) : (
                         <span className="flex items-center">
                           {notificationsEnabled ? (
                             <>
-                              <BellOff className="h-3 w-3 mr-1" /> Désactiver
+                              <BellOff className="h-3 w-3 mr-1" /> {t('admin.notifications.disable')}
                             </>
                           ) : (
                             <>
-                              <Bell className="h-3 w-3 mr-1" /> Activer
+                              <Bell className="h-3 w-3 mr-1" /> {t('admin.notifications.enable')}
                             </>
                           )}
                         </span>
@@ -436,7 +436,7 @@ const Admin = () => {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('admin.total_users')}</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -445,7 +445,7 @@ const Admin = () => {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('admin.total_submissions')}</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -454,7 +454,7 @@ const Admin = () => {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('admin.admin_users')}</CardTitle>
                   <Shield className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -466,19 +466,19 @@ const Admin = () => {
         );
       case 'images':
         return (
-          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading images...</p></div>}>
+          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_images')}</p></div>}>
             <OrganizedImageManager />
           </Suspense>
         );
       case 'projects':
         return (
-          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading projects...</p></div>}>
+          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_projects')}</p></div>}>
             <ProjectManager />
           </Suspense>
         );
       case 'theme':
         return (
-          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading theme settings...</p></div>}>
+          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_theme_settings')}</p></div>}>
             <SimpleThemeSettings />
           </Suspense>
         );
@@ -486,10 +486,10 @@ const Admin = () => {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Contact Settings</CardTitle>
+              <CardTitle>{t('admin.contact_settings')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading contact settings...</p></div>}>
+              <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_contact_settings')}</p></div>}>
                 <ContactSettings />
               </Suspense>
             </CardContent>
@@ -499,19 +499,19 @@ const Admin = () => {
         return (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Admin Management</CardTitle>
+              <CardTitle>{t('admin.admin_management')}</CardTitle>
               <Button onClick={() => setShowCreateAdmin(true)} className="flex items-center gap-2">
                 <UserPlus className="h-4 w-4" />
-                Create Admin
+                {t('admin.create_admin')}
               </Button>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>{t('admin.name')}</TableHead>
+                    <TableHead>{t('admin.email')}</TableHead>
+                    <TableHead>{t('admin.created')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -542,7 +542,7 @@ const Admin = () => {
         );
       case 'ratings':
         return (
-          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading reviews...</p></div>}>
+          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_reviews')}</p></div>}>
             <AdminRatings />
           </Suspense>
         );
@@ -550,19 +550,19 @@ const Admin = () => {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Registered Users</CardTitle>
+              <CardTitle>{t('admin.registered_users')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="admin-table-container">
                 <Table className="admin-table">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="hidden md:table-cell">Email</TableHead>
-                      <TableHead className="hidden lg:table-cell">Company</TableHead>
-                      <TableHead className="hidden lg:table-cell">Phone</TableHead>
-                      <TableHead className="hidden sm:table-cell">Role</TableHead>
-                      <TableHead className="hidden md:table-cell">Registered</TableHead>
+                      <TableHead>{t('admin.name')}</TableHead>
+                      <TableHead className="hidden md:table-cell">{t('admin.email')}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t('admin.company')}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t('admin.phone')}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t('admin.role')}</TableHead>
+                      <TableHead className="hidden md:table-cell">{t('admin.registered')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -585,7 +585,7 @@ const Admin = () => {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleUserClick(u)}>
                                   <Eye className="h-4 w-4 mr-2" />
-                                  View Details
+                                  {t('admin.view_details')}
                                 </DropdownMenuItem>
                                 {u.id !== Number(user?.id) && (
                                   <DropdownMenuItem 
@@ -593,7 +593,7 @@ const Admin = () => {
                                     className="text-red-600"
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete User
+                                    {t('admin.delete_user')}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -700,7 +700,7 @@ const Admin = () => {
           <div className="h-full overflow-y-auto">
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                {!sidebarCollapsed && <h2 className="text-lg font-semibold">Admin Panel</h2>}
+                {!sidebarCollapsed && <h2 className="text-lg font-semibold">{t('admin.panel')}</h2>}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -722,12 +722,12 @@ const Admin = () => {
                           ? 'bg-primary text-primary-foreground'
                           : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                       }`}
-                      title={sidebarCollapsed ? item.label : undefined}
+                      title={sidebarCollapsed ? t(item.labelKey) : undefined}
                     >
                       <Icon className="h-4 w-4" />
                       {!sidebarCollapsed && (
                         <>
-                          {item.label}
+                          {t(item.labelKey)}
                           {item.id === 'admins' && <span className="ml-auto text-xs">({admins.length})</span>}
                           {item.id === 'users' && <span className="ml-auto text-xs">({users.length})</span>}
                           {item.id === 'submissions' && <span className="ml-auto text-xs">({submissions.length})</span>}
@@ -750,7 +750,7 @@ const Admin = () => {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search users, submissions, or content..."
+                    placeholder={t('admin.search_placeholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -764,9 +764,9 @@ const Admin = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="done">Completed</SelectItem>
+                        <SelectItem value="all">{t('admin.all_statuses')}</SelectItem>
+                        <SelectItem value="pending">{t('admin.pending')}</SelectItem>
+                        <SelectItem value="done">{t('admin.completed')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

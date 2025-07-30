@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Trash2, RefreshCw, Image as ImageIcon, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl, buildUploadUrl } from '@/config/api';
 
 interface SiteImage {
@@ -19,6 +20,7 @@ interface SiteImage {
 
 const ImageManager: React.FC = () => {
   const { user, isAdmin } = useAuth();
+  const { t } = useLanguage();
   const [images, setImages] = useState<SiteImage[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -53,11 +55,11 @@ const ImageManager: React.FC = () => {
       } else {
         const errorData = await response.json();
         console.error('API Error:', errorData);
-        alert(`Erreur: ${errorData.message}`);
+        alert(`${t('common.error')}: ${errorData.message}`);
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
-      alert('Erreur de connexion au serveur');
+      alert(t('image_manager.server_connection_error'));
     }
   };
 
@@ -96,7 +98,7 @@ const ImageManager: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         console.log('Upload success:', result);
-        alert('Image ajoutée avec succès!');
+        alert(t('image_manager.image_added'));
         setUploadFile(null);
         setNewCategory('');
         fetchImages();
@@ -106,18 +108,18 @@ const ImageManager: React.FC = () => {
       } else {
         const errorData = await response.json();
         console.error('Upload error:', errorData);
-        alert(`Erreur d'upload: ${errorData.message}`);
+        alert(`${t('image_manager.upload_error')}: ${errorData.message}`);
       }
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Erreur de connexion lors de l\'upload');
+      alert(t('image_manager.connection_error'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) return;
+    if (!confirm(t('image_manager.delete_confirm'))) return;
     
     try {
       const token = localStorage.getItem('token');
@@ -127,18 +129,18 @@ const ImageManager: React.FC = () => {
       });
 
       if (response.ok) {
-        alert('Image supprimée avec succès!');
+        alert(t('image_manager.image_deleted'));
         fetchImages();
         // Notify other components to refresh their images
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
         const errorData = await response.json();
         console.error('Delete error:', errorData);
-        alert(`Erreur de suppression: ${errorData.message}`);
+        alert(`${t('image_manager.delete_error')}: ${errorData.message}`);
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Erreur de connexion lors de la suppression');
+      alert(t('image_manager.connection_delete_error'));
     }
   };
 
@@ -155,18 +157,18 @@ const ImageManager: React.FC = () => {
       });
 
       if (response.ok) {
-        alert('Image remplacée avec succès!');
+        alert(t('image_manager.image_replaced'));
         fetchImages();
         // Notify other components to refresh their images
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
         const errorData = await response.json();
         console.error('Replace error:', errorData);
-        alert(`Erreur de remplacement: ${errorData.message}`);
+        alert(`${t('image_manager.replace_error')}: ${errorData.message}`);
       }
     } catch (error) {
       console.error('Replace failed:', error);
-      alert('Erreur de connexion lors du remplacement');
+      alert(t('image_manager.connection_replace_error'));
     }
   };
 
@@ -178,13 +180,13 @@ const ImageManager: React.FC = () => {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-red-500 mb-4">Accès refusé. Vous devez être administrateur.</p>
-          <p className="text-sm text-gray-600 mb-4">Utilisateur: {user?.email} (Rôle: {user?.role})</p>
+          <p className="text-red-500 mb-4">{t('image_manager.access_denied')}</p>
+          <p className="text-sm text-gray-600 mb-4">{t('image_manager.user')}: {user?.email} ({t('admin.role')}: {user?.role})</p>
           <Button onClick={() => {
             localStorage.removeItem('token');
             window.location.href = '/admin';
           }}>
-            Se reconnecter
+            {t('image_manager.reconnect')}
           </Button>
         </CardContent>
       </Card>
@@ -198,12 +200,12 @@ const ImageManager: React.FC = () => {
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-sm">
             <User className="h-4 w-4" />
-            <span>Utilisateur: {user?.name} ({user?.email})</span>
-            <span className="ml-4">Rôle: {user?.role}</span>
-            <span className="ml-4">Admin: {isAdmin ? 'Oui' : 'Non'}</span>
-            <span className="ml-4">Token: {localStorage.getItem('token') ? 'Présent' : 'Manquant'}</span>
+            <span>{t('image_manager.user')}: {user?.name} ({user?.email})</span>
+            <span className="ml-4">{t('admin.role')}: {user?.role}</span>
+            <span className="ml-4">{t('image_manager.admin')}: {isAdmin ? t('image_manager.yes') : t('image_manager.no')}</span>
+            <span className="ml-4">{t('image_manager.token')}: {localStorage.getItem('token') ? t('image_manager.present') : t('image_manager.missing')}</span>
             <Button size="sm" onClick={() => window.location.reload()} className="ml-4">
-              Actualiser
+              {t('image_manager.refresh')}
             </Button>
           </div>
         </CardContent>
@@ -213,19 +215,19 @@ const ImageManager: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5" />
-            Gestion des Images
+            {t('image_manager.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4 items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Catégorie</label>
+              <label className="block text-sm font-medium mb-2">{t('image_manager.category')}</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full p-2 border rounded"
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">{t('image_manager.all_categories')}</option>
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -233,15 +235,15 @@ const ImageManager: React.FC = () => {
             </div>
             <Button onClick={fetchImages} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Actualiser
+              {t('image_manager.refresh')}
             </Button>
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="font-medium mb-3">Ajouter une nouvelle image</h3>
+            <h3 className="font-medium mb-3">{t('image_manager.add_new_image')}</h3>
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Fichier</label>
+                <label className="block text-sm font-medium mb-2">{t('image_manager.file')}</label>
                 <Input
                   type="file"
                   accept="image/*"
@@ -249,11 +251,11 @@ const ImageManager: React.FC = () => {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Catégorie</label>
+                <label className="block text-sm font-medium mb-2">{t('image_manager.category')}</label>
                 <Input
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  placeholder="logo, hero, portfolio, etc."
+                  placeholder={t('image_manager.category_placeholder')}
                 />
               </div>
               <Button 
@@ -261,7 +263,7 @@ const ImageManager: React.FC = () => {
                 disabled={!uploadFile || !newCategory || loading}
               >
                 <Upload className="h-4 w-4 mr-2" />
-                {loading ? 'Upload...' : 'Ajouter'}
+                {loading ? t('image_manager.uploading') : t('image_manager.add')}
               </Button>
             </div>
           </div>
@@ -285,8 +287,8 @@ const ImageManager: React.FC = () => {
               <div className="space-y-2">
                 <div className="text-sm font-medium truncate">{image.original_name}</div>
                 <div className="text-xs text-gray-500">
-                  <div>Catégorie: {image.category}</div>
-                  <div>Taille: {Math.round(image.size / 1024)}KB</div>
+                  <div>{t('image_manager.category')}: {image.category}</div>
+                  <div>{t('image_manager.size')}: {Math.round(image.size / 1024)}KB</div>
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -305,7 +307,7 @@ const ImageManager: React.FC = () => {
                     }}
                   >
                     <RefreshCw className="h-3 w-3 mr-1" />
-                    Remplacer
+                    {t('image_manager.replace')}
                   </Button>
                   <Button
                     size="sm"
@@ -325,7 +327,7 @@ const ImageManager: React.FC = () => {
         <Card>
           <CardContent className="p-8 text-center text-gray-500">
             <ImageIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Aucune image trouvée</p>
+            <p>{t('image_manager.no_images')}</p>
           </CardContent>
         </Card>
       )}
