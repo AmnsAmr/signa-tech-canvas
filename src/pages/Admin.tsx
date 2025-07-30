@@ -14,6 +14,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
+import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star, Menu, ChevronLeft } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import '@/components/Admin/admin-improvements.css';
@@ -124,7 +125,7 @@ const Admin = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await fetch(buildApiUrl('/api/admin/notifications/status'), {
+      const response = await secureApiRequest('/api/admin/notifications/status', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -143,7 +144,7 @@ const Admin = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await fetch(buildApiUrl('/api/admin/notifications/toggle'), {
+      const response = await secureApiRequest('/api/admin/notifications/toggle', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,9 +178,9 @@ const Admin = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [usersRes, adminsRes, submissionsRes] = await Promise.all([
-        fetch(buildApiUrl('/api/admin/users'), { headers }),
-        fetch(buildApiUrl('/api/admin/admins'), { headers }),
-        fetch(buildApiUrl('/api/admin/submissions'), { headers })
+        secureApiRequest('/api/admin/users', { headers }),
+        secureApiRequest('/api/admin/admins', { headers }),
+        secureApiRequest('/api/admin/submissions', { headers })
       ]);
 
       if (usersRes.status === 403 || adminsRes.status === 403 || submissionsRes.status === 403) {
@@ -224,7 +225,7 @@ const Admin = () => {
         return;
       }
       
-      const response = await fetch(buildApiUrl(`/api/admin/submissions/${submissionId}/status`), {
+      const response = await secureApiRequest(`/api/admin/submissions/${submissionId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -258,7 +259,7 @@ const Admin = () => {
       const filenameOnly = filename.split(/[\\/]/).pop() || filename;
       const downloadUrl = buildApiUrl(`/api/contact/download/${filenameOnly}`);
       
-      const response = await fetch(downloadUrl, {
+      const response = await secureApiRequest(`/api/contact/download/${filenameOnly}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -288,7 +289,7 @@ const Admin = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/users/${deleteUserId}`), {
+      const response = await secureApiRequest(`/api/admin/users/${deleteUserId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -311,7 +312,7 @@ const Admin = () => {
   const createAdmin = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/admins'), {
+      const response = await secureApiRequest('/api/admin/admins', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
