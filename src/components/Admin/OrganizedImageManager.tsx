@@ -373,7 +373,7 @@ const OrganizedImageManager: React.FC = () => {
                 <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                   <AlertTriangle className="h-4 w-4 text-orange-600" />
                   <span className="text-sm text-orange-700">
-                    {t('organized_images.limit_reached', { max: section.maxImages })}
+                    Limit reached ({section.maxImages} images max). Delete an image to add a new one.
                   </span>
                 </div>
               )}

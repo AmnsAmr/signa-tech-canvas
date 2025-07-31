@@ -44,7 +44,7 @@ const UserManager: React.FC = () => {
   };
 
   const deleteUser = async (userId: number, userName: string) => {
-    if (!confirm(t('user_manager.delete_confirm', { name: userName }))) {
+    if (!confirm(`Are you sure you want to delete ${userName}'s account? This action is irreversible.`)) {
       return;
     }
     

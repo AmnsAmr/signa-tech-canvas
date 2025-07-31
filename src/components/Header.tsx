@@ -18,6 +18,7 @@ const Header = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollDirection, setScrollDirection] = useState('down');
   const [highlightStyle, setHighlightStyle] = useState({ left: 0, width: 0, opacity: 0 });
+  const [hasActiveHighlight, setHasActiveHighlight] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const { t } = useLanguage();
@@ -57,10 +58,12 @@ const Header = () => {
       width: elementRect.width,
       opacity: 1
     });
+    setHasActiveHighlight(true);
   };
 
   const hideHighlight = () => {
     setHighlightStyle(prev => ({ ...prev, opacity: 0 }));
+    setHasActiveHighlight(false);
   };
 
   useEffect(() => {
@@ -108,17 +111,27 @@ const Header = () => {
             className={`hidden lg:flex items-center space-x-1 transition-all duration-300 relative ${
               isMinimized && !isHovered ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
             }`}
-            onMouseLeave={hideHighlight}
+            onMouseLeave={() => {
+              // Only hide if we're not hovering over an active nav item
+              setTimeout(() => {
+                if (!navRef.current?.matches(':hover')) {
+                  hideHighlight();
+                }
+              }, 50);
+            }}
           >
             {/* Sliding highlight background */}
             <div 
-              className="absolute bg-primary/10 rounded-lg transition-all duration-300 ease-out pointer-events-none"
+              className="absolute bg-primary/10 rounded-lg pointer-events-none"
               style={{
                 left: highlightStyle.left,
                 width: highlightStyle.width,
                 height: '40px',
                 opacity: highlightStyle.opacity,
-                transform: 'translateY(0)'
+                transform: 'translateY(0)',
+                transition: hasActiveHighlight 
+                  ? 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-out'
+                  : 'opacity 0.2s ease-out'
               }}
             />
             {navItems.map((item) => (

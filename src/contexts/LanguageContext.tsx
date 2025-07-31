@@ -511,7 +511,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.name': 'Nom',
     'admin.email': 'Email',
     'admin.created': 'Créé',
-    'admin.registered_users': 'Utilisateurs Inscrits',
+    
     'admin.company': 'Entreprise',
     'admin.phone': 'Téléphone',
     'admin.role': 'Rôle',
@@ -536,7 +536,6 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.user_deleted': 'Utilisateur supprimé',
     'admin.user_deleted_success': 'L\'utilisateur a été supprimé avec succès',
     'admin.search_placeholder': 'Rechercher utilisateurs, demandes ou contenu...',
-    'admin.all_statuses': 'Tous les statuts',
     'admin.access_denied': 'Accès refusé',
     'admin.no_permission': 'Vous n\'avez pas la permission d\'accéder à cette page.',
     // Contact Settings translations
@@ -1163,7 +1162,6 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.name': 'Name',
     'admin.email': 'Email',
     'admin.created': 'Created',
-    'admin.registered_users': 'Registered Users',
     'admin.company': 'Company',
     'admin.phone': 'Phone',
     'admin.role': 'Role',
@@ -1188,7 +1186,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.user_deleted': 'User Deleted',
     'admin.user_deleted_success': 'User has been deleted successfully',
     'admin.search_placeholder': 'Search users, submissions, or content...',
-    'admin.all_statuses': 'All Statuses',
+    
     'admin.access_denied': 'Access Denied',
     'admin.no_permission': 'You don\'t have permission to access this page.',
     // Contact Settings translations

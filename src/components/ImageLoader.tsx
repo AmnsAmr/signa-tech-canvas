@@ -1,37 +1,38 @@
 import React from 'react';
-import { buildUploadUrl } from '@/config/api';
 import LazyImage from './shared/LazyImage';
 
 interface ImageLoaderProps {
-  filename?: string;
+  src?: string;
   alt: string;
   className?: string;
+  critical?: boolean;
   style?: React.CSSProperties;
   onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-  priority?: boolean; // Add priority prop for critical images
-  fetchPriority?: 'high' | 'low' | 'auto'; // Add fetchPriority attribute
+  filename?: string;
+  priority?: boolean;
+  fetchPriority?: string;
 }
 
 const ImageLoader: React.FC<ImageLoaderProps> = ({ 
-  filename, 
+  src, 
+  filename,
   alt, 
   className = '', 
-  style,
-  onError,
-  priority = false
+  critical = false, 
+  style = {},
+  onError = () => {}
 }) => {
-  const src = filename ? buildUploadUrl(filename) : '/placeholder.svg';
-
-  if (priority) {
+  const imageSource = src || (filename ? `/uploads/${filename}` : '/placeholder.svg');
+  if (critical) {
     return (
       <img
-        src={src}
+        src={imageSource}
         alt={alt}
         className={className}
         style={style}
         onError={onError}
         loading="eager"
-        fetchpriority="high"
+        fetchPriority="high"
         decoding="sync"
       />
     );
@@ -39,10 +40,10 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
 
   return (
     <LazyImage
-      src={src}
+      src={imageSource}
       alt={alt}
       className={className}
-      onError={onError}
+      onError={onError ? () => onError(null as any) : undefined}
     />
   );
 };
