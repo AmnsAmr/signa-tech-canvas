@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Phone, Mail, User, LogOut, Shield, Sparkles } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -17,6 +17,8 @@ const Header = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollDirection, setScrollDirection] = useState('down');
+  const [highlightStyle, setHighlightStyle] = useState({ left: 0, width: 0, opacity: 0 });
+  const navRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -45,6 +47,28 @@ const Header = () => {
     { name: t('admin.reviews'), path: '/ratings' },
     { name: t('nav.contact'), path: '/contact' }
   ];
+
+  const updateHighlight = (element: HTMLElement | null) => {
+    if (!element || !navRef.current) return;
+    const navRect = navRef.current.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    setHighlightStyle({
+      left: elementRect.left - navRect.left,
+      width: elementRect.width,
+      opacity: 1
+    });
+  };
+
+  const hideHighlight = () => {
+    setHighlightStyle(prev => ({ ...prev, opacity: 0 }));
+  };
+
+  useEffect(() => {
+    const activeElement = navRef.current?.querySelector('[data-active="true"]') as HTMLElement;
+    if (activeElement) {
+      updateHighlight(activeElement);
+    }
+  }, [location.pathname]);
 
   return (
     <header 
@@ -78,42 +102,49 @@ const Header = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation with enhanced styling */}
-          <nav className={`hidden lg:flex items-center space-x-1 transition-all duration-300 ${
-            isMinimized && !isHovered ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
-          }`}>
+          {/* Desktop Navigation with sliding highlight */}
+          <nav 
+            ref={navRef}
+            className={`hidden lg:flex items-center space-x-1 transition-all duration-300 relative ${
+              isMinimized && !isHovered ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
+            }`}
+            onMouseLeave={hideHighlight}
+          >
+            {/* Sliding highlight background */}
+            <div 
+              className="absolute bg-primary/10 rounded-lg transition-all duration-300 ease-out pointer-events-none"
+              style={{
+                left: highlightStyle.left,
+                width: highlightStyle.width,
+                height: '40px',
+                opacity: highlightStyle.opacity,
+                transform: 'translateY(0)'
+              }}
+            />
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative px-4 py-2 font-medium transition-all duration-300 rounded-lg group ${
-                  isActive(item.path) 
-                    ? 'text-primary bg-primary/10' 
-                    : 'text-foreground hover:text-primary hover:bg-primary/5'
+                data-active={isActive(item.path)}
+                className={`relative px-4 py-2 font-medium transition-colors duration-200 rounded-lg z-10 ${
+                  isActive(item.path) ? 'text-primary' : 'text-foreground hover:text-primary'
                 }`}
+                onMouseEnter={(e) => updateHighlight(e.currentTarget)}
               >
-                <span className="relative z-10">{item.name}</span>
-                {isActive(item.path) && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-gradient-primary rounded-full"></div>
-                )}
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
+                {item.name}
               </Link>
             ))}
             {isAdmin && (
               <Link
                 to="/admin"
-                className={`relative px-4 py-2 font-medium transition-all duration-300 rounded-lg group flex items-center ${
-                  isActive('/admin') 
-                    ? 'text-primary bg-primary/10' 
-                    : 'text-foreground hover:text-primary hover:bg-primary/5'
+                data-active={isActive('/admin')}
+                className={`relative px-4 py-2 font-medium transition-colors duration-200 rounded-lg flex items-center z-10 ${
+                  isActive('/admin') ? 'text-primary' : 'text-foreground hover:text-primary'
                 }`}
+                onMouseEnter={(e) => updateHighlight(e.currentTarget)}
               >
-                <Shield className="h-4 w-4 mr-1 transition-transform group-hover:scale-110" />
-                <span className="relative z-10">Admin</span>
-                {isActive('/admin') && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-gradient-primary rounded-full"></div>
-                )}
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
+                <Shield className="h-4 w-4 mr-1" />
+                Admin
               </Link>
             )}
             <div className="flex items-center space-x-3">
