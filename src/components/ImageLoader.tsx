@@ -10,7 +10,7 @@ interface ImageLoaderProps {
   onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
   filename?: string;
   priority?: boolean;
-  fetchPriority?: string;
+
 }
 
 const ImageLoader: React.FC<ImageLoaderProps> = ({ 
@@ -45,7 +45,7 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
         }}
         onError={handleError}
         loading="eager"
-        fetchPriority="high"
+        fetchpriority="high"
         decoding="sync"
       />
     );

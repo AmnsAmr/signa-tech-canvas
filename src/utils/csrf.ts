@@ -1,95 +1,104 @@
-import { buildApiUrl } from '@/config/api';
+// CSRF Token Management Utility
 
-class CSRFManager {
-  private token: string | null = null;
-  private tokenPromise: Promise<string> | null = null;
+let cachedCsrfToken: string | null = null;
+let tokenExpiry: number = 0;
 
-  async getToken(): Promise<string> {
-    // If we already have a token, return it
-    if (this.token) {
-      return this.token;
-    }
-
-    // If we're already fetching a token, wait for that request
-    if (this.tokenPromise) {
-      return this.tokenPromise;
-    }
-
-    // Fetch a new token
-    this.tokenPromise = this.fetchToken();
-    
-    try {
-      this.token = await this.tokenPromise;
-      return this.token;
-    } finally {
-      this.tokenPromise = null;
-    }
-  }
-
-  private async fetchToken(): Promise<string> {
-    try {
-      const response = await fetch(buildApiUrl('/api/csrf-token'), {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch CSRF token');
-      }
-
-      const data = await response.json();
-      return data.csrfToken;
-    } catch (error) {
-      console.error('Error fetching CSRF token:', error);
-      throw error;
-    }
-  }
-
-  clearToken(): void {
-    this.token = null;
-    this.tokenPromise = null;
-  }
-
-  async addCSRFHeader(headers: Record<string, string> = {}): Promise<Record<string, string>> {
-    try {
-      const token = await this.getToken();
-      return {
-        ...headers,
-        'X-CSRF-Token': token
-      };
-    } catch (error) {
-      console.warn('Failed to add CSRF token to headers:', error);
-      return headers;
-    }
-  }
+// Error interface for CSRF errors
+interface CSRFError {
+  code?: string;
+  message?: string;
 }
 
-export const csrfManager = new CSRFManager();
-
-// Utility function to make secure API requests
-export async function secureApiRequest(url: string, options: RequestInit = {}): Promise<Response> {
-  const { headers = {}, ...otherOptions } = options;
-  
-  // Add CSRF token for non-GET requests
-  const method = options.method?.toUpperCase() || 'GET';
-  let finalHeaders = headers as Record<string, string>;
-  
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-    finalHeaders = await csrfManager.addCSRFHeader(finalHeaders);
+export const getCsrfToken = async (): Promise<string> => {
+  // Return cached token if still valid (cache for 30 minutes)
+  if (cachedCsrfToken && Date.now() < tokenExpiry) {
+    return cachedCsrfToken;
   }
 
-  return fetch(buildApiUrl(url), {
-    ...otherOptions,
-    headers: finalHeaders,
+  try {
+    const response = await fetch('/api/csrf-token', {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get CSRF token: ${response.status}`);
+    }
+    
+    const { csrfToken } = await response.json();
+    
+    // Cache the token for 30 minutes
+    cachedCsrfToken = csrfToken;
+    tokenExpiry = Date.now() + (30 * 60 * 1000);
+    
+    return csrfToken;
+  } catch (error) {
+    console.error('Error fetching CSRF token:', error);
+    throw error;
+  }
+};
+
+export const clearCsrfToken = (): void => {
+  cachedCsrfToken = null;
+  tokenExpiry = 0;
+};
+
+export const makeAuthenticatedRequest = async (
+  url: string, 
+  options: RequestInit = {}
+): Promise<Response> => {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  // Get CSRF token for non-GET requests
+  let headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...options.headers
+  };
+
+  if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
+    const csrfToken = await getCsrfToken();
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
     credentials: 'include'
   });
-}
+};
 
-// Handle CSRF token errors
-export function handleCSRFError(error: any): boolean {
+// Alias for compatibility with AuthContext
+export const secureApiRequest = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> => {
+  // Get CSRF token for non-GET requests
+  let headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+
+  if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
+    const csrfToken = await getCsrfToken();
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
+    credentials: 'include'
+  });
+};
+
+// Handle CSRF errors
+export const handleCSRFError = (error: any): boolean => {
   if (error?.code === 'CSRF_INVALID' || error?.message?.includes('CSRF')) {
-    csrfManager.clearToken();
+    clearCsrfToken();
     return true;
   }
   return false;
-}
+};

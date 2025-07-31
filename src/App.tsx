@@ -60,15 +60,15 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <ThemeProvider>
           <TooltipProvider>
             <AppContent />
           </TooltipProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 ;

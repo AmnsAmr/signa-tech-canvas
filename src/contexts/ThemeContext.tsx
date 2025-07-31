@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { buildApiUrl } from '@/config/api';
+import { apiClient } from '@/api';
+import { useAuth } from './AuthContext';
+import { makeAuthenticatedRequest } from '@/utils/csrf';
 
 interface ThemeColors {
   primary: string;
@@ -57,6 +59,7 @@ export const useTheme = () => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<ThemeSettings>(defaultTheme);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAdmin, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     loadTheme();
@@ -68,10 +71,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const loadTheme = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/theme'));
+      const response = await fetch('/api/theme', {
+        credentials: 'include'
+      });
       if (response.ok) {
-        const savedTheme = await response.json();
-        setTheme(savedTheme);
+        const data = await response.json();
+        setTheme(data);
       }
     } catch (error) {
       console.error('Failed to load theme:', error);
@@ -112,25 +117,33 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updateTheme = async (newTheme: Partial<ThemeSettings>) => {
-    const updatedTheme = { ...theme, ...newTheme };
+    // Wait for auth to load
+    if (authLoading) {
+      throw new Error('Authentication still loading');
+    }
 
-    // Optimistically update the theme
+    // Check if user is admin
+    if (!isAdmin) {
+      console.error('User is not admin:', { user, isAdmin });
+      throw new Error('Admin access required to update theme');
+    }
+
+    const updatedTheme = { ...theme, ...newTheme };
     setTheme(updatedTheme);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/theme'), {
+      const response = await makeAuthenticatedRequest('/api/admin/theme', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
         body: JSON.stringify(updatedTheme)
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save theme');
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
+
+      const result = await response.json();
+      console.log('Theme updated successfully:', result);
     } catch (error) {
       console.error('Failed to save theme:', error);
       setTheme(theme);
