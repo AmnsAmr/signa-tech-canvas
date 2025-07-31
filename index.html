@@ -2,17 +2,27 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Signa Tech - Solutions PLV & Signalétique Créatives</title>
     <meta name="description" content="Signa Tech, expert en PLV et signalétique au Maroc. Création sur mesure de supports visuels, habillage façades, displays retail. 15+ années d'expérience." />
     <meta name="keywords" content="PLV Maroc, signalétique Tanger, displays retail, habillage façade, communication visuelle, Signa Tech" />
     <meta name="author" content="Signa Tech" />
     <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#8b5cf6" />
 
-    <!-- Preload critical resources for better LCP -->
-    <link rel="preload" href="/src/index.css" as="style" />
+    <!-- Critical resource preloading -->
+    <link rel="preload" href="/src/index.css" as="style" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="//192.168.1.4" />
+    
+    <!-- Inline critical CSS for faster rendering -->
+    <style>
+      #root{min-height:100vh;background:#fafafa}
+      .loading{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#8b5cf6,#ec4899)}
+      .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid white;border-radius:50%;animation:spin 1s linear infinite}
+      @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    </style>
     
     <meta property="og:title" content="Signa Tech - Solutions PLV & Signalétique Créatives" />
     <meta property="og:description" content="Expert en PLV et signalétique au Maroc. Création sur mesure de supports visuels exceptionnels." />
@@ -29,7 +39,12 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading fallback for better perceived performance -->
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

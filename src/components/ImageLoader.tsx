@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import LazyImage from './shared/LazyImage';
 
 interface ImageLoaderProps {
@@ -19,18 +19,31 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
   alt, 
   className = '', 
   critical = false, 
+  priority = false,
   style = {},
-  onError = () => {}
+  onError
 }) => {
+  const [hasError, setHasError] = React.useState(false);
+  
   const imageSource = src || (filename ? `/uploads/${filename}` : '/placeholder.svg');
-  if (critical) {
+  
+  const handleError = React.useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    setHasError(true);
+    (e.target as HTMLImageElement).src = '/placeholder.svg';
+    onError?.(e);
+  }, [onError]);
+
+  if (critical || priority) {
     return (
       <img
-        src={imageSource}
+        src={hasError ? '/placeholder.svg' : imageSource}
         alt={alt}
-        className={className}
-        style={style}
-        onError={onError}
+        className={`${className} gpu-accelerated`}
+        style={{
+          ...style,
+          contentVisibility: 'auto'
+        }}
+        onError={handleError}
         loading="eager"
         fetchPriority="high"
         decoding="sync"
@@ -40,12 +53,12 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
 
   return (
     <LazyImage
-      src={imageSource}
+      src={hasError ? '/placeholder.svg' : imageSource}
       alt={alt}
       className={className}
-      onError={onError ? () => onError(null as any) : undefined}
+      onError={() => setHasError(true)}
     />
   );
 };
 
-export default ImageLoader;
+export default React.memo(ImageLoader);

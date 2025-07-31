@@ -1,44 +1,33 @@
-import React, { useState, useRef, useEffect, ReactNode } from 'react';
+import React, { Suspense, lazy } from 'react';
 
 interface LazyComponentProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-  threshold?: number;
-  rootMargin?: string;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
-const LazyComponent: React.FC<LazyComponentProps> = ({
-  children,
-  fallback = <div className="animate-pulse bg-gray-200 h-32 rounded"></div>,
-  threshold = 0.1,
-  rootMargin = '50px'
+const LazyComponent: React.FC<LazyComponentProps> = ({ 
+  children, 
+  fallback = <div className="animate-pulse bg-gray-200 rounded h-32" /> 
 }) => {
-  const [isInView, setIsInView] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold, rootMargin }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
-
   return (
-    <div ref={ref}>
-      {isInView ? children : fallback}
-    </div>
+    <Suspense fallback={fallback}>
+      {children}
+    </Suspense>
   );
+};
+
+// Higher-order component for lazy loading
+export const withLazyLoading = <P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: React.ReactNode
+) => {
+  const LazyLoadedComponent = lazy(() => Promise.resolve({ default: Component }));
+  
+  return React.memo((props: P) => (
+    <LazyComponent fallback={fallback}>
+      <LazyLoadedComponent {...props} />
+    </LazyComponent>
+  ));
 };
 
 export default LazyComponent;

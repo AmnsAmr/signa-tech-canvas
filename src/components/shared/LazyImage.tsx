@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface LazyImageProps {
   src: string;
@@ -13,7 +13,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   src,
   alt,
   className = '',
-  placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y0ZjRmNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Mb2FkaW5nLi4uPC90ZXh0Pjwvc3ZnPg==',
+  placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y0ZjRmNCIvPjwvc3ZnPg==',
   onLoad,
   onError
 }) => {
@@ -21,51 +21,61 @@ const LazyImage: React.FC<LazyImageProps> = ({
   const [isInView, setIsInView] = useState(false);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const handleLoad = useCallback(() => {
+    setIsLoaded(true);
+    onLoad?.();
+  }, [onLoad]);
+
+  const handleError = useCallback(() => {
+    setHasError(true);
+    onError?.();
+  }, [onError]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    const currentImg = imgRef.current;
+    if (!currentImg) return;
+
+    // Use more aggressive intersection observer settings for better performance
+    observerRef.current = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsInView(true);
-          observer.disconnect();
+          observerRef.current?.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.01, // Load earlier for smoother experience
+        rootMargin: '50px' // Start loading 50px before entering viewport
+      }
     );
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
+    observerRef.current.observe(currentImg);
 
-    return () => observer.disconnect();
+    return () => {
+      observerRef.current?.disconnect();
+    };
   }, []);
-
-  const handleLoad = () => {
-    setIsLoaded(true);
-    onLoad?.();
-  };
-
-  const handleError = () => {
-    setHasError(true);
-    onError?.();
-  };
 
   return (
     <img
       ref={imgRef}
       src={isInView ? src : placeholder}
       alt={alt}
-      className={`transition-opacity duration-300 ${
-        isLoaded ? 'opacity-100' : 'opacity-50'
+      className={`transition-opacity duration-200 will-change-opacity ${
+        isLoaded ? 'opacity-100' : 'opacity-70'
       } ${className}`}
       onLoad={handleLoad}
       onError={handleError}
       loading="lazy"
+      decoding="async"
       style={{
-        filter: hasError ? 'grayscale(100%)' : 'none'
+        filter: hasError ? 'grayscale(100%)' : 'none',
+        contentVisibility: 'auto'
       }}
     />
   );
 };
 
-export default LazyImage;
+export default React.memo(LazyImage);

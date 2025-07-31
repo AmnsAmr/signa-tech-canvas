@@ -101,16 +101,15 @@ const Index = () => {
       <SEOHead />
       <Header />
       
-      {/* Hero Section - Bold Creative Design */}
+      {/* Hero Section - Optimized Design */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Dynamic Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-hero animate-gradient-shift bg-[size:400%_400%]"></div>
+        {/* Simplified Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-hero"></div>
         
-        {/* Floating Creative Elements */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float"></div>
-          <div className="absolute bottom-20 right-20 w-48 h-48 bg-accent/20 rounded-3xl rotate-45 animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 right-10 w-24 h-24 bg-white/5 rounded-full animate-creative-spin"></div>
+        {/* Simplified Background Elements - Hidden on mobile */}
+        <div className="absolute inset-0 z-0 hidden md:block">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
+          <div className="absolute bottom-20 right-20 w-48 h-48 bg-accent/10 rounded-3xl rotate-45"></div>
         </div>
         
         <div className="container mx-auto px-4 relative z-10 pt-20">
@@ -120,23 +119,23 @@ const Index = () => {
               {t('hero.badge')}
             </Badge>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black mb-6 lg:mb-8 animate-fade-in leading-tight px-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 lg:mb-8 leading-tight px-4 will-change-transform">
               {t('hero.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
                 {t('hero.title2')}
               </span>
             </h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 lg:mb-12 text-white/90 animate-slide-in-right leading-relaxed max-w-4xl mx-auto font-light px-4">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-2xl mb-8 lg:mb-12 text-white/90 leading-relaxed max-w-4xl mx-auto font-light px-4">
               {t('hero.subtitle')} 
               <span className="font-bold text-accent"> {t('hero.subtitle.highlight')}</span> {t('hero.subtitle.end')}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center animate-fade-in px-4">
+            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center px-4">
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-white text-primary hover:bg-accent hover:text-white shadow-strong hover:shadow-glow transition-all text-lg lg:text-xl px-8 lg:px-12 py-4 lg:py-6 rounded-2xl transform hover:scale-105 touch-manipulation w-full sm:w-auto"
+                className="bg-white text-primary hover:bg-accent hover:text-white shadow-medium transition-all duration-200 text-lg lg:text-xl px-8 lg:px-12 py-4 lg:py-6 rounded-2xl touch-manipulation w-full sm:w-auto"
               >
                 <Link to="/contact">
                   <Zap className="mr-2 lg:mr-3 h-5 lg:h-6 w-5 lg:w-6" />
@@ -149,7 +148,7 @@ const Index = () => {
                 asChild 
                 variant="outline" 
                 size="lg"
-                className="border-white/50 text-white hover:bg-white hover:text-primary backdrop-blur-sm text-lg lg:text-xl px-8 lg:px-12 py-4 lg:py-6 rounded-2xl transform hover:scale-105 touch-manipulation w-full sm:w-auto"
+                className="border-white/50 text-white hover:bg-white hover:text-primary backdrop-blur-sm text-lg lg:text-xl px-8 lg:px-12 py-4 lg:py-6 rounded-2xl transition-all duration-200 touch-manipulation w-full sm:w-auto"
               >
                 <Link to="/portfolio">
                   <Play className="mr-2 lg:mr-3 h-5 lg:h-6 w-5 lg:w-6" />
@@ -168,20 +167,20 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats Section - Creative Design */}
-      <section className="py-24 relative">
+      {/* Stats Section - Optimized Design */}
+      <section className="py-16 lg:py-24 relative">
         <div className="absolute inset-0 bg-gradient-subtle"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center group animate-fade-in">
+              <div key={index} className="text-center group">
                 <div className="relative mb-4 lg:mb-6">
-                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto shadow-glow group-hover:shadow-pink transition-all duration-300 group-hover:scale-110 rotate-3 group-hover:rotate-6 touch-manipulation">
+                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto shadow-medium transition-all duration-200 touch-manipulation">
                     <stat.icon className="h-8 w-8 lg:h-10 lg:w-10 text-primary-foreground" />
                   </div>
-                  <div className="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 w-4 h-4 lg:w-6 lg:h-6 bg-accent rounded-full animate-glow-pulse"></div>
+                  <div className="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 w-4 h-4 lg:w-6 lg:h-6 bg-accent rounded-full opacity-80"></div>
                 </div>
-                <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-primary mb-2 lg:mb-3 group-hover:text-accent transition-colors">{stat.number}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-primary mb-2 lg:mb-3 transition-colors duration-200">{stat.number}</div>
                 <div className="text-sm lg:text-base text-muted-foreground font-medium px-2">{stat.label}</div>
               </div>
             ))}
@@ -189,9 +188,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Services Section - Asymmetric Creative Layout */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-primary rounded-full blur-3xl opacity-10 animate-float"></div>
+      {/* Services Section - Optimized Layout */}
+      <section className="py-16 lg:py-24 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-primary rounded-full blur-3xl opacity-5 hidden lg:block"></div>
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3 rounded-full shadow-glow">
@@ -207,28 +206,22 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             {services.map((service, index) => (
-              <Card key={index} className={`group relative overflow-hidden border-0 shadow-strong hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 touch-manipulation ${
-                index % 2 === 0 ? 'lg:translate-y-8' : 'lg:-translate-y-8'
-              }`}>
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <CardContent className="p-6 lg:p-10 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500">
-                  <div className="flex flex-col space-y-6">
-                    <div className={`w-14 h-14 lg:w-16 lg:h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-glow rotate-12 group-hover:rotate-0 transition-transform duration-500 ${
-                      index % 2 === 0 ? 'self-start' : 'lg:self-end self-start'
-                    }`}>
+              <Card key={index} className="group relative overflow-hidden border-0 shadow-medium hover:shadow-strong transition-all duration-300 touch-manipulation">
+                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <CardContent className="p-6 lg:p-8 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-300">
+                  <div className="flex flex-col space-y-4 lg:space-y-6">
+                    <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-medium self-start">
                       <service.icon className="h-7 w-7 lg:h-8 lg:w-8 text-primary-foreground" />
                     </div>
-                    <div className={index % 2 === 0 ? 'text-left' : 'lg:text-right text-left'}>
-                      <h3 className="text-xl lg:text-2xl font-bold text-foreground group-hover:text-white mb-3 lg:mb-4 transition-colors duration-500">{service.title}</h3>
-                      <p className="text-base lg:text-lg text-muted-foreground group-hover:text-white/90 mb-4 lg:mb-6 leading-relaxed transition-colors duration-500">{service.description}</p>
-                      <ul className={`space-y-2 lg:space-y-3 ${index % 2 === 0 ? 'text-left' : 'lg:text-right text-left'}`}>
+                    <div className="text-left">
+                      <h3 className="text-xl lg:text-2xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-300">{service.title}</h3>
+                      <p className="text-base lg:text-lg text-muted-foreground group-hover:text-white/90 mb-4 leading-relaxed transition-colors duration-300">{service.description}</p>
+                      <ul className="space-y-2 text-left">
                         {service.features.map((feature, idx) => (
-                          <li key={idx} className={`flex items-center text-sm lg:text-base text-muted-foreground group-hover:text-white/80 transition-colors duration-500 ${
-                            index % 2 === 0 ? 'justify-start' : 'lg:justify-end justify-start'
-                          }`}>
-                            <CheckCircle className={`h-4 w-4 lg:h-5 lg:w-5 text-success group-hover:text-accent ${index % 2 === 0 ? 'mr-2 lg:mr-3' : 'lg:ml-3 lg:order-last mr-2'} flex-shrink-0`} />
+                          <li key={idx} className="flex items-center text-sm lg:text-base text-muted-foreground group-hover:text-white/80 transition-colors duration-300">
+                            <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 text-success group-hover:text-accent mr-2 lg:mr-3 flex-shrink-0" />
                             {feature}
                           </li>
                         ))}
@@ -240,21 +233,21 @@ const Index = () => {
             ))}
           </div>
 
-          <div className="text-center mt-20">
-            <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-pink transition-all text-xl px-16 py-6 rounded-2xl transform hover:scale-110">
+          <div className="text-center mt-16 lg:mt-20">
+            <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-medium hover:shadow-strong transition-all duration-200 text-lg lg:text-xl px-12 lg:px-16 py-4 lg:py-6 rounded-2xl">
               <Link to="/services">
-                <TrendingUp className="mr-3 h-6 w-6" />
+                <TrendingUp className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
                 {t('services.cta')}
-                <ArrowRight className="ml-3 h-6 w-6" />
+                <ArrowRight className="ml-3 h-5 w-5 lg:h-6 lg:w-6" />
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Portfolio Preview - Creative Gallery */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-primary rounded-full blur-3xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+      {/* Portfolio Preview - Optimized Gallery */}
+      <section className="py-16 lg:py-24 relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-primary rounded-full blur-3xl opacity-10 hidden lg:block"></div>
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3 rounded-full shadow-glow">
@@ -271,75 +264,75 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105 touch-manipulation">
+            <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-strong transition-all duration-300 touch-manipulation">
               <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
                   filename={facadeImage?.filename}
                   alt="Habillage façade"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   priority={true}
                   fetchPriority="high"
                 />
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
-                  <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-70 transition-opacity duration-300 flex items-center justify-center">
+                  <Play className="h-12 w-12 lg:h-16 lg:w-16 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </div>
-              <CardContent className="p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-500">
-                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">{t('portfolio.facade.title')}</h3>
-                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">{t('portfolio.facade.desc')}</p>
+              <CardContent className="p-6 lg:p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-300">
+                <h3 className="text-lg lg:text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-300">{t('portfolio.facade.title')}</h3>
+                <p className="text-sm lg:text-base text-muted-foreground group-hover:text-white/90 transition-colors duration-300">{t('portfolio.facade.desc')}</p>
               </CardContent>
             </Card>
 
-            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:rotate-1 hover:scale-105 lg:translate-y-8">
+            <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-strong transition-all duration-300 lg:translate-y-4">
               <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
                   filename={heroImage?.filename}
                   alt="Displays PLV"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
-                  <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-70 transition-opacity duration-300 flex items-center justify-center">
+                  <Play className="h-12 w-12 lg:h-16 lg:w-16 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </div>
-              <CardContent className="p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-500">
-                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">{t('portfolio.plv.title')}</h3>
-                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">{t('portfolio.plv.desc')}</p>
+              <CardContent className="p-6 lg:p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-300">
+                <h3 className="text-lg lg:text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-300">{t('portfolio.plv.title')}</h3>
+                <p className="text-sm lg:text-base text-muted-foreground group-hover:text-white/90 transition-colors duration-300">{t('portfolio.plv.desc')}</p>
               </CardContent>
             </Card>
 
-            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
+            <Card className="group relative overflow-hidden border-0 shadow-medium hover:shadow-strong transition-all duration-300">
               <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
                   filename={plvImage?.filename}
                   alt="Artisanat"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-80 transition-opacity duration-500 flex items-center justify-center">
-                  <Play className="h-16 w-16 text-white transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-70 transition-opacity duration-300 flex items-center justify-center">
+                  <Play className="h-12 w-12 lg:h-16 lg:w-16 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </div>
-              <CardContent className="p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-500">
-                <h3 className="text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-500">{t('portfolio.craft.title')}</h3>
-                <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-500">{t('portfolio.craft.desc')}</p>
+              <CardContent className="p-6 lg:p-8 bg-white group-hover:bg-gradient-primary transition-colors duration-300">
+                <h3 className="text-lg lg:text-xl font-bold text-foreground group-hover:text-white mb-3 transition-colors duration-300">{t('portfolio.craft.title')}</h3>
+                <p className="text-sm lg:text-base text-muted-foreground group-hover:text-white/90 transition-colors duration-300">{t('portfolio.craft.desc')}</p>
               </CardContent>
             </Card>
           </div>
 
-          <div className="text-center mt-20">
-            <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-pink transition-all text-xl px-16 py-6 rounded-2xl transform hover:scale-110">
+          <div className="text-center mt-16 lg:mt-20">
+            <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-medium hover:shadow-strong transition-all duration-200 text-lg lg:text-xl px-12 lg:px-16 py-4 lg:py-6 rounded-2xl">
               <Link to="/portfolio">
-                <Sparkles className="mr-3 h-6 w-6" />
+                <Sparkles className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
                 {t('portfolio.cta')}
-                <ArrowRight className="ml-3 h-6 w-6" />
+                <ArrowRight className="ml-3 h-5 w-5 lg:h-6 lg:w-6" />
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Testimonials - Creative Floating Cards */}
-      <section className="py-24 relative overflow-hidden bg-gradient-subtle">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-primary rounded-full blur-3xl opacity-20 animate-float"></div>
+      {/* Testimonials - Optimized Cards */}
+      <section className="py-16 lg:py-24 relative overflow-hidden bg-gradient-subtle">
+        <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-primary rounded-full blur-3xl opacity-10 hidden lg:block"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-20">
             <Badge className="bg-gradient-primary text-primary-foreground mb-8 text-lg px-8 py-3 rounded-full shadow-glow">
@@ -370,47 +363,46 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section - Bold & Creative */}
-      <section className="py-32 bg-gradient-hero relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }}></div>
-          <div className="absolute top-1/2 left-0 w-32 h-96 bg-white/5 rounded-full rotate-45 blur-2xl animate-creative-spin"></div>
+      {/* CTA Section - Optimized */}
+      <section className="py-20 lg:py-32 bg-gradient-hero relative overflow-hidden">
+        {/* Simplified Background Elements */}
+        <div className="absolute inset-0 hidden lg:block">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/3 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl"></div>
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center text-primary-foreground max-w-5xl mx-auto">
-            <h2 className="text-6xl lg:text-8xl font-black mb-8 leading-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black mb-6 lg:mb-8 leading-tight">
               {t('cta.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white via-accent-light to-white">
                 {t('cta.title2')}
               </span>
-              <span className="block text-4xl lg:text-5xl font-light mt-4">{t('cta.title3')}</span>
+              <span className="block text-2xl lg:text-4xl font-light mt-4">{t('cta.title3')}</span>
             </h2>
-            <p className="text-2xl lg:text-3xl mb-16 text-white/90 max-w-4xl mx-auto leading-relaxed font-light">
+            <p className="text-lg sm:text-xl lg:text-2xl mb-12 lg:mb-16 text-white/90 max-w-4xl mx-auto leading-relaxed font-light px-4">
               {t('cta.subtitle')}<span className="font-bold text-accent">{t('cta.subtitle.highlight')}</span> {t('cta.subtitle.end')}
             </p>
-            <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 lg:gap-8 justify-center items-center px-4">
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-white text-primary hover:bg-accent hover:text-white shadow-glow hover:shadow-pink transition-all text-2xl px-16 py-8 rounded-3xl transform hover:scale-110 animate-glow-pulse"
+                className="bg-white text-primary hover:bg-accent hover:text-white shadow-medium hover:shadow-strong transition-all duration-200 text-lg lg:text-xl px-12 lg:px-16 py-4 lg:py-6 rounded-2xl w-full sm:w-auto"
               >
                 <Link to="/contact">
-                  <Zap className="mr-4 h-8 w-8" />
+                  <Zap className="mr-3 lg:mr-4 h-5 lg:h-6 w-5 lg:w-6" />
                   {t('cta.primary')}
-                  <ArrowRight className="ml-4 h-8 w-8" />
+                  <ArrowRight className="ml-3 lg:ml-4 h-5 lg:h-6 w-5 lg:w-6" />
                 </Link>
               </Button>
               <Button 
                 asChild 
                 variant="outline" 
                 size="lg"
-                className="border-white/50 text-white hover:bg-white hover:text-primary backdrop-blur-sm text-2xl px-16 py-8 rounded-3xl transform hover:scale-110"
+                className="border-white/50 text-white hover:bg-white hover:text-primary backdrop-blur-sm text-lg lg:text-xl px-12 lg:px-16 py-4 lg:py-6 rounded-2xl transition-all duration-200 w-full sm:w-auto"
               >
                 <a href="tel:+212539403133">
-                  <Phone className="mr-4 h-8 w-8" />
+                  <Phone className="mr-3 lg:mr-4 h-5 lg:h-6 w-5 lg:w-6" />
                   {t('cta.secondary')}
                 </a>
               </Button>

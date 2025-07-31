@@ -18,7 +18,6 @@ const Header = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollDirection, setScrollDirection] = useState('down');
   const [highlightStyle, setHighlightStyle] = useState({ left: 0, width: 0, opacity: 0 });
-  const [hasActiveHighlight, setHasActiveHighlight] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const { t } = useLanguage();
@@ -58,12 +57,10 @@ const Header = () => {
       width: elementRect.width,
       opacity: 1
     });
-    setHasActiveHighlight(true);
   };
 
   const hideHighlight = () => {
     setHighlightStyle(prev => ({ ...prev, opacity: 0 }));
-    setHasActiveHighlight(false);
   };
 
   useEffect(() => {
@@ -129,9 +126,7 @@ const Header = () => {
                 height: '40px',
                 opacity: highlightStyle.opacity,
                 transform: 'translateY(0)',
-                transition: hasActiveHighlight 
-                  ? 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-out'
-                  : 'opacity 0.2s ease-out'
+                transition: 'left 0.2s ease-out, width 0.2s ease-out, opacity 0.15s ease-out'
               }}
             />
             {navItems.map((item) => (
@@ -195,11 +190,10 @@ const Header = () => {
               )}
               <Button 
                 asChild 
-                className="bg-gradient-primary hover:shadow-glow transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+                className="bg-gradient-primary hover:shadow-medium transition-all duration-200"
               >
-                <Link to="/contact" className="relative z-10">
+                <Link to="/contact">
                   <span>{t('nav.quote')}</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                 </Link>
               </Button>
             </div>

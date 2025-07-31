@@ -23,7 +23,10 @@ export default defineConfig(({ mode }) => ({
     }
   },
   plugins: [
-    react(),
+    react({
+      fastRefresh: true,
+      jsxRuntime: 'automatic'
+    }),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
@@ -33,22 +36,31 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize build for better performance
-    target: 'esnext',
+    target: 'es2020',
     cssCodeSplit: true,
-    reportCompressedSize: false, // Faster build
+    reportCompressedSize: false,
+    minify: 'terser',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor code for better caching
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@/components/ui'],
+          'react-vendor': ['react', 'react-dom'],
+          'router-query': ['react-router-dom', '@tanstack/react-query'],
+          'ui-components': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-toast'
+          ],
+          'utils': ['lucide-react', 'clsx', 'tailwind-merge']
         },
       },
     },
   },
   optimizeDeps: {
-    // Optimize dependencies for faster loading
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+    exclude: ['@radix-ui/react-navigation-menu']
+  },
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
 }));
