@@ -4,15 +4,12 @@ import { apiMonitor } from '@/utils/apiMonitor';
 
 const getApiBaseUrl = (): string => {
   if (import.meta.env.DEV) {
-    return import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    return import.meta.env.VITE_API_URL || '';
   }
   return import.meta.env.VITE_API_URL || '';
 };
 
 const getUploadsBaseUrl = (): string => {
-  if (import.meta.env.DEV) {
-    return import.meta.env.VITE_UPLOADS_URL || 'http://localhost:5000/uploads';
-  }
   return import.meta.env.VITE_UPLOADS_URL || '/uploads';
 };
 
