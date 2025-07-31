@@ -68,10 +68,9 @@ All colors MUST be HSL.
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
     --shadow-pink: 0 8px 30px hsl(var(--accent) / 0.2);
 
-    /* Optimized transitions for better performance */
-    --transition-smooth: all 0.2s ease-out;
-    --transition-bounce: all 0.3s ease-out;
-    --transition-creative: all 0.25s ease-out;
+    /* Minimal transitions for performance */
+    --transition-smooth: transform 0.15s ease-out, opacity 0.15s ease-out;
+    --transition-fast: transform 0.1s ease-out;
 
     --sidebar-background: 0 0% 98%;
 
@@ -170,21 +169,14 @@ All colors MUST be HSL.
     max-height: 1000px;
   }
   
-  /* Optimized card hover effect */
-  .card-hover-effect {
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-    will-change: transform;
-  }
-  
-  .card-hover-effect:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.1);
-  }
-  
-  @media (max-width: 768px) {
+  /* Minimal hover effects */
+  @media (hover: hover) {
+    .card-hover-effect {
+      transition: var(--transition-fast);
+    }
+    
     .card-hover-effect:hover {
-      transform: none;
-      box-shadow: none;
+      transform: translateY(-1px);
     }
   }
 
@@ -277,18 +269,23 @@ All colors MUST be HSL.
       padding: 12px 16px;
     }
     
-    /* Reduce animations on mobile for better performance */
-    .animate-float,
-    .animate-creative-spin,
-    .animate-gradient-shift {
+    /* Remove all animations on mobile */
+    * {
       animation: none !important;
+      transition: none !important;
     }
     
-    /* Simplify shadows on mobile */
+    /* Only allow essential transforms */
+    .mobile-transform {
+      transition: transform 0.1s ease-out !important;
+    }
+    
+    /* Minimal shadows */
     .shadow-glow,
     .shadow-strong,
-    .shadow-pink {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    .shadow-pink,
+    .shadow-medium {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
   }
 
@@ -304,19 +301,21 @@ All colors MUST be HSL.
     }
   }
   
-  /* Performance optimizations */
-  .will-change-transform {
+  /* Critical performance optimizations */
+  .perf-layer {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
+  
+  .perf-transform {
+    transform: translateZ(0);
     will-change: transform;
   }
   
-  .will-change-opacity {
-    will-change: opacity;
-  }
-  
-  .gpu-accelerated {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
+  /* Remove expensive effects */
+  .no-blur {
+    filter: none !important;
+    backdrop-filter: none !important;
   }
 
   /* Improved focus states for accessibility */

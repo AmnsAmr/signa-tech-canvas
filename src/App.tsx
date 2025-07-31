@@ -20,7 +20,7 @@ import NotFound from "./pages/NotFound";
 
 import ScrollToTop from "./components/ScrollToTop";
 import { useFavicon } from "./hooks/useFavicon";
-import { initMobileOptimizations } from "./utils/mobileOptimizations";
+import { initPerformanceOptimizations } from "./utils/performanceOptimizer";
 import React from 'react';
 
 const queryClient = new QueryClient();
@@ -29,10 +29,9 @@ const AppContent = () => {
   // Initialize favicon management
   useFavicon();
   
-  // Initialize mobile optimizations
+  // Initialize performance optimizations
   React.useEffect(() => {
-    const cleanup = initMobileOptimizations();
-    return cleanup;
+    initPerformanceOptimizations();
   }, []);
   
   return (

@@ -72,18 +72,16 @@ const Header = () => {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 perf-layer ${
         isScrolled 
-          ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-medium' 
-          : 'bg-background/95 backdrop-blur-sm border-b border-border shadow-soft'
+          ? 'bg-background/95 border-b border-border/50' 
+          : 'bg-background border-b border-border'
       }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
 
       {/* Main navigation */}
-      <div className={`container mx-auto px-4 transition-all duration-300 ${
-        isMinimized && !isHovered ? 'py-1' : isScrolled ? 'py-2' : 'py-4'
+      <div className={`container mx-auto px-4 ${
+        isScrolled ? 'py-2' : 'py-4'
       }`}>
         <div className="flex items-center justify-between">
           {/* Logo with enhanced effects */}
@@ -92,10 +90,9 @@ const Header = () => {
               <img
                 src={logoImage?.filename ? buildUploadUrl(logoImage.filename) : '/placeholder.svg'}
                 alt="Signa Tech Logo"
-                className={`w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
-                  isMinimized && !isHovered ? 'h-6' : isScrolled ? 'h-8' : 'h-12'
+                className={`w-auto object-contain ${
+                  isScrolled ? 'h-8' : 'h-12'
                 }`}
-                style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}
                 onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.svg'}
               />
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 rounded-lg blur-xl transition-opacity duration-300"></div>
@@ -105,17 +102,7 @@ const Header = () => {
           {/* Desktop Navigation with sliding highlight */}
           <nav 
             ref={navRef}
-            className={`hidden md:flex items-center space-x-1 transition-all duration-300 relative ${
-              isMinimized && !isHovered ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
-            }`}
-            onMouseLeave={() => {
-              // Only hide if we're not hovering over an active nav item
-              setTimeout(() => {
-                if (!navRef.current?.matches(':hover')) {
-                  hideHighlight();
-                }
-              }, 50);
-            }}
+            className="hidden md:flex items-center space-x-1 relative"
           >
             {/* Sliding highlight background */}
             <div 
@@ -125,8 +112,7 @@ const Header = () => {
                 width: highlightStyle.width,
                 height: '40px',
                 opacity: highlightStyle.opacity,
-                transform: 'translateY(0)',
-                transition: 'left 0.2s ease-out, width 0.2s ease-out, opacity 0.15s ease-out'
+                transition: 'opacity 0.15s ease-out'
               }}
             />
             {navItems.map((item) => (
@@ -134,7 +120,7 @@ const Header = () => {
                 key={item.path}
                 to={item.path}
                 data-active={isActive(item.path)}
-                className={`relative px-4 py-2 font-medium transition-colors duration-200 rounded-lg z-10 ${
+                className={`relative px-4 py-2 font-medium rounded-lg z-10 ${
                   isActive(item.path) ? 'text-primary' : 'text-foreground hover:text-primary'
                 }`}
                 onMouseEnter={(e) => updateHighlight(e.currentTarget)}
@@ -190,7 +176,7 @@ const Header = () => {
               )}
               <Button 
                 asChild 
-                className="bg-gradient-primary hover:shadow-medium transition-all duration-200"
+                className="bg-gradient-primary mobile-transform"
               >
                 <Link to="/contact">
                   <span>{t('nav.quote')}</span>
