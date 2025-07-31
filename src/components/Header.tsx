@@ -108,7 +108,7 @@ const Header = () => {
           {/* Desktop Navigation with sliding highlight */}
           <nav 
             ref={navRef}
-            className={`hidden lg:flex items-center space-x-1 transition-all duration-300 relative ${
+            className={`hidden md:flex items-center space-x-1 transition-all duration-300 relative ${
               isMinimized && !isHovered ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 pointer-events-auto scale-100'
             }`}
             onMouseLeave={() => {
@@ -209,7 +209,7 @@ const Header = () => {
           <Button
             variant="ghost"
             size="sm"
-            className={`lg:hidden relative p-2 hover:bg-primary/10 transition-all duration-300 ${
+            className={`md:hidden relative p-3 hover:bg-primary/10 transition-all duration-300 touch-manipulation ${
               isMinimized && !isHovered ? 'scale-75' : 'scale-100'
             }`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -226,7 +226,7 @@ const Header = () => {
         </div>
 
         {/* Enhanced Mobile Navigation */}
-        <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+        <div className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
           isMenuOpen && !isMinimized ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}>
           <div className="mt-4 pb-4 border-t border-border/50">
@@ -235,10 +235,10 @@ const Header = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-4 py-3 font-medium transition-all duration-300 rounded-lg relative group ${
+                  className={`px-4 py-4 font-medium transition-all duration-300 rounded-lg relative group touch-manipulation min-h-[44px] flex items-center ${
                     isActive(item.path) 
                       ? 'text-primary bg-primary/10 border-l-4 border-primary' 
-                      : 'text-foreground hover:text-primary hover:bg-primary/5 hover:translate-x-2'
+                      : 'text-foreground hover:text-primary hover:bg-primary/5 active:bg-primary/10 hover:translate-x-2'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                   style={{ animationDelay: `${index * 50}ms` }}

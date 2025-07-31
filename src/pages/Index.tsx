@@ -120,28 +120,28 @@ const Index = () => {
               {t('hero.badge')}
             </Badge>
             
-            <h1 className="text-6xl lg:text-8xl font-black mb-8 animate-fade-in leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black mb-6 lg:mb-8 animate-fade-in leading-tight px-4">
               {t('hero.title1')}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-accent-light">
                 {t('hero.title2')}
               </span>
             </h1>
             
-            <p className="text-2xl lg:text-3xl mb-12 text-white/90 animate-slide-in-right leading-relaxed max-w-4xl mx-auto font-light">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 lg:mb-12 text-white/90 animate-slide-in-right leading-relaxed max-w-4xl mx-auto font-light px-4">
               {t('hero.subtitle')} 
               <span className="font-bold text-accent"> {t('hero.subtitle.highlight')}</span> {t('hero.subtitle.end')}
             </p>
             
-            <div className="flex flex-col lg:flex-row gap-6 justify-center items-center animate-fade-in">
+            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center animate-fade-in px-4">
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-white text-primary hover:bg-accent hover:text-white shadow-strong hover:shadow-glow transition-all text-xl px-12 py-6 rounded-2xl transform hover:scale-105"
+                className="bg-white text-primary hover:bg-accent hover:text-white shadow-strong hover:shadow-glow transition-all text-lg lg:text-xl px-8 lg:px-12 py-4 lg:py-6 rounded-2xl transform hover:scale-105 touch-manipulation w-full sm:w-auto"
               >
                 <Link to="/contact">
-                  <Zap className="mr-3 h-6 w-6" />
+                  <Zap className="mr-2 lg:mr-3 h-5 lg:h-6 w-5 lg:w-6" />
                   {t('hero.cta.primary')}
-                  <ArrowRight className="ml-3 h-6 w-6" />
+                  <ArrowRight className="ml-2 lg:ml-3 h-5 lg:h-6 w-5 lg:w-6" />
                 </Link>
               </Button>
               
@@ -149,10 +149,10 @@ const Index = () => {
                 asChild 
                 variant="outline" 
                 size="lg"
-                className="border-white/50 text-white hover:bg-white hover:text-primary backdrop-blur-sm text-xl px-12 py-6 rounded-2xl transform hover:scale-105"
+                className="border-white/50 text-white hover:bg-white hover:text-primary backdrop-blur-sm text-lg lg:text-xl px-8 lg:px-12 py-4 lg:py-6 rounded-2xl transform hover:scale-105 touch-manipulation w-full sm:w-auto"
               >
                 <Link to="/portfolio">
-                  <Play className="mr-3 h-6 w-6" />
+                  <Play className="mr-2 lg:mr-3 h-5 lg:h-6 w-5 lg:w-6" />
                   {t('hero.cta.secondary')}
                 </Link>
               </Button>
@@ -172,17 +172,17 @@ const Index = () => {
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-subtle"></div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center group animate-fade-in">
-                <div className="relative mb-6">
-                  <div className="w-20 h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto shadow-glow group-hover:shadow-pink transition-all duration-300 group-hover:scale-110 rotate-3 group-hover:rotate-6">
-                    <stat.icon className="h-10 w-10 text-primary-foreground" />
+                <div className="relative mb-4 lg:mb-6">
+                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto shadow-glow group-hover:shadow-pink transition-all duration-300 group-hover:scale-110 rotate-3 group-hover:rotate-6 touch-manipulation">
+                    <stat.icon className="h-8 w-8 lg:h-10 lg:w-10 text-primary-foreground" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full animate-glow-pulse"></div>
+                  <div className="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 w-4 h-4 lg:w-6 lg:h-6 bg-accent rounded-full animate-glow-pulse"></div>
                 </div>
-                <div className="text-4xl lg:text-5xl font-black text-primary mb-3 group-hover:text-accent transition-colors">{stat.number}</div>
-                <div className="text-muted-foreground font-medium">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-primary mb-2 lg:mb-3 group-hover:text-accent transition-colors">{stat.number}</div>
+                <div className="text-sm lg:text-base text-muted-foreground font-medium px-2">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -207,28 +207,28 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
             {services.map((service, index) => (
-              <Card key={index} className={`group relative overflow-hidden border-0 shadow-strong hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 ${
+              <Card key={index} className={`group relative overflow-hidden border-0 shadow-strong hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 touch-manipulation ${
                 index % 2 === 0 ? 'lg:translate-y-8' : 'lg:-translate-y-8'
               }`}>
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <CardContent className="p-10 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500">
+                <CardContent className="p-6 lg:p-10 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500">
                   <div className="flex flex-col space-y-6">
-                    <div className={`w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-glow rotate-12 group-hover:rotate-0 transition-transform duration-500 ${
-                      index % 2 === 0 ? 'self-start' : 'self-end'
+                    <div className={`w-14 h-14 lg:w-16 lg:h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-glow rotate-12 group-hover:rotate-0 transition-transform duration-500 ${
+                      index % 2 === 0 ? 'self-start' : 'lg:self-end self-start'
                     }`}>
-                      <service.icon className="h-8 w-8 text-primary-foreground" />
+                      <service.icon className="h-7 w-7 lg:h-8 lg:w-8 text-primary-foreground" />
                     </div>
-                    <div className={index % 2 === 0 ? 'text-left' : 'text-right'}>
-                      <h3 className="text-2xl font-bold text-foreground group-hover:text-white mb-4 transition-colors duration-500">{service.title}</h3>
-                      <p className="text-muted-foreground group-hover:text-white/90 mb-6 leading-relaxed text-lg transition-colors duration-500">{service.description}</p>
-                      <ul className={`space-y-3 ${index % 2 === 0 ? 'text-left' : 'text-right'}`}>
+                    <div className={index % 2 === 0 ? 'text-left' : 'lg:text-right text-left'}>
+                      <h3 className="text-xl lg:text-2xl font-bold text-foreground group-hover:text-white mb-3 lg:mb-4 transition-colors duration-500">{service.title}</h3>
+                      <p className="text-base lg:text-lg text-muted-foreground group-hover:text-white/90 mb-4 lg:mb-6 leading-relaxed transition-colors duration-500">{service.description}</p>
+                      <ul className={`space-y-2 lg:space-y-3 ${index % 2 === 0 ? 'text-left' : 'lg:text-right text-left'}`}>
                         {service.features.map((feature, idx) => (
-                          <li key={idx} className={`flex items-center text-muted-foreground group-hover:text-white/80 transition-colors duration-500 ${
-                            index % 2 === 0 ? 'justify-start' : 'justify-end'
+                          <li key={idx} className={`flex items-center text-sm lg:text-base text-muted-foreground group-hover:text-white/80 transition-colors duration-500 ${
+                            index % 2 === 0 ? 'justify-start' : 'lg:justify-end justify-start'
                           }`}>
-                            <CheckCircle className={`h-5 w-5 text-success group-hover:text-accent ${index % 2 === 0 ? 'mr-3' : 'ml-3 order-last'} flex-shrink-0`} />
+                            <CheckCircle className={`h-4 w-4 lg:h-5 lg:w-5 text-success group-hover:text-accent ${index % 2 === 0 ? 'mr-2 lg:mr-3' : 'lg:ml-3 lg:order-last mr-2'} flex-shrink-0`} />
                             {feature}
                           </li>
                         ))}
@@ -270,8 +270,8 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:-rotate-1 hover:scale-105 touch-manipulation">
               <div className="aspect-square overflow-hidden relative">
                 <ImageLoader
                   filename={facadeImage?.filename}
