@@ -185,8 +185,10 @@ export class AuthApi {
 }
 
 export class RatingsApi {
-  static async getAll(): Promise<ApiResponse<any[]>> {
-    return apiClient.get<any[]>(API_ENDPOINTS.RATINGS.GET_ALL, 'ratings:all', CACHE_TTL.DYNAMIC);
+  static async getAll(featured?: boolean): Promise<ApiResponse<any[]>> {
+    const endpoint = featured ? `${API_ENDPOINTS.RATINGS.GET_ALL}?featured=true` : API_ENDPOINTS.RATINGS.GET_ALL;
+    const cacheKey = featured ? 'ratings:featured' : 'ratings:all';
+    return apiClient.get<any[]>(endpoint, cacheKey, CACHE_TTL.DYNAMIC);
   }
 
   static async create(rating: any): Promise<ApiResponse<any>> {

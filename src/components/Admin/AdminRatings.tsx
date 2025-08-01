@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiClient } from '@/api';
 
 interface Rating {
   id: number;
@@ -30,14 +31,9 @@ const AdminRatings: React.FC = () => {
 
   const fetchRatings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/ratings', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setRatings(data);
+      const response = await apiClient.get('/api/admin/ratings');
+      if (response.success && response.data) {
+        setRatings(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch ratings:', error);
@@ -48,17 +44,12 @@ const AdminRatings: React.FC = () => {
 
   const updateRatingStatus = async (id: number, is_approved: boolean, is_featured: boolean) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/ratings/${id}/status`, {
+      const response = await apiClient.request(`/api/admin/ratings/${id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
         body: JSON.stringify({ is_approved, is_featured })
       });
 
-      if (response.ok) {
+      if (response.success) {
         setRatings(prev => prev.map(rating => 
           rating.id === id ? { ...rating, is_approved, is_featured } : rating
         ));
@@ -80,13 +71,9 @@ const AdminRatings: React.FC = () => {
     if (!confirm(t('rating.delete_confirm'))) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/ratings/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.delete(`/api/admin/ratings/${id}`);
 
-      if (response.ok) {
+      if (response.success) {
         setRatings(prev => prev.filter(rating => rating.id !== id));
         toast({
           title: t('rating.deleted'),

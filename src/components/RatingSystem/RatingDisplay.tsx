@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, ChevronDown, ChevronUp, Quote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { RatingsApi } from '@/api';
 
 interface Rating {
   id: number;
@@ -29,14 +30,9 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({ featured = false, limit }
 
   const fetchRatings = async () => {
     try {
-      const url = featured 
-        ? 'http://localhost:5000/api/ratings?featured=true'
-        : 'http://localhost:5000/api/ratings';
-      
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setRatings(data);
+      const response = await RatingsApi.getAll(featured);
+      if (response.success && response.data) {
+        setRatings(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch ratings:', error);
