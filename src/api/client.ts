@@ -158,12 +158,19 @@ class ApiClient {
         defaultHeaders['Content-Type'] = 'application/json';
       }
 
+      // ALWAYS add Authorization header if token exists (for ALL requests)
+      const token = localStorage.getItem('token');
+      if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      }
+
       const requestOptions: RequestInit = {
         ...options,
         headers: {
           ...defaultHeaders,
           ...options.headers,
         },
+        credentials: 'include', // Always include credentials
       };
 
       const response = await this.retryRequest(url, requestOptions);

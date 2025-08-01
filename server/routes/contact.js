@@ -16,7 +16,16 @@ const userContactValidation = [
   body('message')
     .trim()
     .isLength({ min: 10, max: 2000 })
-    .withMessage('Message must be between 10 and 2000 characters')
+    .withMessage('Message must be between 10 and 2000 characters'),
+  body('project')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Project type too long'),
+  body('services')
+    .optional()
+    .isString()
+    .withMessage('Services must be a string')
 ];
 
 // File upload validation for vector files

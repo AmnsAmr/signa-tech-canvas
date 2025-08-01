@@ -102,7 +102,7 @@ app.use('/api/ratings', cacheMiddleware(300), ratingRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/theme', cacheMiddleware(1800), themeRoutes);
 app.use('/api/projects', rateLimits.upload, cacheMiddleware(600), projectRoutes);
-app.use('/api/contact-settings', cacheMiddleware(1800), require('./routes/contact-settings'));
+app.use('/api/contact-settings', require('./routes/contact-settings'));
 
 // Serve uploaded images with optimization and caching
 const uploadDir = MigrationHelper.ensureUploadDir();

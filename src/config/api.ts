@@ -9,13 +9,11 @@ export const API_CONFIG = NEW_API_CONFIG;
 // Legacy helper functions - use new API layer instead
 // @deprecated Use apiClient methods directly
 export const buildApiUrl = (endpoint: string): string => {
-  console.warn('buildApiUrl is deprecated. Use apiClient methods directly.');
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
 // @deprecated Use apiClient.buildUploadUrl instead
 export const buildUploadUrl = (filename: string): string => {
-  console.warn('buildUploadUrl is deprecated. Use apiClient.buildUploadUrl instead.');
   return apiClient.buildUploadUrl(filename);
 };
 

@@ -9,16 +9,16 @@ const router = express.Router();
 router.get('/', cacheMiddleware(CACHE_CONFIG.SETTINGS), contactSettingsController.getSettings);
 
 // Admin-only route to update contact settings
-router.put('/', authenticateToken, requireAdmin, (req, res, next) => {
-  // Clear cache after successful update
-  const originalSend = res.send;
-  res.send = function(data) {
+router.put('/', authenticateToken, requireAdmin, async (req, res, next) => {
+  try {
+    await contactSettingsController.updateSettings(req, res);
+    // Clear cache after successful update
     if (res.statusCode === 200) {
       clearCache('/api/contact-settings');
     }
-    return originalSend.call(this, data);
-  };
-  next();
-}, contactSettingsController.updateSettings);
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;

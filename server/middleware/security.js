@@ -30,40 +30,39 @@ const createRateLimit = (windowMs, max, message) => {
   });
 };
 
+// Create no-op rate limiter for development
+const noRateLimit = (req, res, next) => next();
+
 // Different rate limits for different endpoints
 const rateLimits = {
-  // Authentication endpoints - stricter limits
-  auth: createRateLimit(
+  // Disable all rate limiting in development
+  auth: process.env.NODE_ENV === 'development' ? noRateLimit : createRateLimit(
     15 * 60 * 1000, // 15 minutes
-    5, // 5 attempts per window
+    15, // 15 attempts per window
     'Too many authentication attempts, please try again later'
   ),
   
-  // Contact form - moderate limits
-  contact: createRateLimit(
+  contact: process.env.NODE_ENV === 'development' ? noRateLimit : createRateLimit(
     60 * 60 * 1000, // 1 hour
-    3, // 3 submissions per hour
+    10, // 10 submissions per hour
     'Too many contact form submissions, please try again later'
   ),
   
-  // File upload - strict limits
-  upload: createRateLimit(
+  upload: process.env.NODE_ENV === 'development' ? noRateLimit : createRateLimit(
     15 * 60 * 1000, // 15 minutes
-    10, // 10 uploads per window
+    50, // 50 uploads per window
     'Too many file uploads, please try again later'
   ),
   
-  // General API - lenient limits
-  general: createRateLimit(
+  general: process.env.NODE_ENV === 'development' ? noRateLimit : createRateLimit(
     15 * 60 * 1000, // 15 minutes
-    100, // 100 requests per window
+    1000, // 1000 requests per window
     'Too many requests, please try again later'
   ),
   
-  // Password reset - very strict
-  passwordReset: createRateLimit(
+  passwordReset: process.env.NODE_ENV === 'development' ? noRateLimit : createRateLimit(
     60 * 60 * 1000, // 1 hour
-    3, // 3 attempts per hour
+    10, // 10 attempts per hour
     'Too many password reset attempts, please try again later'
   )
 };
@@ -108,6 +107,11 @@ const sanitizeInput = (req, res, next) => {
 
 // CSRF protection middleware
 const csrfMiddleware = (req, res, next) => {
+  // Skip CSRF in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return next();
+  }
+  
   // Skip CSRF for GET requests and API endpoints that don't modify data
   if (req.method === 'GET' || req.path.startsWith('/api/auth/google')) {
     return next();

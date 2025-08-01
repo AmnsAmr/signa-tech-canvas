@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Mail, Phone, MapPin, Clock, MessageCircle, Building } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ContactApi } from '@/api';
 
 interface ContactSettings {
   company_name: string;
@@ -47,9 +48,9 @@ const ContactSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/contact-settings');
-      if (response.ok) {
-        const data = await response.json();
+      const response = await ContactApi.getSettings();
+      if (response.success && response.data) {
+        const data = response.data;
         setSettings({
           company_name: data.company_name || '',
           company_tagline: data.company_tagline || '',
@@ -81,25 +82,16 @@ const ContactSettings = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/contact-settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(settings)
-      });
+      const response = await ContactApi.updateSettings(settings);
 
-      if (response.ok) {
+      if (response.success) {
         toast({
           title: t('contact_settings.saved'),
           description: t('contact_settings.saved_success')
         });
-        // Trigger a refresh of the contact settings across the app
-        window.dispatchEvent(new CustomEvent('contactSettingsUpdated'));
+        // The ContactApi.updateSettings already triggers the event
       } else {
-        throw new Error('Failed to save settings');
+        throw new Error(response.error || 'Failed to save settings');
       }
     } catch (error) {
       console.error('Failed to save settings:', error);

@@ -50,6 +50,12 @@ export const API_ENDPOINTS = {
     USERS: '/api/admin/users',
     PROJECTS: '/api/admin/projects',
     THEME: '/api/admin/theme',
+    NOTIFICATIONS: {
+      TOGGLE: '/api/admin/notifications/toggle',
+      GET_ALL: '/api/admin/notifications',
+    },
+    DASHBOARD: '/api/admin/dashboard',
+    SETTINGS: '/api/admin/settings',
   },
 } as const;
 

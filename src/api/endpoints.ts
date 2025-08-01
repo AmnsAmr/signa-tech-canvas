@@ -26,21 +26,32 @@ export class ImagesApi {
 
   // Admin methods
   static async adminGetAll(): Promise<ApiResponse<SiteImage[]>> {
-    return apiClient.get<SiteImage[]>(API_ENDPOINTS.IMAGES.ADMIN.GET_ALL, 'admin:images:all', CACHE_TTL.IMAGES);
+    const token = localStorage.getItem('token');
+    return apiClient.request<SiteImage[]>(API_ENDPOINTS.IMAGES.ADMIN.GET_ALL, {
+      method: 'GET',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    }, 'admin:images:all', CACHE_TTL.IMAGES);
   }
 
   static async adminGetByCategory(category: string): Promise<ApiResponse<SiteImage[]>> {
-    return apiClient.get<SiteImage[]>(
+    const token = localStorage.getItem('token');
+    return apiClient.request<SiteImage[]>(
       API_ENDPOINTS.IMAGES.ADMIN.GET_BY_CATEGORY(category),
+      {
+        method: 'GET',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      },
       `admin:images:category:${category}`,
       CACHE_TTL.IMAGES
     );
   }
 
   static async adminUpload(formData: FormData): Promise<ApiResponse<SiteImage>> {
+    const token = localStorage.getItem('token');
     const response = await apiClient.request<SiteImage>(API_ENDPOINTS.IMAGES.ADMIN.UPLOAD, {
       method: 'POST',
       body: formData,
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
     });
     
     if (response.success) {
@@ -51,7 +62,11 @@ export class ImagesApi {
   }
 
   static async adminDelete(id: number): Promise<ApiResponse<void>> {
-    const response = await apiClient.delete<void>(API_ENDPOINTS.IMAGES.ADMIN.DELETE(id));
+    const token = localStorage.getItem('token');
+    const response = await apiClient.request<void>(API_ENDPOINTS.IMAGES.ADMIN.DELETE(id), {
+      method: 'DELETE',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    });
     
     if (response.success) {
       this.invalidateCache();
@@ -61,9 +76,11 @@ export class ImagesApi {
   }
 
   static async adminReplace(id: number, formData: FormData): Promise<ApiResponse<SiteImage>> {
+    const token = localStorage.getItem('token');
     const response = await apiClient.request<SiteImage>(API_ENDPOINTS.IMAGES.ADMIN.REPLACE(id), {
       method: 'PUT',
       body: formData,
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
     });
     
     if (response.success) {
@@ -74,7 +91,11 @@ export class ImagesApi {
   }
 
   static async getCategories(): Promise<ApiResponse<string[]>> {
-    return apiClient.get<string[]>(API_ENDPOINTS.IMAGES.ADMIN.CATEGORIES, 'images:categories', CACHE_TTL.SETTINGS);
+    const token = localStorage.getItem('token');
+    return apiClient.request<string[]>(API_ENDPOINTS.IMAGES.ADMIN.CATEGORIES, {
+      method: 'GET',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    }, 'images:categories', CACHE_TTL.SETTINGS);
   }
 
   static invalidateCache(): void {
@@ -93,10 +114,30 @@ export class ContactApi {
   }
 
   static async updateSettings(settings: Partial<ContactSettings>): Promise<ApiResponse<ContactSettings>> {
-    const response = await apiClient.put<ContactSettings>(API_ENDPOINTS.CONTACT.SETTINGS, settings);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return {
+        data: null as any,
+        success: false,
+        error: 'Authentication required'
+      };
+    }
+    
+    const response = await apiClient.request<ContactSettings>(API_ENDPOINTS.CONTACT.SETTINGS, {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+    
     if (response.success) {
       apiCache.delete('contact:settings');
+      // Trigger settings update event
+      window.dispatchEvent(new CustomEvent('contactSettingsUpdated'));
     }
+    
     return response;
   }
 
@@ -105,9 +146,11 @@ export class ContactApi {
   }
 
   static async submitAuthenticated(formData: FormData): Promise<ApiResponse<any>> {
+    const token = localStorage.getItem('token');
     return apiClient.request(API_ENDPOINTS.CONTACT.SUBMIT_AUTHENTICATED, {
       method: 'POST',
       body: formData,
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
     });
   }
 
