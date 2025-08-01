@@ -15,12 +15,13 @@ import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/config/api';
 import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
-import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star, Menu, ChevronLeft } from 'lucide-react';
+import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star, Menu, ChevronLeft, HardDrive } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
 import '@/components/Admin/admin-improvements.css';
 
 // Lazy load components
 const OrganizedImageManager = lazy(() => import('@/components/Admin/OrganizedImageManager'));
+const FileManager = lazy(() => import('@/components/Admin/FileManager'));
 const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
 const SimpleThemeSettings = lazy(() => import('@/components/Admin/SimpleThemeSettings'));
@@ -83,6 +84,7 @@ interface Submission {
 const menuItems = [
   { id: 'dashboard', labelKey: 'admin.dashboard', icon: Settings },
   { id: 'images', labelKey: 'admin.images', icon: Image },
+  { id: 'files', labelKey: 'admin.files', icon: HardDrive },
   { id: 'projects', labelKey: 'admin.projects', icon: FolderOpen },
   { id: 'theme', labelKey: 'admin.theme', icon: Palette },
   { id: 'contact', labelKey: 'admin.contact', icon: Phone },
@@ -469,6 +471,12 @@ const Admin = () => {
         return (
           <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_images')}</p></div>}>
             <OrganizedImageManager />
+          </Suspense>
+        );
+      case 'files':
+        return (
+          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading files...</p></div>}>
+            <FileManager />
           </Suspense>
         );
       case 'projects':

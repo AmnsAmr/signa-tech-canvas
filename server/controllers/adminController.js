@@ -270,6 +270,79 @@ class AdminController {
     }
   }
 
+  async getUploadedFiles(req, res) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const uploadsDir = path.join(__dirname, '../uploads');
+      
+      const files = await new Promise((resolve, reject) => {
+        fs.readdir(uploadsDir, { withFileTypes: true }, (err, entries) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          
+          const fileList = [];
+          entries.forEach(entry => {
+            if (entry.isFile() && entry.name !== '.gitkeep') {
+              const filePath = path.join(uploadsDir, entry.name);
+              const stats = fs.statSync(filePath);
+              fileList.push({
+                name: entry.name,
+                size: stats.size,
+                created: stats.birthtime,
+                modified: stats.mtime
+              });
+            }
+          });
+          
+          // Sort by creation date, newest first
+          fileList.sort((a, b) => new Date(b.created) - new Date(a.created));
+          resolve(fileList);
+        });
+      });
+      
+      res.json(files);
+    } catch (error) {
+      console.error('Get uploaded files error:', error);
+      res.status(500).json({ message: 'Failed to fetch uploaded files' });
+    }
+  }
+
+  async deleteUploadedFile(req, res) {
+    try {
+      const { filename } = req.params;
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Security check - prevent directory traversal
+      if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ message: 'Invalid filename' });
+      }
+      
+      const filePath = path.join(__dirname, '../uploads', filename);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: 'File not found' });
+      }
+      
+      // Delete the file
+      await new Promise((resolve, reject) => {
+        fs.unlink(filePath, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      res.json({ message: 'File deleted successfully' });
+    } catch (error) {
+      console.error('Delete uploaded file error:', error);
+      res.status(500).json({ message: 'Failed to delete file' });
+    }
+  }
+
   // Helper method to get all admin emails for notifications
   static async getAdminEmails() {
     return new Promise((resolve, reject) => {

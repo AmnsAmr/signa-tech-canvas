@@ -488,6 +488,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Admin page translations
     'admin.dashboard': 'Tableau de bord',
     'admin.images': 'Images',
+    'admin.files': 'Fichiers',
     'admin.projects': 'Projets',
     'admin.theme': 'Thème',
     'admin.contact': 'Contact',
@@ -1139,6 +1140,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Admin page translations
     'admin.dashboard': 'Dashboard',
     'admin.images': 'Images',
+    'admin.files': 'Files',
     'admin.projects': 'Projects',
     'admin.theme': 'Theme',
     'admin.contact': 'Contact',

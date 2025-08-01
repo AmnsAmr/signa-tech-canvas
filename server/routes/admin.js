@@ -46,4 +46,8 @@ router.delete('/ratings/:id', ratingController.deleteRating);
 // Theme management routes
 router.post('/theme', themeController.updateTheme);
 
+// File management routes
+router.get('/files', adminController.getUploadedFiles);
+router.delete('/files/:filename', adminController.deleteUploadedFile);
+
 module.exports = router;
