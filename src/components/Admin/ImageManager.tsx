@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Trash2, RefreshCw, Image as ImageIcon, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { buildApiUrl, buildUploadUrl } from '@/config/api';
+import { ImagesApi } from '@/api';
 
 interface SiteImage {
   id: number;
@@ -38,24 +38,18 @@ const ImageManager: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('Token:', token ? 'Present' : 'Missing');
       
-      const url = selectedCategory 
-        ? `${buildApiUrl('/api/admin/images')}?category=${selectedCategory}`
-        : buildApiUrl('/api/admin/images');
+      const response = selectedCategory 
+        ? await ImagesApi.adminGetByCategory(selectedCategory)
+        : await ImagesApi.adminGetAll();
       
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      console.log('Response:', response);
       
-      console.log('Response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Images data:', data);
-        setImages(data);
+      if (response.success) {
+        console.log('Images data:', response.data);
+        setImages(response.data);
       } else {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        alert(`${t('common.error')}: ${errorData.message}`);
+        console.error('API Error:', response.error);
+        alert(`${t('common.error')}: ${response.error}`);
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
@@ -65,14 +59,10 @@ const ImageManager: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/images/categories'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ImagesApi.getCategories();
       
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
+      if (response.success) {
+        setCategories(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -88,16 +78,10 @@ const ImageManager: React.FC = () => {
     formData.append('category', newCategory);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/images/upload'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
+      const response = await ImagesApi.adminUpload(formData);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Upload success:', result);
+      if (response.success) {
+        console.log('Upload success:', response.data);
         alert(t('image_manager.image_added'));
         setUploadFile(null);
         setNewCategory('');
@@ -106,9 +90,8 @@ const ImageManager: React.FC = () => {
         // Notify other components to refresh their images
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
-        const errorData = await response.json();
-        console.error('Upload error:', errorData);
-        alert(`${t('image_manager.upload_error')}: ${errorData.message}`);
+        console.error('Upload error:', response.error);
+        alert(`${t('image_manager.upload_error')}: ${response.error}`);
       }
     } catch (error) {
       console.error('Upload failed:', error);
@@ -122,21 +105,16 @@ const ImageManager: React.FC = () => {
     if (!confirm(t('image_manager.delete_confirm'))) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/images/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ImagesApi.adminDelete(id);
 
-      if (response.ok) {
+      if (response.success) {
         alert(t('image_manager.image_deleted'));
         fetchImages();
         // Notify other components to refresh their images
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
-        const errorData = await response.json();
-        console.error('Delete error:', errorData);
-        alert(`${t('image_manager.delete_error')}: ${errorData.message}`);
+        console.error('Delete error:', response.error);
+        alert(`${t('image_manager.delete_error')}: ${response.error}`);
       }
     } catch (error) {
       console.error('Delete failed:', error);
@@ -149,22 +127,16 @@ const ImageManager: React.FC = () => {
     formData.append('image', file);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/images/${id}/replace`), {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
+      const response = await ImagesApi.adminReplace(id, formData);
 
-      if (response.ok) {
+      if (response.success) {
         alert(t('image_manager.image_replaced'));
         fetchImages();
         // Notify other components to refresh their images
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
       } else {
-        const errorData = await response.json();
-        console.error('Replace error:', errorData);
-        alert(`${t('image_manager.replace_error')}: ${errorData.message}`);
+        console.error('Replace error:', response.error);
+        alert(`${t('image_manager.replace_error')}: ${response.error}`);
       }
     } catch (error) {
       console.error('Replace failed:', error);
@@ -173,7 +145,7 @@ const ImageManager: React.FC = () => {
   };
 
   const getImageUrl = (image: SiteImage) => {
-    return buildUploadUrl(image.filename);
+    return ImagesApi.getImageUrl(image.filename);
   };
 
   if (!isAdmin) {

@@ -1,18 +1,6 @@
 import { useState, useEffect } from 'react';
-
-interface ContactSettings {
-  company_name: string;
-  company_tagline: string;
-  email: string;
-  phone: string;
-  whatsapp: string;
-  address_fr: string;
-  address_en: string;
-  hours_fr: string;
-  hours_en: string;
-  hours_detailed_fr: string;
-  hours_detailed_en: string;
-}
+import { ContactApi } from '@/api';
+import type { ContactSettings } from '@/api/types';
 
 const defaultSettings: ContactSettings = {
   company_name: 'Signa Tech',
@@ -34,13 +22,15 @@ export const useContactSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/contact-settings');
-      if (response.ok) {
-        const data = await response.json();
+      const response = await ContactApi.getSettings();
+      
+      if (response.success) {
         setSettings(prevSettings => ({
           ...prevSettings,
-          ...data
+          ...response.data
         }));
+      } else {
+        console.error('Failed to fetch contact settings:', response.error);
       }
     } catch (error) {
       console.error('Failed to fetch contact settings:', error);

@@ -17,6 +17,7 @@ import { useImageCache } from '@/hooks/useImageCache';
 import ImageLoader from '@/components/ImageLoader';
 
 import { useOptimizedContactSettings } from '@/hooks/useOptimizedContactSettings';
+import { ContactApi, AuthApi } from '@/api';
 import FileUpload from '@/components/FileUpload';
 import { 
   Phone, 
@@ -212,9 +213,6 @@ const Contact: React.FC = () => {
       }
     }
 
-    const token = localStorage.getItem('token');
-    const backendUrl = isAuthenticated ? 'http://localhost:5000/api/contact/submit' : 'http://localhost:5000/api/contact/guest-submit';
-
     try {
       // Use FormData for file upload
       const formDataToSend = new FormData();
@@ -242,24 +240,14 @@ const Contact: React.FC = () => {
         console.log(pair[0], pair[1]);
       }
 
-      const headers: any = {};
-      
-      if (isAuthenticated && token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      // Don't set Content-Type for FormData - let browser set it with boundary
-
       console.log('Sending form data with file:', formData.vectorFile ? formData.vectorFile.name : 'No file');
       
-      const response = await fetch(backendUrl, {
-        method: 'POST',
-        headers,
-        body: formDataToSend,
-      });
+      // Use the appropriate API method based on authentication status
+      const response = isAuthenticated 
+        ? await ContactApi.submitAuthenticated(formDataToSend)
+        : await ContactApi.submitGuest(formDataToSend);
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         setSubmissionStatus('success');
         // Reset form but keep user data for authenticated users
         setFormData({
@@ -274,14 +262,14 @@ const Contact: React.FC = () => {
         });
         toast({
           title: "Message envoyé",
-          description: result.message
+          description: response.data?.message || "Votre message a été envoyé avec succès"
         });
       } else {
         setSubmissionStatus('error');
-        console.error('Server response error:', result);
+        console.error('Server response error:', response.error);
         
         // Check for file-related errors
-        let errorMessage = result.message || "Échec de l'envoi du message.";
+        let errorMessage = response.error || "Échec de l'envoi du message.";
         if (errorMessage.toLowerCase().includes('file') || errorMessage.toLowerCase().includes('fichier')) {
           errorMessage = `Problème avec le fichier: ${errorMessage}`;
         }

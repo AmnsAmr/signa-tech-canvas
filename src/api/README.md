@@ -1,80 +1,228 @@
-# API Layer Documentation
+# API Integration Documentation
 
 ## Overview
-This API layer provides a centralized, optimized way to handle all API communications with built-in caching, performance monitoring, and error handling.
 
-## Features
-- **Smart Caching**: Automatic response caching with configurable TTL
-- **Conditional Requests**: ETags and If-None-Match headers for efficient data transfer
-- **Performance Monitoring**: Built-in request timing and error tracking
-- **Type Safety**: Full TypeScript support with proper interfaces
-- **Error Handling**: Consistent error responses across all endpoints
+This document describes the redesigned API integration system for the Signa Tech Canvas application. The new system provides a centralized, maintainable, and environment-aware approach to API communication.
 
-## Usage
+## Architecture
+
+### Core Components
+
+1. **Environment Configuration** (`.env` files)
+2. **Centralized Endpoints** (`src/config/endpoints.ts`)
+3. **API Client** (`src/api/client.ts`)
+4. **API Services** (`src/api/endpoints.ts`)
+5. **Type Definitions** (`src/api/types.ts`)
+
+## Environment Configuration
+
+### Environment Files
+
+- `.env` - Main environment file
+- `.env.development` - Development-specific settings
+- `.env.production` - Production-specific settings
+- `.env.example` - Template with all available variables
+
+### Environment Variables
+
+```bash
+# API Configuration
+VITE_API_URL=http://localhost:5000
+VITE_UPLOADS_URL=http://localhost:5000/uploads
+VITE_PYTHON_SERVICE_URL=http://localhost:5001
+
+# Development Proxy (for vite.config.ts)
+VITE_DEV_PROXY_TARGET=http://localhost:5000
+```
+
+## API Endpoints Mapping
+
+### Authentication APIs
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/forgot-password` - Password reset
+- `GET /api/auth/google` - Google OAuth
+
+### Images APIs
+- `GET /api/images` - Get all images
+- `GET /api/images?category={category}` - Get images by category
+- `GET /api/admin/images` - Admin get images
+- `POST /api/admin/images/upload` - Upload image
+- `DELETE /api/admin/images/{id}` - Delete image
+- `PUT /api/admin/images/{id}/replace` - Replace image
+- `GET /api/admin/images/categories` - Get categories
+
+### Contact APIs
+- `GET /api/contact-settings` - Get contact settings
+- `PUT /api/contact-settings` - Update contact settings
+- `POST /api/contact` - Send contact message
+- `POST /api/contact/submit` - Authenticated contact submit
+- `POST /api/contact/guest-submit` - Guest contact submit
+
+### Ratings APIs
+- `GET /api/ratings` - Get all ratings
+- `POST /api/ratings` - Create rating
+- `GET /api/ratings/stats` - Get rating statistics
+
+### Security APIs
+- `GET /api/csrf-token` - Get CSRF token
+
+## Usage Examples
 
 ### Basic API Calls
+
 ```typescript
-import { ImagesApi, ContactApi } from '@/api';
+import { ImagesApi, ContactApi, AuthApi } from '@/api';
 
-// Get all images (cached for 1 hour)
-const images = await ImagesApi.getAll();
+// Get all images
+const response = await ImagesApi.getAll();
+if (response.success) {
+  console.log(response.data);
+}
 
-// Get contact settings (cached for 15 minutes)
+// Login user
+const loginResponse = await AuthApi.login({
+  email: 'user@example.com',
+  password: 'password'
+});
+
+// Get contact settings
 const settings = await ContactApi.getSettings();
 ```
 
-### Using Optimized Hooks
+### File Upload
+
 ```typescript
-import { useOptimizedImages, useOptimizedContactSettings } from '@/hooks';
+import { ImagesApi, ContactApi } from '@/api';
 
-// In your component
-const { images, loading, error } = useOptimizedImages('logo');
-const { settings } = useOptimizedContactSettings();
+// Upload image (admin)
+const formData = new FormData();
+formData.append('image', file);
+formData.append('category', 'portfolio');
+
+const uploadResponse = await ImagesApi.adminUpload(formData);
+
+// Submit contact form with file
+const contactFormData = new FormData();
+contactFormData.append('name', 'John Doe');
+contactFormData.append('vectorFile', file);
+
+const contactResponse = await ContactApi.submitGuest(contactFormData);
 ```
 
-## Cache Strategy
+### Error Handling
 
-### TTL Configuration
-- **Static Content**: 30 minutes (logos, settings)
-- **Dynamic Content**: 5 minutes (ratings, user data)
-- **Images Metadata**: 1 hour (image lists)
-- **Settings**: 15 minutes (contact info)
+```typescript
+import { ImagesApi } from '@/api';
 
-### Cache Invalidation
-- Automatic invalidation on data updates
-- Pattern-based cache clearing
-- Manual cache control available
-
-## Performance Benefits
-
-### Before Optimization
-- Logo fetched on every page load
-- Settings requested multiple times per session
-- No conditional requests
-- Cache-busting timestamps on every request
-
-### After Optimization
-- Logo cached for 1 hour, served instantly
-- Settings cached for 15 minutes
-- ETags prevent unnecessary data transfer
-- 304 responses for unchanged data
-- ~70% reduction in API calls
-- ~50% faster page loads
-
-## Monitoring
-Performance metrics are automatically collected and logged in development mode:
-- Average response times
-- Request counts
-- Error rates
-- Cache hit ratios
-
-## File Structure
+const response = await ImagesApi.getAll();
+if (!response.success) {
+  console.error('API Error:', response.error);
+  // Handle error appropriately
+}
 ```
-src/api/
-├── index.ts          # Main exports
-├── client.ts         # HTTP client with caching
-├── cache.ts          # Cache management
-├── types.ts          # TypeScript interfaces
-├── endpoints.ts      # API endpoint definitions
-└── README.md         # This file
+
+## Features
+
+### Caching
+- Automatic response caching with TTL
+- ETag support for conditional requests
+- Cache invalidation patterns
+
+### Retry Logic
+- Automatic retry on network failures
+- Exponential backoff strategy
+- Configurable retry attempts
+
+### Timeout Handling
+- Request timeout protection
+- Configurable timeout duration
+- Graceful timeout error handling
+
+### Environment Switching
+- Automatic environment detection
+- Easy switching between dev/prod
+- Proxy configuration for development
+
+## Migration Guide
+
+### From Old API Calls
+
+**Before:**
+```typescript
+const response = await fetch('http://localhost:5000/api/images');
+const data = await response.json();
+```
+
+**After:**
+```typescript
+const response = await ImagesApi.getAll();
+if (response.success) {
+  const data = response.data;
+}
+```
+
+### From buildApiUrl Helper
+
+**Before:**
+```typescript
+import { buildApiUrl } from '@/config/api';
+const url = buildApiUrl('/api/images');
+```
+
+**After:**
+```typescript
+import { API_ENDPOINTS } from '@/config/endpoints';
+// URL is handled internally by the API client
+const response = await ImagesApi.getAll();
+```
+
+## Best Practices
+
+1. **Always check response.success** before using data
+2. **Use TypeScript interfaces** for type safety
+3. **Handle errors gracefully** with user-friendly messages
+4. **Use environment variables** for all URLs
+5. **Leverage caching** for frequently accessed data
+6. **Use appropriate API methods** (get, post, put, delete)
+
+## Development vs Production
+
+### Development
+- Uses proxy configuration in vite.config.ts
+- Detailed logging and error messages
+- Hot reload support
+
+### Production
+- Direct API calls to production URLs
+- Optimized error handling
+- Compressed responses
+
+## Health Checks
+
+```typescript
+import { apiClient } from '@/api';
+
+// Check API health
+const health = await apiClient.healthCheck();
+console.log('API Health:', health.api);
+console.log('Python Service Health:', health.python);
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **CORS Errors**: Check proxy configuration in vite.config.ts
+2. **Environment Variables**: Ensure all VITE_ prefixed variables are set
+3. **Network Timeouts**: Adjust timeout settings in API_CONFIG
+4. **Cache Issues**: Use cache invalidation methods when needed
+
+### Debug Mode
+
+Enable detailed logging by setting:
+```typescript
+// In development
+console.log('API Configuration:', API_CONFIG);
 ```

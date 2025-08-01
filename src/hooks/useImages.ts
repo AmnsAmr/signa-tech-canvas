@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
-import { buildApiUrl, buildUploadUrl } from '@/config/api';
-
-interface SiteImage {
-  id: number;
-  category: string;
-  filename: string;
-  original_name: string;
-  path: string;
-  size: number;
-  mime_type: string;
-  created_at: string;
-}
+import { ImagesApi } from '@/api';
+import type { SiteImage } from '@/api/types';
 
 export const useImages = (category?: string) => {
   const [images, setImages] = useState<SiteImage[]>([]);
@@ -35,19 +25,17 @@ export const useImages = (category?: string) => {
   const fetchImages = async () => {
     try {
       setLoading(true);
-      const url = category 
-        ? `${buildApiUrl('/api/images')}?category=${category}`
-        : buildApiUrl('/api/images');
       
-      const response = await fetch(url);
+      const response = category 
+        ? await ImagesApi.getByCategory(category)
+        : await ImagesApi.getAll();
       
-      if (response.ok) {
-        const data = await response.json();
-        setImages(data);
+      if (response.success) {
+        setImages(response.data);
         setError(null);
         setHasLoaded(true);
       } else {
-        setError('Failed to fetch images');
+        setError(response.error || 'Failed to fetch images');
       }
     } catch (err) {
       setError('Network error');
@@ -58,13 +46,13 @@ export const useImages = (category?: string) => {
   };
 
   const getImageUrl = (filename: string) => {
-    return buildUploadUrl(filename);
+    return ImagesApi.getImageUrl(filename);
   };
   
   const getImageUrlFromPath = (path: string) => {
     // Handle both old and new path formats
     const filename = path.includes('/uploads/') ? path.split('/uploads/')[1] : path.split('/').pop();
-    return buildUploadUrl(filename || '');
+    return ImagesApi.getImageUrl(filename || '');
   };
 
   const getImageByCategory = (cat: string, index: number = 0) => {

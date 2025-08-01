@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthApi } from '@/api';
 import { User, Mail, Lock, Building, Phone, UserPlus } from 'lucide-react';
 import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 import EmailVerificationForm from './EmailVerificationForm';
@@ -213,7 +214,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
             type="button"
             variant="outline"
             className="w-full mt-4"
-            onClick={() => window.open('http://localhost:5000/api/auth/google', '_self')}
+            onClick={() => window.open(AuthApi.getGoogleAuthUrl(), '_self')}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

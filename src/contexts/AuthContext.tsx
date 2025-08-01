@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { AuthApi, apiClient } from '@/api';
 import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 
 interface User {
@@ -62,33 +63,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem('token');
       if (token) {
         console.log('Token found, verifying...');
-        // Add timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
         
-        // Use the proxy configured in vite.config.ts
-        const response = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal
+        // Add Authorization header to the API client
+        const response = await apiClient.request('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
         });
         
-        clearTimeout(timeoutId);
-        
-        if (response.ok) {
-          const userData = await response.json();
-          console.log('Auth successful, user data:', userData);
-          setUser(userData);
+        if (response.success) {
+          console.log('Auth successful, user data:', response.data);
+          setUser(response.data);
         } else {
-          console.log('Auth failed, removing token');
+          console.log('Auth failed, removing token:', response.error);
           localStorage.removeItem('token');
         }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      // If server is not available, remove invalid token
-      if (error.name === 'AbortError' || error.message.includes('fetch')) {
-        localStorage.removeItem('token');
-      }
+      localStorage.removeItem('token');
     } finally {
       setLoading(false);
     }
@@ -107,14 +98,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     try {
-      const response = await secureApiRequest('/api/auth/login', {
+      // Try with new API layer first
+      const response = await AuthApi.login({ email, password });
+      
+      if (response.success) {
+        const { token, user: userData } = response.data;
+        localStorage.setItem('token', token);
+        setUser(userData);
+        return;
+      }
+      
+      // Fallback to CSRF-protected request for compatibility
+      const fallbackResponse = await secureApiRequest('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!fallbackResponse.ok) {
+        const error = await fallbackResponse.json();
         if (handleCSRFError(error)) {
           // Retry once with new CSRF token
           const retryResponse = await secureApiRequest('/api/auth/login', {
@@ -136,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(error.message || 'Login failed');
       }
 
-      const { token, user: userData } = await response.json();
+      const { token, user: userData } = await fallbackResponse.json();
       localStorage.setItem('token', token);
       setUser(userData);
     } catch (error: any) {
@@ -147,14 +149,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await secureApiRequest('/api/auth/register', {
+      // Try with new API layer first
+      const response = await AuthApi.register(userData);
+      
+      if (response.success) {
+        const { token, user: newUser } = response.data;
+        localStorage.setItem('token', token);
+        setUser(newUser);
+        return;
+      }
+      
+      // Fallback to CSRF-protected request for compatibility
+      const fallbackResponse = await secureApiRequest('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!fallbackResponse.ok) {
+        const error = await fallbackResponse.json();
         if (handleCSRFError(error)) {
           // Retry once with new CSRF token
           const retryResponse = await secureApiRequest('/api/auth/register', {
@@ -176,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(error.message || 'Registration failed');
       }
 
-      const { token, user: newUser } = await response.json();
+      const { token, user: newUser } = await fallbackResponse.json();
       localStorage.setItem('token', token);
       setUser(newUser);
     } catch (error: any) {

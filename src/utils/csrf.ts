@@ -9,6 +9,8 @@ interface CSRFError {
   message?: string;
 }
 
+import { SecurityApi } from '@/api';
+
 export const getCsrfToken = async (): Promise<string> => {
   // Return cached token if still valid (cache for 30 minutes)
   if (cachedCsrfToken && Date.now() < tokenExpiry) {
@@ -16,15 +18,13 @@ export const getCsrfToken = async (): Promise<string> => {
   }
 
   try {
-    const response = await fetch('/api/csrf-token', {
-      credentials: 'include'
-    });
+    const response = await SecurityApi.getCsrfToken();
     
-    if (!response.ok) {
-      throw new Error(`Failed to get CSRF token: ${response.status}`);
+    if (!response.success) {
+      throw new Error(`Failed to get CSRF token: ${response.error}`);
     }
     
-    const { csrfToken } = await response.json();
+    const { csrfToken } = response.data;
     
     // Cache the token for 30 minutes
     cachedCsrfToken = csrfToken;
