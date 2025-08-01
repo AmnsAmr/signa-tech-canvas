@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AuthApi } from '@/api';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -26,24 +27,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          throw new Error(data.message);
-        } else {
-          throw new Error(t('auth.forgot_password.server_unavailable'));
-        }
+      const response = await AuthApi.forgotPassword(email);
+      
+      if (!response.success) {
+        throw new Error(response.error || t('auth.forgot_password.server_unavailable'));
       }
 
-      const data = await response.json();
-      setSuccess(data.message);
+      setSuccess(response.data.message);
       setStep('code');
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
@@ -62,23 +52,11 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-reset-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code })
-      });
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          throw new Error(data.message);
-        } else {
-          throw new Error(t('auth.forgot_password.server_error'));
-        }
+      const response = await AuthApi.verifyResetCode(email, code);
+      
+      if (!response.success) {
+        throw new Error(response.error || t('auth.forgot_password.server_error'));
       }
-
-      const data = await response.json();
       setStep('password');
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
@@ -102,24 +80,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code, password })
-      });
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          throw new Error(data.message);
-        } else {
-          throw new Error(t('auth.forgot_password.server_error'));
-        }
+      const response = await AuthApi.resetPassword(email, code, password);
+      
+      if (!response.success) {
+        throw new Error(response.error || t('auth.forgot_password.server_error'));
       }
 
-      const data = await response.json();
-      setSuccess(data.message);
+      setSuccess(response.data.message);
       setTimeout(() => onBackToLogin(), 2000);
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {

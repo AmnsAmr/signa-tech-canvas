@@ -179,6 +179,14 @@ export class AuthApi {
     return apiClient.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
   }
 
+  static async verifyResetCode(email: string, code: string): Promise<ApiResponse<any>> {
+    return apiClient.post('/api/auth/verify-reset-code', { email, code });
+  }
+
+  static async resetPassword(email: string, code: string, password: string): Promise<ApiResponse<any>> {
+    return apiClient.post('/api/auth/reset-password', { email, code, password });
+  }
+
   static getGoogleAuthUrl(): string {
     return apiClient.buildUrl(API_ENDPOINTS.AUTH.GOOGLE);
   }

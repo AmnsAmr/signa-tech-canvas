@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiClient } from '@/api';
 
 const RatingForm: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -29,15 +30,11 @@ const RatingForm: React.FC = () => {
 
   const checkRatingEligibility = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/ratings/can-rate', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.get('/api/ratings/can-rate');
       
-      if (response.ok) {
-        const data = await response.json();
-        setCanRate(data.canRate);
-        setRatingReason(data.reason);
+      if (response.success && response.data) {
+        setCanRate(response.data.canRate);
+        setRatingReason(response.data.reason);
       }
     } catch (error) {
       console.error('Failed to check rating eligibility:', error);
@@ -72,21 +69,12 @@ const RatingForm: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch('/api/ratings/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ rating, comment })
-      });
+      const response = await apiClient.post('/api/ratings/submit', { rating, comment });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         toast({
           title: "Merci!",
-          description: result.message
+          description: response.data.message
         });
         
         setRating(0);
@@ -95,7 +83,7 @@ const RatingForm: React.FC = () => {
       } else {
         toast({
           title: "Erreur",
-          description: result.message,
+          description: response.error,
           variant: "destructive"
         });
       }

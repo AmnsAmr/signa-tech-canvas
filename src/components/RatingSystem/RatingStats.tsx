@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { RatingsApi } from '@/api';
 
 interface RatingStats {
   stats: Array<{
@@ -24,10 +25,9 @@ const RatingStats: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/ratings/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
+      const response = await RatingsApi.getStats();
+      if (response.success && response.data) {
+        setStats(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch rating stats:', error);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, Quote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { RatingsApi } from '@/api';
 
 interface Rating {
   id: number;
@@ -22,11 +23,10 @@ const HomepageTestimonials: React.FC = () => {
 
   const fetchRatings = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/ratings');
-      if (response.ok) {
-        const data = await response.json();
+      const response = await RatingsApi.getAll();
+      if (response.success && response.data) {
         // Get top 3 ratings
-        setRatings(data.slice(0, 3));
+        setRatings(response.data.slice(0, 3));
       }
     } catch (error) {
       console.error('Failed to fetch ratings:', error);
