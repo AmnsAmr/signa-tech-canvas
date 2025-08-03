@@ -19,6 +19,7 @@ import Ratings from "./pages/Ratings";
 import NotFound from "./pages/NotFound";
 
 import ScrollToTop from "./components/ScrollToTop";
+import StickyHeader from "./components/StickyHeader";
 import { useFavicon } from "./hooks/useFavicon";
 import { initPerformanceOptimizations } from "./utils/performanceOptimizer";
 import React from 'react';
@@ -39,6 +40,7 @@ const AppContent = () => {
       <Toaster />
       <BrowserRouter>
             <ScrollToTop />
+            <StickyHeader />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />

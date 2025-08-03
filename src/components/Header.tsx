@@ -72,9 +72,9 @@ const Header = () => {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 perf-layer ${
+      className={`fixed top-0 left-0 right-0 z-50 perf-layer transition-all duration-300 ${
         isScrolled 
-          ? 'bg-background/95 border-b border-border/50' 
+          ? 'bg-background/95 backdrop-blur-md border-b border-border/50' 
           : 'bg-background border-b border-border'
       }`}
     >
@@ -193,6 +193,8 @@ const Header = () => {
               isMinimized && !isHovered ? 'scale-75' : 'scale-100'
             }`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             <div className="relative w-6 h-6">
               <Menu className={`h-6 w-6 absolute transition-all duration-300 ${

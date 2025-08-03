@@ -36,10 +36,7 @@ export default defineConfig(({ mode }) => {
       }
       },
     plugins: [
-    react({
-      fastRefresh: true,
-      jsxRuntime: 'automatic'
-    }),
+    react(),
     mode === 'development' &&
     componentTagger(),
     ].filter(Boolean),

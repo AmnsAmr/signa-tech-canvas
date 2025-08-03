@@ -33,7 +33,7 @@ const AdminRatings: React.FC = () => {
     try {
       const response = await apiClient.get('/api/admin/ratings');
       if (response.success && response.data) {
-        setRatings(response.data);
+        setRatings(response.data as Rating[]);
       }
     } catch (error) {
       console.error('Failed to fetch ratings:', error);

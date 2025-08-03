@@ -45,7 +45,7 @@ const ImageLoader: React.FC<ImageLoaderProps> = ({
         }}
         onError={handleError}
         loading="eager"
-        fetchpriority="high"
+        fetchPriority="high"
         decoding="sync"
       />
     );

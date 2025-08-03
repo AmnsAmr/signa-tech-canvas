@@ -23,11 +23,11 @@ export const withLazyLoading = <P extends object>(
 ) => {
   const LazyLoadedComponent = lazy(() => Promise.resolve({ default: Component }));
   
-  return React.memo((props: P) => (
+  return React.memo(React.forwardRef<unknown, P>((props, ref) => (
     <LazyComponent fallback={fallback}>
-      <LazyLoadedComponent {...props} />
+      <LazyLoadedComponent {...props} ref={ref} />
     </LazyComponent>
-  ));
+  )));
 };
 
 export default LazyComponent;

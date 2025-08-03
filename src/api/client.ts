@@ -65,7 +65,7 @@ class ApiClient {
     this.retryAttempts = retryAttempts;
   }
 
-  private buildUrl(endpoint: string): string {
+  public buildUrl(endpoint: string): string {
     // Handle absolute URLs (for external services)
     if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
       return endpoint;

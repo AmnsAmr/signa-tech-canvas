@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (response.success) {
           console.log('Auth successful, user data:', response.data);
-          setUser(response.data);
+          setUser(response.data as User);
         } else {
           console.log('Auth failed, removing token:', response.error);
           localStorage.removeItem('token');

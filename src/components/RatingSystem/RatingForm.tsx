@@ -33,8 +33,9 @@ const RatingForm: React.FC = () => {
       const response = await apiClient.get('/api/ratings/can-rate');
       
       if (response.success && response.data) {
-        setCanRate(response.data.canRate);
-        setRatingReason(response.data.reason);
+        const data = response.data as { canRate: boolean; reason: string };
+        setCanRate(data.canRate);
+        setRatingReason(data.reason);
       }
     } catch (error) {
       console.error('Failed to check rating eligibility:', error);
@@ -74,7 +75,7 @@ const RatingForm: React.FC = () => {
       if (response.success) {
         toast({
           title: "Merci!",
-          description: response.data.message
+          description: (response.data as { message: string }).message
         });
         
         setRating(0);
