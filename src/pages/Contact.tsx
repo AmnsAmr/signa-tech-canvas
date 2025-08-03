@@ -1,35 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthModal from '@/components/Auth/AuthModal';
 import SEOHead from '@/components/SEOHead';
 import { useImageCache } from '@/hooks/useImageCache';
 import ImageLoader from '@/components/ImageLoader';
-
 import { useOptimizedContactSettings } from '@/hooks/useOptimizedContactSettings';
-import { ContactApi, AuthApi } from '@/api';
-import FileUpload from '@/components/FileUpload';
+import ContactForm from '@/components/Contact/ContactForm';
 import { 
   Phone, 
   Mail, 
   MapPin,
   Clock,
-  Send,
   MessageCircle,
-  Zap,
   Heart,
-  Settings,
-  User,
   LucideIcon
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -142,25 +130,6 @@ const Contact: React.FC = () => {
     services: [],
     vectorFile: null
   });
-
-  const [showServiceModal, setShowServiceModal] = useState(false);
-  const [currentService, setCurrentService] = useState<ServiceSpec>({
-    id: '',
-    serviceType: '',
-    material: '',
-    size: '',
-    quantity: '',
-    thickness: '',
-    colors: '',
-    finishing: '',
-    cuttingApplication: '',
-    designReady: '',
-    cncFinishing: '',
-    jobType: '',
-    detailLevel: ''
-  });
-  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
   // Add timeout for loading state
   useEffect(() => {
