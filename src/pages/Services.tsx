@@ -6,8 +6,7 @@ import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SEOHead from '@/components/SEOHead';
-import { useImageCache } from '@/hooks/useImageCache';
-import ImageLoader from '@/components/ImageLoader';
+
 import { 
   Palette, 
   Building, 
@@ -23,7 +22,6 @@ import {
 
 const Services = () => {
   const { t } = useLanguage();
-  const { images: serviceImages } = useImageCache('services');
   
   const services = [
     {
@@ -99,15 +97,7 @@ const Services = () => {
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-float"></div>
           <div className="absolute bottom-0 right-0 w-80 h-80 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
-          {serviceImages[0] && (
-            <div className="absolute inset-0 opacity-20">
-              <ImageLoader
-                filename={serviceImages[0].filename}
-                alt="Services background"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
+
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
@@ -143,19 +133,9 @@ const Services = () => {
                     {/* Icon & Title */}
                     <div className={`flex ${index % 2 === 0 ? 'justify-start' : 'lg:justify-end justify-start'}`}>
                       <div className="text-center">
-                        {serviceImages[index] ? (
-                          <div className="w-24 h-24 rounded-3xl overflow-hidden mb-4 shadow-glow rotate-12 group-hover:rotate-0 transition-transform duration-700">
-                            <ImageLoader
-                              filename={serviceImages[index].filename}
-                              alt={service.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className={`w-20 h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-glow rotate-12 group-hover:rotate-0 transition-transform duration-700`}>
-                            <service.icon className="h-10 w-10 text-white" />
-                          </div>
-                        )}
+                        <div className={`w-20 h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-glow rotate-12 group-hover:rotate-0 transition-transform duration-700`}>
+                          <service.icon className="h-10 w-10 text-white" />
+                        </div>
                         <Badge className="bg-accent/10 text-accent group-hover:bg-white/20 group-hover:text-white transition-colors duration-700">
                           {service.subtitle}
                         </Badge>
