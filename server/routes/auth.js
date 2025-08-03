@@ -47,7 +47,7 @@ router.post('/forgot-password', rateLimits.passwordReset, forgotPasswordValidati
 router.post('/verify-reset-code', verifyCodeValidation, handleValidationErrors, authController.verifyResetCode);
 router.post('/reset-password', rateLimits.passwordReset, resetPasswordValidation, handleValidationErrors, authController.resetPassword);
 router.post('/verify-email', verifyEmailValidation, handleValidationErrors, authController.verifyEmail);
-router.post('/resend-verification', rateLimits.passwordReset, body('email').trim().isEmail().normalizeEmail(), handleValidationErrors, authController.resendVerificationCode);
+router.post('/resend-verification', rateLimits.passwordReset, body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'), handleValidationErrors, authController.resendVerificationCode);
 
 // Google OAuth routes
 router.get('/google', authController.googleAuth);
