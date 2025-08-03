@@ -1,8 +1,19 @@
-const express = require('express');
 const { body } = require('express-validator');
-const authController = require('../controllers/authController');
-const { authenticateToken } = require('../middleware/auth');
-const { rateLimits, validationSchemas, handleValidationErrors, csrfMiddleware } = require('../middleware/security');
+
+// Lazy loaded modules
+let express, authController, authenticateToken, rateLimits, validationSchemas, handleValidationErrors, csrfMiddleware;
+
+// Lazy load modules
+if (!express) express = require('express');
+if (!authController) authController = require('../controllers/authController');
+if (!authenticateToken) authenticateToken = require('../middleware/auth').authenticateToken;
+if (!rateLimits) {
+  const security = require('../middleware/security');
+  rateLimits = security.rateLimits;
+  validationSchemas = security.validationSchemas;
+  handleValidationErrors = security.handleValidationErrors;
+  csrfMiddleware = security.csrfMiddleware;
+}
 
 const router = express.Router();
 
