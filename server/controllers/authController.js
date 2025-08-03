@@ -333,6 +333,11 @@ class AuthController {
 
   async resendVerificationCode(req, res) {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ message: errors.array()[0].msg });
+      }
+
       const { email } = req.body;
       
       // Generate new secure verification code
@@ -459,19 +464,35 @@ class AuthController {
       // Delete user and related data with transaction
       await new Promise((resolve, reject) => {
         db.serialize(() => {
-          db.run('BEGIN TRANSACTION');
-          db.run('DELETE FROM contact_submissions WHERE user_id = ?', [userId]);
-          db.run('DELETE FROM ratings WHERE user_id = ?', [userId]);
-          db.run('DELETE FROM password_resets WHERE email = ?', [user.email]);
-          db.run('DELETE FROM email_verifications WHERE email = ?', [user.email]);
-          db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
-            if (err) {
-              db.run('ROLLBACK');
-              reject(err);
-            } else {
-              db.run('COMMIT');
-              resolve(this.changes);
-            }
+          db.run('BEGIN TRANSACTION', (err) => {
+            if (err) return reject(err);
+            
+            const cleanup = () => db.run('ROLLBACK');
+            
+            db.run('DELETE FROM contact_submissions WHERE user_id = ?', [userId], (err1) => {
+              if (err1) { cleanup(); return reject(err1); }
+              
+              db.run('DELETE FROM ratings WHERE user_id = ?', [userId], (err2) => {
+                if (err2) { cleanup(); return reject(err2); }
+                
+                db.run('DELETE FROM password_resets WHERE email = ?', [user.email], (err3) => {
+                  if (err3) { cleanup(); return reject(err3); }
+                  
+                  db.run('DELETE FROM email_verifications WHERE email = ?', [user.email], (err4) => {
+                    if (err4) { cleanup(); return reject(err4); }
+                    
+                    db.run('DELETE FROM users WHERE id = ?', [userId], function(err5) {
+                      if (err5) { cleanup(); return reject(err5); }
+                      
+                      db.run('COMMIT', (commitErr) => {
+                        if (commitErr) { cleanup(); return reject(commitErr); }
+                        resolve(this.changes);
+                      });
+                    });
+                  });
+                });
+              });
+            });
           });
         });
       });
