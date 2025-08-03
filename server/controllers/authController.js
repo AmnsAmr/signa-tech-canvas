@@ -246,8 +246,20 @@ class AuthController {
       
       res.json({ message: 'Mot de passe réinitialisé avec succès' });
     } catch (error) {
-      console.error('Reset password error:', error.message);
-      res.status(500).json({ message: 'Failed to reset password' });
+      console.error('Reset password error:', {
+        message: error.message,
+        stack: error.stack,
+        email: sanitizeForLog(email)
+      });
+      
+      if (error.code === 'SQLITE_CONSTRAINT') {
+        return res.status(400).json({ message: 'Invalid request data' });
+      }
+      
+      res.status(500).json({ 
+        message: 'Password reset failed',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message })
+      });
     }
   }
 
@@ -423,16 +435,22 @@ class AuthController {
         }
       }
       
-      // Delete user and related data
+      // Delete user and related data with transaction
       await new Promise((resolve, reject) => {
         db.serialize(() => {
+          db.run('BEGIN TRANSACTION');
           db.run('DELETE FROM contact_submissions WHERE user_id = ?', [userId]);
           db.run('DELETE FROM ratings WHERE user_id = ?', [userId]);
           db.run('DELETE FROM password_resets WHERE email = ?', [user.email]);
           db.run('DELETE FROM email_verifications WHERE email = ?', [user.email]);
           db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
-            if (err) reject(err);
-            else resolve(this.changes);
+            if (err) {
+              db.run('ROLLBACK');
+              reject(err);
+            } else {
+              db.run('COMMIT');
+              resolve(this.changes);
+            }
           });
         });
       });
