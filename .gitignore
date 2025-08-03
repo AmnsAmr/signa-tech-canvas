@@ -4,6 +4,12 @@
 .env.development.local
 .env.test.local
 .env.production.local
+server/.env
+server/.env.local
+server/.env.development.local
+server/.env.test.local
+server/.env.production.local
+server/.env.production
 
 # Dependencies
 node_modules/
@@ -30,6 +36,26 @@ server/uploads/
 # IDE
 .vscode/
 .idea/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+server/database.db
+server/database.sqlite
+
+# Config files with sensitive data
+server/config/constants.js
+server/config/database.js
+
+# Logs
+logs/
+*.log
+server/logs/
+
+# Temporary files
+tmp/
+temp/
 
 # OS
 .DS_Store
