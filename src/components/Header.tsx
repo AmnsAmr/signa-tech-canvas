@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Phone, Mail, User, LogOut, Shield, Sparkles } from 'lucide-react';
+import { Menu, X, Phone, Mail, User, LogOut, Shield, Sparkles, ChevronDown } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
 import { useImageCache } from '@/hooks/useImageCache';
 import { buildUploadUrl } from '@/config/api';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,27 +16,54 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isHeaderHovered, setIsHeaderHovered] = useState(false);
+  const [showFloatingButton, setShowFloatingButton] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollDirection, setScrollDirection] = useState('down');
   const [highlightStyle, setHighlightStyle] = useState({ left: 0, width: 0, opacity: 0 });
   const navRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const { t } = useLanguage();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { images: logoImages } = useImageCache('logo');
   const logoImage = logoImages[0];
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setScrollDirection(scrollY > lastScrollY ? 'down' : 'up');
+      const newDirection = scrollY > lastScrollY ? 'down' : 'up';
+      setScrollDirection(newDirection);
       setLastScrollY(scrollY);
       setIsScrolled(scrollY > 20);
-      setIsMinimized(scrollY > 100 && scrollDirection === 'down');
+      
+      // Desktop: Hide header when scrolling down, show on hover
+      // Mobile: Show floating button after scrolling
+      if (!isMobile) {
+        setIsMinimized(scrollY > 100 && newDirection === 'down' && !isHeaderHovered);
+      } else {
+        setShowFloatingButton(scrollY > 150);
+      }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, scrollDirection]);
+    
+    const throttledScroll = () => requestAnimationFrame(handleScroll);
+    window.addEventListener('scroll', throttledScroll, { passive: true });
+    return () => window.removeEventListener('scroll', throttledScroll);
+  }, [lastScrollY, scrollDirection, isHeaderHovered, isMobile]);
+
+  // Handle header hover area detection
+  useEffect(() => {
+    if (isMobile) return;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const shouldShow = e.clientY < 80; // Show when mouse is near top
+      setIsHeaderHovered(shouldShow);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, [isMobile]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -71,13 +99,21 @@ const Header = () => {
   }, [location.pathname]);
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 perf-layer transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-background/95 backdrop-blur-md border-b border-border/50' 
-          : 'bg-background border-b border-border'
-      }`}
-    >
+    <>
+      <header 
+        ref={headerRef}
+        className={`fixed top-0 left-0 right-0 z-50 perf-layer header-optimized header-transition ${
+          isScrolled 
+            ? 'bg-background/95 backdrop-blur-md border-b border-border/50' 
+            : 'bg-background border-b border-border'
+        } ${
+          isMinimized && !isMobile 
+            ? '-translate-y-full opacity-0' 
+            : 'translate-y-0 opacity-100'
+        }`}
+        onMouseEnter={() => !isMobile && setIsHeaderHovered(true)}
+        onMouseLeave={() => !isMobile && setIsHeaderHovered(false)}
+      >
 
       {/* Main navigation */}
       <div className={`container mx-auto px-4 ${
@@ -185,18 +221,14 @@ const Header = () => {
             </div>
           </nav>
 
-          {/* Enhanced mobile menu button */}
+          {/* Enhanced mobile menu button with proper centering */}
           <Button
             variant="ghost"
             size="sm"
-            className={`md:hidden relative p-3 hover:bg-primary/10 transition-all duration-300 touch-manipulation ${
-              isMinimized && !isHovered ? 'scale-75' : 'scale-100'
-            }`}
+            className="md:hidden hamburger-container p-3 hover:bg-primary/10 transition-all duration-300 touch-manipulation button-centered"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
           >
-            <div className="relative w-6 h-6">
+            <div className="hamburger-lines icon-centered">
               <Menu className={`h-6 w-6 absolute transition-all duration-300 ${
                 isMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'
               }`} />
@@ -209,7 +241,7 @@ const Header = () => {
 
         {/* Enhanced Mobile Navigation */}
         <div className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
-          isMenuOpen && !isMinimized ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}>
           <div className="mt-4 pb-4 border-t border-border/50">
             <nav className="flex flex-col space-y-2 mt-4">
@@ -217,7 +249,7 @@ const Header = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-4 py-4 font-medium transition-all duration-300 rounded-lg relative group touch-manipulation min-h-[44px] flex items-center ${
+                  className={`mobile-nav-item px-4 py-4 font-medium transition-all duration-300 rounded-lg relative group touch-manipulation min-h-[44px] flex items-center ${
                     isActive(item.path) 
                       ? 'text-primary bg-primary/10 border-l-4 border-primary' 
                       : 'text-foreground hover:text-primary hover:bg-primary/5 active:bg-primary/10 hover:translate-x-2'
@@ -232,7 +264,7 @@ const Header = () => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className={`px-4 py-3 font-medium transition-all duration-300 rounded-lg flex items-center relative group ${
+                  className={`mobile-nav-item px-4 py-3 font-medium transition-all duration-300 rounded-lg flex items-center relative group ${
                     isActive('/admin') 
                       ? 'text-primary bg-primary/10 border-l-4 border-primary' 
                       : 'text-foreground hover:text-primary hover:bg-primary/5 hover:translate-x-2'
@@ -250,7 +282,7 @@ const Header = () => {
                   <div className="space-y-3">
                     <Link
                       to="/dashboard"
-                      className={`px-4 py-3 text-sm flex items-center transition-all duration-300 rounded-lg ${
+                      className={`mobile-nav-item px-4 py-3 text-sm flex items-center transition-all duration-300 rounded-lg ${
                         isActive('/dashboard') 
                           ? 'text-primary bg-primary/10' 
                           : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
@@ -290,9 +322,9 @@ const Header = () => {
                 <div className="flex items-center justify-between pt-2">
                   <Button 
                     asChild 
-                    className="bg-gradient-primary hover:shadow-glow transition-all duration-300 flex-1 mr-3 relative overflow-hidden group"
+                    className="bg-gradient-primary hover:shadow-glow transition-all duration-300 flex-1 mr-3 relative overflow-hidden group mobile-button"
                   >
-                    <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="relative z-10">
+                    <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="relative z-10 button-centered">
                       <span>{t('nav.quote')}</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                     </Link>
@@ -305,11 +337,26 @@ const Header = () => {
         </div>
       </div>
       
+      </header>
+      
+      {/* Mobile Floating Header Access Button */}
+      {isMobile && showFloatingButton && (
+        <Button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className={`mobile-floating-button floating-header-button bg-gradient-primary rounded-full h-12 w-12 p-0 shadow-lg transition-all duration-300 ${
+            showFloatingButton ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+          } touch-manipulation button-centered`}
+          title="Back to header"
+        >
+          <ChevronDown className="h-5 w-5 rotate-180" />
+        </Button>
+      )}
+      
       {/* Auth Modal */}
       {showAuthModal && (
         <AuthModal onClose={() => setShowAuthModal(false)} />
       )}
-    </header>
+    </>
   );
 };
 

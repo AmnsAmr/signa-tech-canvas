@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { AuthApi } from '@/api';
 import { User, Mail, Lock, Building, Phone, UserPlus } from 'lucide-react';
 import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 import EmailVerificationForm from './EmailVerificationForm';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -15,6 +16,7 @@ interface RegisterFormProps {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess }) => {
   const { login } = useAuth();
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,6 +28,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
   const [error, setError] = useState('');
   const [showVerification, setShowVerification] = useState(false);
   const [verificationData, setVerificationData] = useState<any>(null);
+  
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const companyRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  
+  const scrollToInput = (inputRef: React.RefObject<HTMLInputElement>) => {
+    if (isMobile && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }, 100);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +133,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onFocus={() => scrollToInput(emailRef)}
                   placeholder="Votre nom"
                   className="pl-10"
                   required
@@ -128,9 +148,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
+                  ref={emailRef}
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onFocus={() => scrollToInput(passwordRef)}
                   placeholder="votre@email.com"
                   className="pl-10"
                   required
@@ -145,9 +167,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
+                  ref={passwordRef}
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  onFocus={() => scrollToInput(companyRef)}
                   placeholder="••••••••"
                   className="pl-10"
                   required
@@ -162,8 +186,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
               <div className="relative">
                 <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
+                  ref={companyRef}
                   value={formData.company}
                   onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                  onFocus={() => scrollToInput(phoneRef)}
                   placeholder="Nom de votre entreprise"
                   className="pl-10"
                 />
@@ -177,6 +203,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
               <div className="relative">
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
+                  ref={phoneRef}
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="+212 X XX XX XX XX"

@@ -261,6 +261,23 @@ All colors MUST be HSL.
     user-select: none;
   }
 
+  /* Enhanced button centering */
+  .button-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Icon centering within buttons */
+  .icon-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
   /* Mobile-friendly button sizes */
   @media (max-width: 768px) {
     .mobile-button {
@@ -299,6 +316,11 @@ All colors MUST be HSL.
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+
+    /* Keep essential header transitions even with reduced motion */
+    .header-essential-transition {
+      transition: opacity 0.2s ease !important;
+    }
   }
   
   /* Critical performance optimizations */
@@ -310,6 +332,20 @@ All colors MUST be HSL.
   .perf-transform {
     transform: translateZ(0);
     will-change: transform;
+  }
+
+  /* Header performance optimizations */
+  .header-optimized {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Smooth header transitions */
+  .header-transition {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   /* Remove expensive effects */
@@ -369,6 +405,46 @@ All colors MUST be HSL.
     flex-shrink: 0;
   }
 
+  /* Enhanced header hover zone */
+  .header-hover-zone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 49;
+    pointer-events: none;
+  }
+
+  /* Floating button animations */
+  .floating-header-button {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .floating-header-button:active {
+    transform: scale(0.95);
+  }
+
+  /* Hamburger menu centering */
+  .hamburger-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger-lines {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   /* Mobile navigation improvements */
   @media (max-width: 768px) {
     .mobile-nav-item {
@@ -387,6 +463,14 @@ All colors MUST be HSL.
     .mobile-scroll {
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+    }
+
+    /* Mobile floating button positioning */
+    .mobile-floating-button {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 60;
     }
   }
 }

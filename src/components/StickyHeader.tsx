@@ -76,10 +76,10 @@ const StickyHeader = () => {
     <>
       {/* Sticky Header */}
       <div 
-        className={`fixed top-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur-md border-b border-border/50 shadow-lg ${
+        className={`fixed top-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur-md border-b border-border/50 shadow-lg header-optimized ${
           shouldReduceAnimations 
-            ? 'transition-none' 
-            : 'transition-all duration-300 ease-in-out'
+            ? 'header-essential-transition' 
+            : 'header-transition'
         } ${
           isVisible 
             ? 'translate-y-0 opacity-100' 
@@ -190,18 +190,21 @@ const StickyHeader = () => {
                 </Link>
               </Button>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Button with proper centering */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden p-2 h-8 w-8 touch-manipulation"
+                className="lg:hidden hamburger-container p-2 h-8 w-8 touch-manipulation button-centered"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                {isMenuOpen ? (
-                  <X className="h-4 w-4" />
-                ) : (
-                  <Menu className="h-4 w-4" />
-                )}
+                <div className="relative w-4 h-4 icon-centered">
+                  <Menu className={`h-4 w-4 absolute transition-all duration-300 ${
+                    isMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'
+                  }`} />
+                  <X className={`h-4 w-4 absolute transition-all duration-300 ${
+                    isMenuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
+                  }`} />
+                </div>
               </Button>
 
               {/* Scroll to Top Button */}
@@ -229,7 +232,7 @@ const StickyHeader = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`block px-3 py-3 text-sm font-medium rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center ${
+                    className={`mobile-nav-item block px-3 py-3 text-sm font-medium rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center ${
                       isActive(item.path) 
                         ? 'text-primary bg-primary/10' 
                         : 'text-foreground hover:text-primary hover:bg-primary/5'
@@ -242,7 +245,7 @@ const StickyHeader = () => {
                 {isAdmin && (
                   <Link
                     to="/admin"
-                    className={`block px-3 py-2 text-sm font-medium rounded-lg flex items-center transition-colors ${
+                    className={`mobile-nav-item block px-3 py-2 text-sm font-medium rounded-lg flex items-center transition-colors ${
                       isActive('/admin') 
                         ? 'text-primary bg-primary/10' 
                         : 'text-foreground hover:text-primary hover:bg-primary/5'
@@ -261,7 +264,7 @@ const StickyHeader = () => {
                   <>
                     <Link
                       to="/dashboard"
-                      className={`block px-3 py-2 text-sm flex items-center rounded-lg transition-colors ${
+                      className={`mobile-nav-item block px-3 py-2 text-sm flex items-center rounded-lg transition-colors ${
                         isActive('/dashboard') 
                           ? 'text-primary bg-primary/10' 
                           : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
@@ -309,8 +312,8 @@ const StickyHeader = () => {
       {/* Floating Back to Top Button (Mobile) */}
       <Button
         onClick={scrollToTop}
-        className={`fixed bottom-6 right-6 z-50 sm:hidden bg-gradient-primary rounded-full h-12 w-12 p-0 shadow-glow touch-manipulation ${
-          shouldReduceAnimations ? 'transition-none' : 'transition-all duration-300'
+        className={`fixed bottom-6 right-6 z-50 sm:hidden floating-header-button bg-gradient-primary rounded-full h-12 w-12 p-0 shadow-glow touch-manipulation button-centered ${
+          shouldReduceAnimations ? 'header-essential-transition' : 'transition-all duration-300'
         } ${
           isVisible ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
         }`}
