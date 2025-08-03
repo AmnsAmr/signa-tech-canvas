@@ -278,7 +278,7 @@ const Contact: React.FC = () => {
           </div>
           
           <Card className="overflow-hidden border-0 shadow-strong">
-            <div className="aspect-[16/10]">
+            <div className="aspect-[16/10] relative">
               <iframe
                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2505.6213869187595!2d-5.902106889775268!3d35.71167407246298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd0b897d4f10addf%3A0x750ef0252561ca92!2sSIGNATECH!5e0!3m2!1sen!2sma!4v1752152038428!5m2!1sen!2sma" 
                 width="100%"
@@ -288,7 +288,14 @@ const Contact: React.FC = () => {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Signa Tech Location"
+                onError={() => console.error('Map failed to load')}
+                onLoad={() => console.log('Map loaded successfully')}
               ></iframe>
+              <div className="absolute inset-0 bg-muted/20 opacity-0 hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
+                <p className="text-sm text-muted-foreground bg-background/80 px-3 py-1 rounded">
+                  {t('contact.map_loading') || 'Loading map...'}
+                </p>
+              </div>
             </div>
           </Card>
         </div>
