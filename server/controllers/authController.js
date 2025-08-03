@@ -5,6 +5,7 @@ const { OAuth2Client } = require('google-auth-library');
 const database = require('../config/database');
 const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/constants');
 const emailService = require('../utils/emailService');
+const { sanitizeForLog, generateSecureCode } = require('../middleware/security');
 
 const googleClient = new OAuth2Client(
   GOOGLE_CLIENT_ID,
@@ -36,8 +37,8 @@ class AuthController {
         return res.status(400).json({ message: 'User already exists' });
       }
 
-      // Generate verification code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate secure verification code
+      const code = generateSecureCode(6);
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
       // Store verification code
@@ -61,7 +62,7 @@ class AuthController {
         tempData: { name, email, hashedPassword, company, phone }
       });
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Registration error:', error.message);
       res.status(500).json({ message: 'Registration failed' });
     }
   }
@@ -109,7 +110,7 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', error.message);
       res.status(500).json({ message: 'Login failed' });
     }
   }
@@ -129,7 +130,7 @@ class AuthController {
 
       res.json(user);
     } catch (error) {
-      console.error('Get user error:', error);
+      console.error('Get user error:', error.message);
       res.status(500).json({ message: 'Database error' });
     }
   }
@@ -158,7 +159,7 @@ class AuthController {
         return res.status(400).json({ message: 'Please use Google Sign-In for this account' });
       }
 
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const code = generateSecureCode(6);
       const expiresAt = new Date(Date.now() + RESET_CODE_EXPIRY);
 
       await new Promise((resolve, reject) => {
@@ -173,7 +174,7 @@ class AuthController {
       
       res.json({ message: 'Code de vérification envoyé à votre email' });
     } catch (error) {
-      console.error('Forgot password error:', error);
+      console.error('Forgot password error:', error.message);
       res.status(500).json({ message: 'Failed to send reset email' });
     }
   }
@@ -201,7 +202,7 @@ class AuthController {
       
       res.json({ message: 'Code vérifié avec succès', valid: true });
     } catch (error) {
-      console.error('Verify reset code error:', error);
+      console.error('Verify reset code error:', error.message);
       res.status(500).json({ message: 'Database error' });
     }
   }
@@ -245,7 +246,7 @@ class AuthController {
       
       res.json({ message: 'Mot de passe réinitialisé avec succès' });
     } catch (error) {
-      console.error('Reset password error:', error);
+      console.error('Reset password error:', error.message);
       res.status(500).json({ message: 'Failed to reset password' });
     }
   }
@@ -298,7 +299,7 @@ class AuthController {
         message: 'Compte créé avec succès'
       });
     } catch (error) {
-      console.error('Email verification error:', error);
+      console.error('Email verification error:', error.message);
       res.status(500).json({ message: 'Verification failed' });
     }
   }
@@ -307,8 +308,8 @@ class AuthController {
     try {
       const { email } = req.body;
       
-      // Generate new verification code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate new secure verification code
+      const code = generateSecureCode(6);
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
       // Store new verification code
@@ -325,7 +326,7 @@ class AuthController {
       
       res.json({ message: 'Nouveau code envoyé' });
     } catch (error) {
-      console.error('Resend verification error:', error);
+      console.error('Resend verification error:', error.message);
       res.status(500).json({ message: 'Failed to resend code' });
     }
   }
@@ -392,7 +393,7 @@ class AuthController {
       
       res.json({ message: 'Profile updated successfully' });
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.error('Update profile error:', error.message);
       res.status(500).json({ message: 'Failed to update profile' });
     }
   }
@@ -438,7 +439,7 @@ class AuthController {
       
       res.json({ message: 'Account deleted successfully' });
     } catch (error) {
-      console.error('Delete account error:', error);
+      console.error('Delete account error:', error.message);
       res.status(500).json({ message: 'Failed to delete account' });
     }
   }
@@ -451,7 +452,7 @@ class AuthController {
       });
       res.redirect(authUrl);
     } catch (error) {
-      console.error('Google auth error:', error);
+      console.error('Google auth error:', error.message);
       res.status(500).json({ message: 'Google authentication failed' });
     }
   }
@@ -499,7 +500,7 @@ class AuthController {
       // Redirect to frontend with token
       res.redirect(`http://localhost:8080?token=${token}`);
     } catch (error) {
-      console.error('Google callback error:', error);
+      console.error('Google callback error:', error.message);
       res.redirect('http://localhost:8080?error=auth_failed');
     }
   }

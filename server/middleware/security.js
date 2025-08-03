@@ -5,6 +5,7 @@ const DOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const csrf = require('csrf');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 
 // Initialize CSRF protection
 const csrfProtection = new csrf();
@@ -105,10 +106,27 @@ const sanitizeInput = (req, res, next) => {
   next();
 };
 
+// Sanitize user input for logging
+const sanitizeForLog = (input) => {
+  if (typeof input !== 'string') return String(input);
+  return encodeURIComponent(input).substring(0, 100);
+};
+
+// Generate cryptographically secure random code
+const generateSecureCode = (length = 6) => {
+  const digits = '0123456789';
+  let result = '';
+  const randomBytes = crypto.randomBytes(length);
+  for (let i = 0; i < length; i++) {
+    result += digits[randomBytes[i] % 10];
+  }
+  return result;
+};
+
 // CSRF protection middleware
 const csrfMiddleware = (req, res, next) => {
-  // Skip CSRF in development mode
-  if (process.env.NODE_ENV === 'development') {
+  // Skip CSRF if disabled in environment
+  if (process.env.CSRF_ENABLED === 'false') {
     return next();
   }
   
@@ -142,6 +160,10 @@ const csrfMiddleware = (req, res, next) => {
 
 // Generate CSRF token endpoint
 const generateCSRFToken = (req, res) => {
+  if (process.env.CSRF_ENABLED === 'false') {
+    return res.json({ csrfToken: 'disabled-in-dev' });
+  }
+  
   if (!req.session?.csrfSecret) {
     if (!req.session) {
       req.session = {};
@@ -337,5 +359,7 @@ module.exports = {
   validateFileUpload,
   securityHeaders,
   validationSchemas,
-  handleValidationErrors
+  handleValidationErrors,
+  sanitizeForLog,
+  generateSecureCode
 };
