@@ -1,21 +1,15 @@
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
 const { body, validationResult } = require('express-validator');
-const DOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
-const csrf = require('csrf');
-const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 
-// Initialize CSRF protection
-const csrfProtection = new csrf();
-
-// Create DOMPurify instance
-const window = new JSDOM('').window;
-const purify = DOMPurify(window);
+// Lazy loaded modules
+let rateLimit, helmet, DOMPurify, JSDOM, csrf, cookieParser;
+let csrfProtection, purify, window;
 
 // Rate limiting configurations
 const createRateLimit = (windowMs, max, message) => {
+  // Lazy load rate limit
+  if (!rateLimit) rateLimit = require('express-rate-limit');
+  
   return rateLimit({
     windowMs,
     max,
@@ -70,6 +64,14 @@ const rateLimits = {
 
 // Input sanitization middleware
 const sanitizeInput = (req, res, next) => {
+  // Lazy load DOMPurify
+  if (!DOMPurify) {
+    DOMPurify = require('dompurify');
+    JSDOM = require('jsdom').JSDOM;
+    window = new JSDOM('').window;
+    purify = DOMPurify(window);
+  }
+  
   const sanitizeValue = (value) => {
     if (typeof value === 'string') {
       // Remove potentially dangerous HTML/script tags
@@ -135,6 +137,12 @@ const csrfMiddleware = (req, res, next) => {
     return next();
   }
 
+  // Lazy load CSRF
+  if (!csrf) {
+    csrf = require('csrf');
+    csrfProtection = new csrf();
+  }
+
   // Generate CSRF token for new sessions
   if (!req.session?.csrfSecret) {
     if (!req.session) {
@@ -162,6 +170,12 @@ const csrfMiddleware = (req, res, next) => {
 const generateCSRFToken = (req, res) => {
   if (process.env.CSRF_ENABLED === 'false') {
     return res.json({ csrfToken: 'disabled-in-dev' });
+  }
+  
+  // Lazy load CSRF
+  if (!csrf) {
+    csrf = require('csrf');
+    csrfProtection = new csrf();
   }
   
   if (!req.session?.csrfSecret) {
@@ -249,7 +263,40 @@ const validateFileUpload = (allowedTypes = [], maxSize = 10 * 1024 * 1024) => {
 };
 
 // Security headers middleware
-const securityHeaders = helmet({
+const getSecurityHeaders = () => {
+  // Lazy load helmet
+  if (!helmet) helmet = require('helmet');
+  
+  return helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https:"],
+        scriptSrc: ["'self'"],
+        connectSrc: ["'self'", "http://localhost:*", "https://accounts.google.com"],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"]
+      }
+    },
+    crossOriginEmbedderPolicy: false, // Disable for development
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
+  });
+};
+
+const securityHeaders = (req, res, next) => {
+  return getSecurityHeaders()(req, res, next);
+};
+
+// Legacy export for backward compatibility
+const legacySecurityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
