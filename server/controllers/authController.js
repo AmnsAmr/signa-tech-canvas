@@ -1,18 +1,11 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const { OAuth2Client } = require('google-auth-library');
 const database = require('../config/database');
 const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/constants');
-const emailService = require('../utils/emailService');
 const { sanitizeForLog, generateSecureCode } = require('../middleware/security');
 const Logger = require('../utils/logger');
 
-const googleClient = new OAuth2Client(
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  'http://localhost:5000/api/auth/google/callback'
-);
+// Lazy loaded modules
+let bcrypt, jwt, OAuth2Client, emailService, googleClient;
 
 const db = database.getDb();
 
@@ -51,6 +44,10 @@ class AuthController {
           });
       });
 
+      // Lazy load modules
+      if (!emailService) emailService = require('../utils/emailService');
+      if (!bcrypt) bcrypt = require('bcryptjs');
+      
       // Send verification email
       await emailService.sendVerificationEmail(email, code);
       
@@ -92,6 +89,10 @@ class AuthController {
         return res.status(400).json({ message: 'Please use Google Sign-In for this account' });
       }
 
+      // Lazy load modules
+      if (!bcrypt) bcrypt = require('bcryptjs');
+      if (!jwt) jwt = require('jsonwebtoken');
+      
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res.status(400).json({ message: 'Invalid credentials' });
@@ -171,6 +172,9 @@ class AuthController {
           });
       });
 
+      // Lazy load email service
+      if (!emailService) emailService = require('../utils/emailService');
+      
       await emailService.sendResetEmail(email, code);
       
       res.json({ message: 'Code de vérification envoyé à votre email' });
@@ -228,6 +232,9 @@ class AuthController {
       if (!reset) {
         return res.status(400).json({ message: 'Code invalide ou expiré' });
       }
+      
+      // Lazy load bcrypt
+      if (!bcrypt) bcrypt = require('bcryptjs');
       
       const hashedPassword = await bcrypt.hash(password, 10);
       
@@ -297,6 +304,9 @@ class AuthController {
         });
       });
 
+      // Lazy load jwt
+      if (!jwt) jwt = require('jsonwebtoken');
+      
       const token = jwt.sign({ id: userId, email, role: 'client' }, JWT_SECRET, { expiresIn: '24h' });
       
       res.json({ 
@@ -332,6 +342,9 @@ class AuthController {
           });
       });
 
+      // Lazy load email service
+      if (!emailService) emailService = require('../utils/emailService');
+      
       // Send verification email
       await emailService.sendVerificationEmail(email, code);
       
@@ -384,6 +397,9 @@ class AuthController {
       }
       
       if (newPassword) {
+        // Lazy load bcrypt
+        if (!bcrypt) bcrypt = require('bcryptjs');
+        
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         updates.push('password = ?');
         values.push(hashedPassword);
@@ -428,6 +444,9 @@ class AuthController {
       
       // Verify password for non-OAuth users
       if (user.password && !user.oauth_provider) {
+        // Lazy load bcrypt
+        if (!bcrypt) bcrypt = require('bcryptjs');
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
           return res.status(400).json({ message: 'Invalid password' });
@@ -479,6 +498,16 @@ class AuthController {
 
   async googleAuth(req, res) {
     try {
+      // Lazy load Google OAuth client
+      if (!OAuth2Client) {
+        OAuth2Client = require('google-auth-library').OAuth2Client;
+        googleClient = new OAuth2Client(
+          GOOGLE_CLIENT_ID,
+          GOOGLE_CLIENT_SECRET,
+          'http://localhost:5000/api/auth/google/callback'
+        );
+      }
+      
       const authUrl = googleClient.generateAuthUrl({
         access_type: 'offline',
         scope: ['profile', 'email']
@@ -492,6 +521,16 @@ class AuthController {
 
   async googleCallback(req, res) {
     try {
+      // Lazy load Google OAuth client
+      if (!OAuth2Client) {
+        OAuth2Client = require('google-auth-library').OAuth2Client;
+        googleClient = new OAuth2Client(
+          GOOGLE_CLIENT_ID,
+          GOOGLE_CLIENT_SECRET,
+          'http://localhost:5000/api/auth/google/callback'
+        );
+      }
+      
       const { code } = req.query;
       const { tokens } = await googleClient.getToken(code);
       googleClient.setCredentials(tokens);
@@ -527,6 +566,9 @@ class AuthController {
         
         user = { id: userId, name, email, role: 'client', oauth_provider: 'google' };
       }
+      
+      // Lazy load jwt
+      if (!jwt) jwt = require('jsonwebtoken');
       
       const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
       
