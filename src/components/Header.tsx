@@ -15,8 +15,7 @@ const Header = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isHeaderHovered, setIsHeaderHovered] = useState(false);
+
   const [showFloatingButton, setShowFloatingButton] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollDirection, setScrollDirection] = useState('down');
@@ -38,10 +37,10 @@ const Header = () => {
       setLastScrollY(scrollY);
       setIsScrolled(scrollY > 20);
       
-      // Desktop: Hide header when scrolling down, show on hover
+      // Desktop: Hide header when scrolling down
       // Mobile: Show floating button after scrolling
       if (!isMobile) {
-        setIsMinimized(scrollY > 100 && newDirection === 'down' && !isHeaderHovered);
+        setIsMinimized(scrollY > 100 && newDirection === 'down');
       } else {
         setShowFloatingButton(scrollY > 150);
       }
@@ -50,20 +49,9 @@ const Header = () => {
     const throttledScroll = () => requestAnimationFrame(handleScroll);
     window.addEventListener('scroll', throttledScroll, { passive: true });
     return () => window.removeEventListener('scroll', throttledScroll);
-  }, [lastScrollY, scrollDirection, isHeaderHovered, isMobile]);
+  }, [lastScrollY, scrollDirection, isMobile]);
 
-  // Handle header hover area detection
-  useEffect(() => {
-    if (isMobile) return;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const shouldShow = e.clientY < 80; // Show when mouse is near top
-      setIsHeaderHovered(shouldShow);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, [isMobile]);
+
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -100,6 +88,8 @@ const Header = () => {
 
   return (
     <>
+
+      
       <header 
         ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-50 perf-layer header-optimized header-transition ${
@@ -111,8 +101,7 @@ const Header = () => {
             ? '-translate-y-full opacity-0' 
             : 'translate-y-0 opacity-100'
         }`}
-        onMouseEnter={() => !isMobile && setIsHeaderHovered(true)}
-        onMouseLeave={() => !isMobile && setIsHeaderHovered(false)}
+
       >
 
       {/* Main navigation */}

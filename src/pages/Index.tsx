@@ -187,7 +187,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {services.map((service, index) => (
-              <Card key={index} className="border-0 shadow-sm hover:shadow-md mobile-transform">
+              <Card key={index} className="border-0 shadow-sm hover:shadow-md mobile-transform unselectable">
                 <CardContent className="p-6">
                   <div className="flex flex-col space-y-4">
                     <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
@@ -241,7 +241,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md mobile-transform">
+            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md mobile-transform unselectable">
               <div className="aspect-square overflow-hidden">
                 <ImageLoader
                   filename={facadeImage?.filename}
@@ -256,7 +256,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md mobile-transform">
+            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md mobile-transform unselectable">
               <div className="aspect-square overflow-hidden">
                 <ImageLoader
                   filename={heroImage?.filename}
@@ -270,7 +270,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md mobile-transform">
+            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md mobile-transform unselectable">
               <div className="aspect-square overflow-hidden">
                 <ImageLoader
                   filename={plvImage?.filename}

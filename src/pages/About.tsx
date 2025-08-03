@@ -135,7 +135,7 @@ const About = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {values.map((value, index) => (
-              <Card key={index} className={`group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:scale-105 ${
+              <Card key={index} className={`group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 transform hover:scale-105 unselectable ${
                 index === 1 ? 'md:-translate-y-8' : ''
               }`}>
                 <div className={`absolute inset-0 bg-gradient-to-br ${value.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
@@ -162,7 +162,7 @@ const About = () => {
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500">
+            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 unselectable">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardContent className="p-12 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500">
                 <div className="flex items-center mb-8">
@@ -177,7 +177,7 @@ const About = () => {
               </CardContent>
             </Card>
 
-            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 lg:translate-y-8">
+            <Card className="group relative overflow-hidden border-0 shadow-glow hover:shadow-pink transition-all duration-500 lg:translate-y-8 unselectable">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardContent className="p-12 relative z-10 bg-white group-hover:bg-transparent transition-colors duration-500">
                 <div className="flex items-center mb-8">

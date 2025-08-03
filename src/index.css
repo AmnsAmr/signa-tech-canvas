@@ -278,6 +278,16 @@ All colors MUST be HSL.
     height: 100%;
   }
 
+  /* Unselectable content like Apple website */
+  .unselectable {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Mobile-friendly button sizes */
   @media (max-width: 768px) {
     .mobile-button {
