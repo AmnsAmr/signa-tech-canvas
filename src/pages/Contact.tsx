@@ -21,7 +21,7 @@ import {
   Heart,
   LucideIcon
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 interface ServiceSpec {
   id: string;
@@ -59,16 +59,21 @@ interface ContactCardProps {
 const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) => {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   
-  const handleEmailClick = () => {
-    if (title.toLowerCase().includes('email') || title.toLowerCase().includes('e-mail')) {
+  const isEmailCard = useMemo(() => {
+    const lowerTitle = title.toLowerCase();
+    return lowerTitle.includes('email') || lowerTitle.includes('e-mail');
+  }, [title]);
+  
+  const handleEmailClick = useCallback(() => {
+    if (isEmailCard) {
       setShowEmailDialog(true);
     }
-  };
+  }, [isEmailCard]);
   
-  const handleEmailConfirm = () => {
+  const handleEmailConfirm = useCallback(() => {
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${value}`, '_blank');
     setShowEmailDialog(false);
-  };
+  }, [value]);
   
   return (
     <>
@@ -82,7 +87,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ icon: Icon, title, value }) =
               <h3 className="font-semibold text-foreground">{title}</h3>
               <p 
                 className={`text-muted-foreground ${
-                  title.toLowerCase().includes('email') || title.toLowerCase().includes('e-mail') 
+                  isEmailCard 
                     ? 'cursor-pointer hover:text-primary transition-colors' 
                     : ''
                 }`}
@@ -120,6 +125,12 @@ const Contact: React.FC = () => {
   const { settings } = useOptimizedContactSettings();
   const { images: contactImages } = useImageCache('contact');
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  
+  const whatsappUrl = useMemo(() => {
+    if (!settings.whatsapp) return '';
+    const cleanNumber = settings.whatsapp.replace(/[\+\s]/g, '');
+    return `https://wa.me/${cleanNumber}`;
+  }, [settings.whatsapp]);
   
   const [formData, setFormData] = useState<FormData>({
     name: isAuthenticated ? user?.name || '' : '',
@@ -246,7 +257,7 @@ const Contact: React.FC = () => {
                 className="w-full bg-green-500 hover:bg-green-600 text-white shadow-glow hover:shadow-strong transition-all text-lg py-6 transform hover:scale-105"
               >
                 <a 
-                  href={`https://wa.me/${settings.whatsapp?.replace(/\+/g, '').replace(/\s/g, '')}`}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
