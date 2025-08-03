@@ -62,7 +62,10 @@ class AuthController {
         tempData: { name, email, hashedPassword, company, phone }
       });
     } catch (error) {
-      console.error('Registration error:', error.message);
+      console.error('Registration error:', {
+        message: error.message,
+        email: sanitizeForLog(email)
+      });
       res.status(500).json({ message: 'Registration failed' });
     }
   }
@@ -110,7 +113,10 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('Login error:', error.message);
+      console.error('Login error:', {
+        message: error.message,
+        email: sanitizeForLog(email)
+      });
       res.status(500).json({ message: 'Login failed' });
     }
   }
@@ -130,7 +136,10 @@ class AuthController {
 
       res.json(user);
     } catch (error) {
-      console.error('Get user error:', error.message);
+      console.error('Get user error:', {
+        message: error.message,
+        userId: req.user?.id
+      });
       res.status(500).json({ message: 'Database error' });
     }
   }
@@ -174,7 +183,10 @@ class AuthController {
       
       res.json({ message: 'Code de vérification envoyé à votre email' });
     } catch (error) {
-      console.error('Forgot password error:', error.message);
+      console.error('Forgot password error:', {
+        message: error.message,
+        email: sanitizeForLog(email)
+      });
       res.status(500).json({ message: 'Failed to send reset email' });
     }
   }
@@ -202,7 +214,10 @@ class AuthController {
       
       res.json({ message: 'Code vérifié avec succès', valid: true });
     } catch (error) {
-      console.error('Verify reset code error:', error.message);
+      console.error('Verify reset code error:', {
+        message: error.message,
+        email: sanitizeForLog(email)
+      });
       res.status(500).json({ message: 'Database error' });
     }
   }
@@ -256,10 +271,7 @@ class AuthController {
         return res.status(400).json({ message: 'Invalid request data' });
       }
       
-      res.status(500).json({ 
-        message: 'Password reset failed',
-        ...(process.env.NODE_ENV === 'development' && { error: error.message })
-      });
+      res.status(500).json({ message: 'Password reset failed' });
     }
   }
 
@@ -311,7 +323,10 @@ class AuthController {
         message: 'Compte créé avec succès'
       });
     } catch (error) {
-      console.error('Email verification error:', error.message);
+      console.error('Email verification error:', {
+        message: error.message,
+        email: sanitizeForLog(email)
+      });
       res.status(500).json({ message: 'Verification failed' });
     }
   }
@@ -338,7 +353,10 @@ class AuthController {
       
       res.json({ message: 'Nouveau code envoyé' });
     } catch (error) {
-      console.error('Resend verification error:', error.message);
+      console.error('Resend verification error:', {
+        message: error.message,
+        email: sanitizeForLog(email)
+      });
       res.status(500).json({ message: 'Failed to resend code' });
     }
   }
@@ -405,7 +423,10 @@ class AuthController {
       
       res.json({ message: 'Profile updated successfully' });
     } catch (error) {
-      console.error('Update profile error:', error.message);
+      console.error('Update profile error:', {
+        message: error.message,
+        userId: sanitizeForLog(userId)
+      });
       res.status(500).json({ message: 'Failed to update profile' });
     }
   }
@@ -457,7 +478,10 @@ class AuthController {
       
       res.json({ message: 'Account deleted successfully' });
     } catch (error) {
-      console.error('Delete account error:', error.message);
+      console.error('Delete account error:', {
+        message: error.message,
+        userId: sanitizeForLog(userId)
+      });
       res.status(500).json({ message: 'Failed to delete account' });
     }
   }
@@ -518,7 +542,10 @@ class AuthController {
       // Redirect to frontend with token
       res.redirect(`http://localhost:8080?token=${token}`);
     } catch (error) {
-      console.error('Google callback error:', error.message);
+      console.error('Google callback error:', {
+        message: error.message,
+        code: sanitizeForLog(req.query?.code)
+      });
       res.redirect('http://localhost:8080?error=auth_failed');
     }
   }
