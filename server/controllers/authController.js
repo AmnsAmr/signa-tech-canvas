@@ -21,7 +21,7 @@ class AuthController {
       
       // Check if user exists
       const existingUser = await new Promise((resolve, reject) => {
-        db.get("SELECT * FROM users WHERE email = ?", [email], (err, row) => {
+        db.get("SELECT id FROM users WHERE email = ?", [email], (err, row) => {
           if (err) reject(err);
           else resolve(row);
         });
@@ -75,7 +75,7 @@ class AuthController {
       const { email, password } = req.body;
       
       const user = await new Promise((resolve, reject) => {
-        db.get("SELECT * FROM users WHERE email = ?", [email], (err, row) => {
+        db.get("SELECT id, name, email, company, phone, role, password, oauth_provider FROM users WHERE email = ?", [email], (err, row) => {
           if (err) reject(err);
           else resolve(row);
         });
