@@ -2,7 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/auth');
-const { rateLimits, validationSchemas, handleValidationErrors } = require('../middleware/security');
+const { rateLimits, validationSchemas, handleValidationErrors, csrfMiddleware } = require('../middleware/security');
 
 const router = express.Router();
 
@@ -39,24 +39,24 @@ const verifyEmailValidation = [
   body('userData').notEmpty().withMessage('User data is required')
 ];
 
-// Routes with enhanced security validation
-router.post('/register', registerValidation, handleValidationErrors, authController.register);
-router.post('/login', loginValidation, handleValidationErrors, authController.login);
+// Routes with enhanced security validation and CSRF protection
+router.post('/register', csrfMiddleware, registerValidation, handleValidationErrors, authController.register);
+router.post('/login', csrfMiddleware, loginValidation, handleValidationErrors, authController.login);
 router.get('/me', authenticateToken, authController.getMe);
-router.post('/forgot-password', rateLimits.passwordReset, forgotPasswordValidation, handleValidationErrors, authController.forgotPassword);
-router.post('/verify-reset-code', verifyCodeValidation, handleValidationErrors, authController.verifyResetCode);
-router.post('/reset-password', rateLimits.passwordReset, resetPasswordValidation, handleValidationErrors, authController.resetPassword);
-router.post('/verify-email', verifyEmailValidation, handleValidationErrors, authController.verifyEmail);
-router.post('/resend-verification', rateLimits.passwordReset, body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'), handleValidationErrors, authController.resendVerificationCode);
+router.post('/forgot-password', csrfMiddleware, rateLimits.passwordReset, forgotPasswordValidation, handleValidationErrors, authController.forgotPassword);
+router.post('/verify-reset-code', csrfMiddleware, verifyCodeValidation, handleValidationErrors, authController.verifyResetCode);
+router.post('/reset-password', csrfMiddleware, rateLimits.passwordReset, resetPasswordValidation, handleValidationErrors, authController.resetPassword);
+router.post('/verify-email', csrfMiddleware, verifyEmailValidation, handleValidationErrors, authController.verifyEmail);
+router.post('/resend-verification', csrfMiddleware, rateLimits.passwordReset, body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'), handleValidationErrors, authController.resendVerificationCode);
 
 // Google OAuth routes
 router.get('/google', authController.googleAuth);
 router.get('/google/callback', authController.googleCallback);
 
 // Profile update
-router.put('/profile', authenticateToken, authController.updateProfile);
+router.put('/profile', csrfMiddleware, authenticateToken, authController.updateProfile);
 
 // Account deletion
-router.delete('/account', authenticateToken, authController.deleteAccount);
+router.delete('/account', csrfMiddleware, authenticateToken, authController.deleteAccount);
 
 module.exports = router;
