@@ -92,6 +92,8 @@ export const API_ENDPOINTS = {
   },
 
   PROJECTS: {
+    GET_SECTIONS: '/api/projects/sections',
+    GET_SECTION_PROJECTS: (sectionId: number) => `/api/projects/sections/${sectionId}/projects`,
     ADMIN: {
       SECTIONS: '/api/projects/admin/sections',
       SECTION_PROJECTS: (sectionId: number) => `/api/projects/admin/sections/${sectionId}/projects`,

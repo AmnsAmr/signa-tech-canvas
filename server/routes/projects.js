@@ -6,6 +6,7 @@ const { uploadMiddleware } = require('../middleware/upload');
 
 // Public routes
 router.get('/sections', projectController.getSections);
+router.get('/sections/:sectionId/projects', projectController.getProjectsBySection);
 
 // Admin routes - require admin privileges
 router.get('/admin/sections', authenticateToken, requireAdmin, projectController.getAllSections);

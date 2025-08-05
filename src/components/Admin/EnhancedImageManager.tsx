@@ -100,7 +100,7 @@ const EnhancedImageManager: React.FC = () => {
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
         toast({
           title: "Success",
-          description: response.data.message || "Image uploaded successfully"
+          description: "Image uploaded successfully"
         });
       } else {
         toast({
@@ -167,7 +167,7 @@ const EnhancedImageManager: React.FC = () => {
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
         toast({
           title: "Success",
-          description: response.data.message || "Image replaced successfully"
+          description: "Image replaced successfully"
         });
       } else {
         toast({

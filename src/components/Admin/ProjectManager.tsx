@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Save, X, FolderPlus, Image as ImageIcon } from 'lucide-react';
-import { apiClient } from '@/api';
+import { ProjectsApi, ImagesApi } from '@/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -55,17 +55,12 @@ const ProjectManager: React.FC = () => {
 
   const fetchSections = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/projects/admin/sections'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSections(data);
+      const response = await ProjectsApi.getSections();
+      if (response.success) {
+        setSections(response.data);
         
         // Fetch projects for each section
-        for (let section of data) {
+        for (let section of response.data) {
           fetchProjectsForSection(section.id);
         }
       }
@@ -76,15 +71,10 @@ const ProjectManager: React.FC = () => {
 
   const fetchProjectsForSection = async (sectionId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/sections/${sectionId}/projects`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const projects = await response.json();
+      const response = await ProjectsApi.getSectionProjects(sectionId);
+      if (response.success) {
         setSections(prev => prev.map(section => 
-          section.id === sectionId ? { ...section, projects } : section
+          section.id === sectionId ? { ...section, projects: response.data } : section
         ));
       }
     } catch (error) {
@@ -94,14 +84,9 @@ const ProjectManager: React.FC = () => {
 
   const fetchAvailableImages = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/admin/images?category=portfolio'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const images = await response.json();
-        setAvailableImages(images.map((img: any) => img.filename));
+      const response = await ImagesApi.adminGetByCategory('portfolio');
+      if (response.success) {
+        setAvailableImages(response.data.map((img: any) => img.filename));
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
@@ -113,17 +98,8 @@ const ProjectManager: React.FC = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/projects/admin/sections'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...newSection, display_order: sections.length })
-      });
-
-      if (response.ok) {
+      const response = await ProjectsApi.createSection({ ...newSection, display_order: sections.length });
+      if (response.success) {
         setNewSection({ name: '' });
         setShowNewSection(false);
         fetchSections();
@@ -138,17 +114,8 @@ const ProjectManager: React.FC = () => {
   const updateSection = async (id: number, data: Partial<ProjectSection>) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/sections/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
+      const response = await ProjectsApi.updateSection(id, data);
+      if (response.success) {
         setEditingSection(null);
         fetchSections();
       }
@@ -160,17 +127,12 @@ const ProjectManager: React.FC = () => {
   };
 
   const deleteSection = async (id: number) => {
-    if (!confirm(t('project_manager.delete_section_confirm'))) return;
+    if (!confirm('Are you sure you want to delete this section?')) return;
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/sections/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.ok) {
+      const response = await ProjectsApi.deleteSection(id);
+      if (response.success) {
         fetchSections();
       }
     } catch (error) {
@@ -185,17 +147,8 @@ const ProjectManager: React.FC = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/projects/admin/projects'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...newProject, section_id: sectionId })
-      });
-
-      if (response.ok) {
+      const response = await ProjectsApi.createProject({ ...newProject, section_id: sectionId });
+      if (response.success) {
         setNewProject({ section_id: 0, title: '', description: '', image_filename: '', display_order: 0 });
         setShowNewProject(null);
         fetchProjectsForSection(sectionId);
@@ -210,17 +163,8 @@ const ProjectManager: React.FC = () => {
   const updateProject = async (id: number, data: Partial<Project>) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/projects/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
+      const response = await ProjectsApi.updateProject(id, data);
+      if (response.success) {
         setEditingProject(null);
         fetchSections();
       }
@@ -232,17 +176,12 @@ const ProjectManager: React.FC = () => {
   };
 
   const deleteProject = async (id: number, sectionId: number) => {
-    if (!confirm(t('project_manager.delete_project_confirm'))) return;
+    if (!confirm('Are you sure you want to delete this project?')) return;
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/projects/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.ok) {
+      const response = await ProjectsApi.deleteProject(id);
+      if (response.success) {
         fetchProjectsForSection(sectionId);
       }
     } catch (error) {
@@ -257,23 +196,16 @@ const ProjectManager: React.FC = () => {
     formData.append('image', file);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/projects/${projectId}/image`), {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
-
-      if (response.ok) {
-        alert(t('project_manager.image_updated'));
+      const response = await ProjectsApi.updateProjectImage(projectId, formData);
+      if (response.success) {
+        alert('Image updated successfully');
         fetchSections();
       } else {
-        const errorData = await response.json();
-        alert(`${t('project_manager.image_update_failed')}: ${errorData.message}`);
+        alert(`Image update failed: ${response.error}`);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert(t('project_manager.image_upload_error'));
+      alert('Image upload error');
     }
   };
 
@@ -295,25 +227,17 @@ const ProjectManager: React.FC = () => {
     formData.append('category', 'portfolio');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/admin/images'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setNewProject({ ...newProject, image_filename: result.filename });
+      const response = await ImagesApi.adminUpload(formData);
+      if (response.success) {
+        setNewProject({ ...newProject, image_filename: response.data.filename });
         fetchAvailableImages();
-        alert(t('project_manager.image_uploaded'));
+        alert('Image uploaded successfully');
       } else {
-        const errorData = await response.json();
-        alert(`${t('project_manager.image_upload_failed')}: ${errorData.message}`);
+        alert(`Image upload failed: ${response.error}`);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert(t('project_manager.image_upload_error'));
+      alert('Image upload error');
     } finally {
       setUploadingImage(false);
     }
@@ -507,7 +431,7 @@ const ProjectManager: React.FC = () => {
                     <div className="aspect-video bg-gray-100 relative group">
                       {project.image_filename ? (
                         <img
-                          src={apiClient.buildUploadUrl(project.image_filename)}
+                          src={ImagesApi.getImageUrl(project.image_filename)}
                           alt={project.title}
                           className="w-full h-full object-cover"
                         />
