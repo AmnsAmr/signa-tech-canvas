@@ -7,7 +7,7 @@ import { Upload, Trash2, RefreshCw, Image as ImageIcon, Home, User, Info, Folder
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { buildApiUrl, buildUploadUrl } from '@/config/api';
+import { ImagesApi, ProjectsApi } from '@/api';
 import { IMAGE_USAGE_MAP, isCategoryFull, getPriorityColor } from '@/utils/imageOrganizer';
 
 interface SiteImage {
@@ -107,14 +107,10 @@ const OrganizedImageManager: React.FC = () => {
   const fetchAllImages = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/images'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ImagesApi.adminGetAll();
       
-      if (response.ok) {
-        const data = await response.json();
-        const grouped = data.reduce((acc: Record<string, SiteImage[]>, img: SiteImage) => {
+      if (response.success) {
+        const grouped = response.data.reduce((acc: Record<string, SiteImage[]>, img: SiteImage) => {
           if (!acc[img.category]) acc[img.category] = [];
           acc[img.category].push(img);
           return acc;
@@ -143,14 +139,9 @@ const OrganizedImageManager: React.FC = () => {
     formData.append('category', category);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/images/upload'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
+      const response = await ImagesApi.adminUpload(formData);
 
-      if (response.ok) {
+      if (response.success) {
         setUploadFiles(prev => ({ ...prev, [category]: null }));
         fetchAllImages();
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
@@ -165,13 +156,9 @@ const OrganizedImageManager: React.FC = () => {
     if (!confirm('Supprimer cette image ?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/images/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ImagesApi.adminDelete(id);
 
-      if (response.ok) {
+      if (response.success) {
         fetchAllImages();
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
       }
@@ -185,14 +172,9 @@ const OrganizedImageManager: React.FC = () => {
     formData.append('image', file);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/images/${id}/replace`), {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
+      const response = await ImagesApi.adminReplace(id, formData);
 
-      if (response.ok) {
+      if (response.success) {
         fetchAllImages();
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
         alert(t('organized_images.image_replaced'));
@@ -204,17 +186,13 @@ const OrganizedImageManager: React.FC = () => {
 
   const fetchProjectSections = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/projects/admin/sections'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ProjectsApi.getSections();
       
-      if (response.ok) {
-        const sections = await response.json();
-        setProjectSections(sections);
+      if (response.success) {
+        setProjectSections(response.data);
         
         // Fetch projects for each section
-        for (let section of sections) {
+        for (let section of response.data) {
           fetchProjectsForSection(section.id);
         }
       }
@@ -225,14 +203,10 @@ const OrganizedImageManager: React.FC = () => {
 
   const fetchProjectsForSection = async (sectionId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/projects/admin/sections/${sectionId}/projects`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ProjectsApi.getSectionProjects(sectionId);
       
-      if (response.ok) {
-        const sectionProjects = await response.json();
-        setProjects(prev => ({ ...prev, [sectionId]: sectionProjects }));
+      if (response.success) {
+        setProjects(prev => ({ ...prev, [sectionId]: response.data }));
       }
     } catch (error) {
       console.error('Failed to fetch projects:', error);
@@ -243,17 +217,9 @@ const OrganizedImageManager: React.FC = () => {
     if (!newSection.name.trim()) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/projects/admin/sections'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(newSection)
-      });
+      const response = await ProjectsApi.createSection(newSection);
 
-      if (response.ok) {
+      if (response.success) {
         setNewSection({ name: '', display_order: 0 });
         setShowNewSection(false);
         fetchProjectSections();
@@ -267,17 +233,9 @@ const OrganizedImageManager: React.FC = () => {
     if (!newProject.title.trim()) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/projects/admin/projects'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...newProject, section_id: sectionId })
-      });
+      const response = await ProjectsApi.createProject({ ...newProject, section_id: sectionId });
 
-      if (response.ok) {
+      if (response.success) {
         setNewProject({ title: '', description: '', image_filename: '', display_order: 0 });
         setShowNewProject(null);
         fetchProjectsForSection(sectionId);
@@ -291,13 +249,9 @@ const OrganizedImageManager: React.FC = () => {
     if (!confirm(t('organized_images.delete_project_confirm'))) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/projects/admin/projects/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ProjectsApi.deleteProject(id);
 
-      if (response.ok) {
+      if (response.success) {
         fetchProjectsForSection(sectionId);
       }
     } catch (error) {
@@ -444,7 +398,7 @@ const OrganizedImageManager: React.FC = () => {
                       )}
                       <div className="relative bg-gray-100" style={{ height: '180px' }}>
                         <img
-                          src={buildUploadUrl(image.filename)}
+                          src={ImagesApi.getImageUrl(image.filename)}
                           alt={image.original_name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -610,7 +564,7 @@ const OrganizedImageManager: React.FC = () => {
                                 <div className="aspect-video bg-gray-100 relative">
                                   {project.image_filename ? (
                                     <img
-                                      src={buildUploadUrl(project.image_filename)}
+                                      src={ImagesApi.getImageUrl(project.image_filename)}
                                       alt={project.title}
                                       className="w-full h-full object-cover"
                                     />
@@ -687,3 +641,4 @@ const OrganizedImageManager: React.FC = () => {
 };
 
 export default OrganizedImageManager;
+

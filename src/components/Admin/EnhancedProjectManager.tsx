@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Save, X, FolderPlus, Image as ImageIcon } from 'lucide-react';
-import { apiClient } from '@/api';
+import { Plus, Edit, Trash2, Save, X, FolderPlus, Image as ImageIcon, Upload } from 'lucide-react';
+import { ProjectsApi, ImagesApi } from '@/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface Project {
   id: number;
@@ -28,9 +29,10 @@ interface ProjectSection {
   projects?: Project[];
 }
 
-const ProjectManager: React.FC = () => {
+const EnhancedProjectManager: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [sections, setSections] = useState<ProjectSection[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingSection, setEditingSection] = useState<number | null>(null);
@@ -43,7 +45,6 @@ const ProjectManager: React.FC = () => {
     image_filename: '',
     display_order: 0
   });
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [showNewSection, setShowNewSection] = useState(false);
   const [showNewProject, setShowNewProject] = useState<number | null>(null);
   const [availableImages, setAvailableImages] = useState<string[]>([]);
@@ -55,36 +56,36 @@ const ProjectManager: React.FC = () => {
 
   const fetchSections = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/projects/admin/sections'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      setLoading(true);
+      const response = await ProjectsApi.getSections();
       
-      if (response.ok) {
-        const data = await response.json();
-        setSections(data);
+      if (response.success) {
+        setSections(response.data);
         
         // Fetch projects for each section
-        for (let section of data) {
+        for (let section of response.data) {
           fetchProjectsForSection(section.id);
         }
       }
     } catch (error) {
       console.error('Failed to fetch sections:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load project sections",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchProjectsForSection = async (sectionId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/sections/${sectionId}/projects`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ProjectsApi.getSectionProjects(sectionId);
       
-      if (response.ok) {
-        const projects = await response.json();
+      if (response.success) {
         setSections(prev => prev.map(section => 
-          section.id === sectionId ? { ...section, projects } : section
+          section.id === sectionId ? { ...section, projects: response.data } : section
         ));
       }
     } catch (error) {
@@ -94,14 +95,10 @@ const ProjectManager: React.FC = () => {
 
   const fetchAvailableImages = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/admin/images?category=portfolio'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ImagesApi.adminGetByCategory('portfolio');
       
-      if (response.ok) {
-        const images = await response.json();
-        setAvailableImages(images.map((img: any) => img.filename));
+      if (response.success) {
+        setAvailableImages(response.data.map((img: any) => img.filename));
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
@@ -113,23 +110,33 @@ const ProjectManager: React.FC = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/projects/admin/sections'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...newSection, display_order: sections.length })
+      const response = await ProjectsApi.createSection({ 
+        ...newSection, 
+        display_order: sections.length 
       });
 
-      if (response.ok) {
+      if (response.success) {
         setNewSection({ name: '' });
         setShowNewSection(false);
         fetchSections();
+        toast({
+          title: "Success",
+          description: "Section created successfully"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to create section",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to create section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create section",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -138,43 +145,55 @@ const ProjectManager: React.FC = () => {
   const updateSection = async (id: number, data: Partial<ProjectSection>) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/sections/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await ProjectsApi.updateSection?.(id, data);
 
-      if (response.ok) {
+      if (response?.success) {
         setEditingSection(null);
         fetchSections();
+        toast({
+          title: "Success",
+          description: "Section updated successfully"
+        });
       }
     } catch (error) {
       console.error('Failed to update section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update section",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const deleteSection = async (id: number) => {
-    if (!confirm(t('project_manager.delete_section_confirm'))) return;
+    if (!confirm('Are you sure you want to delete this section? All projects in this section will also be deleted.')) return;
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/sections/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ProjectsApi.deleteSection(id);
 
-      if (response.ok) {
+      if (response.success) {
         fetchSections();
+        toast({
+          title: "Success",
+          description: "Section deleted successfully"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to delete section",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to delete section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete section",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -185,23 +204,33 @@ const ProjectManager: React.FC = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/projects/admin/projects'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...newProject, section_id: sectionId })
+      const response = await ProjectsApi.createProject({ 
+        ...newProject, 
+        section_id: sectionId 
       });
 
-      if (response.ok) {
+      if (response.success) {
         setNewProject({ section_id: 0, title: '', description: '', image_filename: '', display_order: 0 });
         setShowNewProject(null);
         fetchProjectsForSection(sectionId);
+        toast({
+          title: "Success",
+          description: "Project created successfully"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to create project",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to create project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -210,43 +239,61 @@ const ProjectManager: React.FC = () => {
   const updateProject = async (id: number, data: Partial<Project>) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/projects/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await ProjectsApi.updateProject(id, data);
 
-      if (response.ok) {
+      if (response.success) {
         setEditingProject(null);
         fetchSections();
+        toast({
+          title: "Success",
+          description: "Project updated successfully"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to update project",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to update project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update project",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const deleteProject = async (id: number, sectionId: number) => {
-    if (!confirm(t('project_manager.delete_project_confirm'))) return;
+    if (!confirm('Are you sure you want to delete this project?')) return;
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/projects/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ProjectsApi.deleteProject(id);
 
-      if (response.ok) {
+      if (response.success) {
         fetchProjectsForSection(sectionId);
+        toast({
+          title: "Success",
+          description: "Project deleted successfully"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to delete project",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to delete project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -257,23 +304,63 @@ const ProjectManager: React.FC = () => {
     formData.append('image', file);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl(`/api/projects/admin/projects/${projectId}/image`), {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
+      setLoading(true);
+      const response = await ProjectsApi.updateProjectImage(projectId, formData);
 
-      if (response.ok) {
-        alert(t('project_manager.image_updated'));
+      if (response.success) {
         fetchSections();
+        toast({
+          title: "Success",
+          description: "Project image updated successfully"
+        });
       } else {
-        const errorData = await response.json();
-        alert(`${t('project_manager.image_update_failed')}: ${errorData.message}`);
+        toast({
+          title: "Error",
+          description: response.error || "Failed to update image",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert(t('project_manager.image_upload_error'));
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeProjectImage = async (projectId: number, sectionId: number) => {
+    if (!confirm('Are you sure you want to remove this image?')) return;
+
+    try {
+      setLoading(true);
+      const response = await ProjectsApi.removeProjectImage(projectId);
+
+      if (response.success) {
+        fetchProjectsForSection(sectionId);
+        toast({
+          title: "Success",
+          description: "Project image removed successfully"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to remove image",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove image",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -289,33 +376,37 @@ const ProjectManager: React.FC = () => {
   };
 
   const handleNewProjectImageUpload = async (file: File) => {
-    setUploadingImage(true);
     const formData = new FormData();
     formData.append('image', file);
     formData.append('category', 'portfolio');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiClient.buildUrl('/api/admin/images'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
+      setLoading(true);
+      const response = await ImagesApi.adminUpload(formData);
 
-      if (response.ok) {
-        const result = await response.json();
-        setNewProject({ ...newProject, image_filename: result.filename });
+      if (response.success) {
+        setNewProject({ ...newProject, image_filename: response.data.filename });
         fetchAvailableImages();
-        alert(t('project_manager.image_uploaded'));
+        toast({
+          title: "Success",
+          description: "Image uploaded successfully"
+        });
       } else {
-        const errorData = await response.json();
-        alert(`${t('project_manager.image_upload_failed')}: ${errorData.message}`);
+        toast({
+          title: "Error",
+          description: response.error || "Failed to upload image",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert(t('project_manager.image_upload_error'));
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive"
+      });
     } finally {
-      setUploadingImage(false);
+      setLoading(false);
     }
   };
 
@@ -333,10 +424,10 @@ const ProjectManager: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{t('project_manager.title')}</h2>
+        <h2 className="text-2xl font-bold">Enhanced Project Manager</h2>
         <Button onClick={() => setShowNewSection(true)} disabled={loading}>
           <FolderPlus className="h-4 w-4 mr-2" />
-          {t('project_manager.new_section')}
+          New Section
         </Button>
       </div>
 
@@ -344,22 +435,23 @@ const ProjectManager: React.FC = () => {
       {showNewSection && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('project_manager.new_section')}</CardTitle>
+            <CardTitle>Create New Section</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder={t('project_manager.section_name')}
+              placeholder="Section name (e.g., Web Projects, Mobile Apps)"
               value={newSection.name}
               onChange={(e) => setNewSection({ ...newSection, name: e.target.value })}
+              disabled={loading}
             />
             <div className="flex gap-2">
-              <Button onClick={createSection} disabled={loading}>
+              <Button onClick={createSection} disabled={loading || !newSection.name.trim()}>
                 <Save className="h-4 w-4 mr-2" />
-                {t('admin.create')}
+                Create
               </Button>
-              <Button variant="outline" onClick={() => setShowNewSection(false)}>
+              <Button variant="outline" onClick={() => setShowNewSection(false)} disabled={loading}>
                 <X className="h-4 w-4 mr-2" />
-                {t('admin.cancel')}
+                Cancel
               </Button>
             </div>
           </CardContent>
@@ -378,6 +470,7 @@ const ProjectManager: React.FC = () => {
                     onChange={(e) => setSections(prev => prev.map(s => 
                       s.id === section.id ? { ...s, name: e.target.value } : s
                     ))}
+                    disabled={loading}
                   />
                   <Input
                     type="number"
@@ -386,6 +479,7 @@ const ProjectManager: React.FC = () => {
                     onChange={(e) => setSections(prev => prev.map(s => 
                       s.id === section.id ? { ...s, display_order: parseInt(e.target.value) || 0 } : s
                     ))}
+                    disabled={loading}
                   />
                   <Button
                     size="sm"
@@ -394,10 +488,11 @@ const ProjectManager: React.FC = () => {
                       display_order: section.display_order,
                       is_active: section.is_active
                     })}
+                    disabled={loading}
                   >
                     <Save className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditingSection(null)}>
+                  <Button size="sm" variant="outline" onClick={() => setEditingSection(null)} disabled={loading}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -406,23 +501,25 @@ const ProjectManager: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <CardTitle>{section.name}</CardTitle>
                     <Badge variant={section.is_active ? "default" : "secondary"}>
-                      {section.is_active ? t('project_manager.active') : t('project_manager.inactive')}
+                      {section.is_active ? 'Active' : 'Inactive'}
                     </Badge>
-                    <Badge variant="outline">{section.project_count} {t('project_manager.projects')}</Badge>
+                    <Badge variant="outline">{section.project_count} Projects</Badge>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => setShowNewProject(section.id)}
+                      disabled={loading}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      {t('organized_images.project')}
+                      Add Project
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => setEditingSection(section.id)}
+                      disabled={loading}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -430,6 +527,7 @@ const ProjectManager: React.FC = () => {
                       size="sm"
                       variant="destructive"
                       onClick={() => deleteSection(section.id)}
+                      disabled={loading}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -442,16 +540,18 @@ const ProjectManager: React.FC = () => {
           {/* New Project Form */}
           {showNewProject === section.id && (
             <CardContent className="border-t space-y-4">
-              <h4 className="font-medium">{t('project_manager.new_project')}</h4>
+              <h4 className="font-medium">Add New Project</h4>
               <Input
-                placeholder={t('project_manager.project_title')}
+                placeholder="Project title"
                 value={newProject.title}
                 onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                disabled={loading}
               />
               <Textarea
-                placeholder={t('project_manager.description_optional')}
+                placeholder="Project description (optional)"
                 value={newProject.description}
                 onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                disabled={loading}
               />
               <div className="space-y-2">
                 <div className="flex gap-2">
@@ -459,8 +559,9 @@ const ProjectManager: React.FC = () => {
                     className="flex-1 p-2 border rounded"
                     value={newProject.image_filename}
                     onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
+                    disabled={loading}
                   >
-                    <option value="">{t('project_manager.select_existing_image')}</option>
+                    <option value="">Select existing image</option>
                     {availableImages.map(filename => (
                       <option key={filename} value={filename}>{filename}</option>
                     ))}
@@ -469,30 +570,32 @@ const ProjectManager: React.FC = () => {
                     type="button"
                     variant="outline"
                     onClick={triggerNewProjectImageUpload}
-                    disabled={uploadingImage}
+                    disabled={loading}
                     className="whitespace-nowrap"
                   >
-                    {uploadingImage ? t('image_manager.uploading') : t('project_manager.upload_new')}
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload New
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {t('project_manager.choose_existing_or_upload')}
+                  Choose an existing portfolio image or upload a new one
                 </p>
               </div>
               <Input
                 type="number"
-                placeholder={t('project_manager.display_order')}
+                placeholder="Display order"
                 value={newProject.display_order}
                 onChange={(e) => setNewProject({ ...newProject, display_order: parseInt(e.target.value) || 0 })}
+                disabled={loading}
               />
               <div className="flex gap-2">
-                <Button onClick={() => createProject(section.id)} disabled={loading}>
+                <Button onClick={() => createProject(section.id)} disabled={loading || !newProject.title.trim()}>
                   <Save className="h-4 w-4 mr-2" />
-                  {t('admin.create')}
+                  Create Project
                 </Button>
-                <Button variant="outline" onClick={() => setShowNewProject(null)}>
+                <Button variant="outline" onClick={() => setShowNewProject(null)} disabled={loading}>
                   <X className="h-4 w-4 mr-2" />
-                  {t('admin.cancel')}
+                  Cancel
                 </Button>
               </div>
             </CardContent>
@@ -507,7 +610,7 @@ const ProjectManager: React.FC = () => {
                     <div className="aspect-video bg-gray-100 relative group">
                       {project.image_filename ? (
                         <img
-                          src={apiClient.buildUploadUrl(project.image_filename)}
+                          src={ImagesApi.getImageUrl(project.image_filename)}
                           alt={project.title}
                           className="w-full h-full object-cover"
                         />
@@ -516,16 +619,27 @@ const ProjectManager: React.FC = () => {
                           <ImageIcon className="h-8 w-8 text-gray-400" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
                         <Button
                           size="sm"
                           variant="secondary"
                           onClick={() => triggerImageUpload(project.id)}
                           className="bg-white/90 hover:bg-white text-black"
+                          disabled={loading}
                         >
                           <ImageIcon className="h-4 w-4 mr-1" />
-                          {project.image_filename ? t('project_manager.replace') : t('project_manager.add')}
+                          {project.image_filename ? 'Replace' : 'Add'}
                         </Button>
+                        {project.image_filename && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeProjectImage(project.id, section.id)}
+                            disabled={loading}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                     <CardContent className="p-3">
@@ -541,6 +655,7 @@ const ProjectManager: React.FC = () => {
                           variant="outline"
                           className="text-xs px-2 py-1 h-auto"
                           onClick={() => setEditingProject(project.id)}
+                          disabled={loading}
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -549,6 +664,7 @@ const ProjectManager: React.FC = () => {
                           variant="destructive"
                           className="text-xs px-2 py-1 h-auto"
                           onClick={() => deleteProject(project.id, section.id)}
+                          disabled={loading}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -559,10 +675,31 @@ const ProjectManager: React.FC = () => {
               </div>
             </CardContent>
           )}
+
+          {(!section.projects || section.projects.length === 0) && (
+            <CardContent className="border-t">
+              <div className="text-center py-8 text-gray-500">
+                <ImageIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No projects in this section yet</p>
+              </div>
+            </CardContent>
+          )}
         </Card>
       ))}
+
+      {sections.length === 0 && !loading && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <FolderPlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-gray-500">No project sections created yet</p>
+            <Button onClick={() => setShowNewSection(true)} className="mt-4">
+              Create Your First Section
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
 
-export default ProjectManager;
+export default EnhancedProjectManager;

@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
 import { useImageCache } from '@/hooks/useImageCache';
-import { buildUploadUrl } from '@/config/api';
+import { apiClient } from '@/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Header = () => {
@@ -113,7 +113,7 @@ const Header = () => {
           <Link to="/" className="flex items-center group">
             <div className="relative">
               <img
-                src={logoImage?.filename ? buildUploadUrl(logoImage.filename) : '/placeholder.svg'}
+                src={logoImage?.filename ? apiClient.buildUploadUrl(logoImage.filename) : '/placeholder.svg'}
                 alt="Signa Tech Logo"
                 className={`w-auto object-contain ${
                   isScrolled ? 'h-8' : 'h-12'

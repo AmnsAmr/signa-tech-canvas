@@ -10,7 +10,26 @@ const path = require('path');
 const FormData = require('form-data');
 const axios = require('axios');
 
-const PYTHON_SERVICE_URL = process.env.PYTHON_VECTOR_SERVICE_URL || 'http://localhost:5001';
+// Get Python service URL from environment with validation
+const getPythonServiceUrl = () => {
+  const url = process.env.PYTHON_VECTOR_SERVICE_URL;
+  
+  if (!url) {
+    console.warn('PYTHON_VECTOR_SERVICE_URL not configured, using default');
+    return 'http://localhost:5001';
+  }
+  
+  // Validate URL format
+  try {
+    new URL(url);
+    return url;
+  } catch (error) {
+    console.error('Invalid PYTHON_VECTOR_SERVICE_URL format:', url);
+    return 'http://localhost:5001';
+  }
+};
+
+const PYTHON_SERVICE_URL = getPythonServiceUrl();
 
 /**
  * Main function to analyze a vector file using Python microservice

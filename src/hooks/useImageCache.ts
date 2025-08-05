@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { buildApiUrl } from '@/config/api';
+import { apiClient } from '@/api';
 
 interface SiteImage {
   id: number;
@@ -76,8 +76,8 @@ export const useImageCache = (category?: string) => {
       setLoading(true);
       
       const url = category 
-        ? `${buildApiUrl('/api/images')}?category=${category}`
-        : buildApiUrl('/api/images');
+        ? `${apiClient.buildUrl('/api/images')}?category=${category}`
+        : apiClient.buildUrl('/api/images');
       
       const response = await fetch(url);
       

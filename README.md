@@ -79,25 +79,28 @@ This application includes a Python microservice for accurate vector file analysi
 To run both the Node.js backend and Python microservice:
 
 ```bash
-# Option 1: Use the startup script (Windows)
+# Option 1: Use the updated startup script (Windows)
+start-services-updated.bat
+
+# Option 2: Use the original startup script
 start-services.bat
 
-# Option 2: Manual startup
-# Terminal 1 - Python Service
+# Option 3: Manual startup
+# Terminal 1 - Python Service (Port 5001)
 cd python-vector-service
 pip install -r requirements.txt
 python app.py
 
-# Terminal 2 - Node.js Server
+# Terminal 2 - Node.js Server (Port 3001)
 cd server
 npm install
 npm start
 
-# Terminal 3 - Frontend
+# Terminal 3 - Frontend (Port 8080)
 npm run dev
 ```
 
-The Python service runs on port 5001, Node.js on port 3001, and the frontend on port 5173.
+The Python service runs on port 5001, Node.js on port 3001, and the frontend on port 8080.
 
 ## How can I deploy this project?
 

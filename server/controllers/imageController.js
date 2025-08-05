@@ -6,6 +6,14 @@ const { clearCache } = require('../middleware/cache');
 
 const db = database.getDb();
 
+// Image category rules
+const IMAGE_RULES = {
+  logo: { maxImages: 1, description: 'Site logo - replaces existing' },
+  hero: { maxImages: 3, description: 'Homepage hero images - max 3' },
+  about: { maxImages: 1, description: 'About page image - replaces existing' },
+  portfolio: { maxImages: null, description: 'Portfolio images - unlimited' }
+};
+
 class ImageController {
   async getImages(req, res) {
     try {
@@ -18,7 +26,7 @@ class ImageController {
         params.push(category);
       }
       
-      query += " ORDER BY category, created_at DESC";
+      query += " ORDER BY category, created_at ASC";
       
       const images = await new Promise((resolve, reject) => {
         db.all(query, params, (err, rows) => {
@@ -44,9 +52,66 @@ class ImageController {
       if (!category) {
         return res.status(400).json({ message: 'Category is required' });
       }
-      
+
+      // Validate category
+      if (!IMAGE_RULES[category]) {
+        return res.status(400).json({ message: 'Invalid category' });
+      }
+
+      const rule = IMAGE_RULES[category];
       const imagePath = `/uploads/${req.file.filename}`;
       
+      // Check existing images for this category
+      const existingImages = await new Promise((resolve, reject) => {
+        db.all("SELECT * FROM site_images WHERE category = ? ORDER BY created_at ASC", [category], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+
+      // Handle category-specific rules
+      if (rule.maxImages !== null) {
+        if (rule.maxImages === 1) {
+          // For logo and about: replace existing image
+          if (existingImages.length > 0) {
+            const oldImage = existingImages[0];
+            // Delete old file
+            const oldFilePath = path.join(MigrationHelper.getUploadDir(), oldImage.filename);
+            fs.unlink(oldFilePath, (fsErr) => {
+              if (fsErr) console.error('Failed to delete old file:', fsErr);
+            });
+            
+            // Update existing record
+            await new Promise((resolve, reject) => {
+              db.run("UPDATE site_images SET filename = ?, original_name = ?, path = ?, size = ?, mime_type = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [req.file.filename, req.file.originalname, imagePath, req.file.size, req.file.mimetype, oldImage.id],
+                function(err) {
+                  if (err) reject(err);
+                  else resolve(this.changes);
+                });
+            });
+            
+            clearCache('/api/images');
+            return res.json({
+              id: oldImage.id,
+              category,
+              filename: req.file.filename,
+              original_name: req.file.originalname,
+              path: imagePath,
+              size: req.file.size,
+              mime_type: req.file.mimetype,
+              message: 'Image replaced successfully'
+            });
+          }
+        } else if (existingImages.length >= rule.maxImages) {
+          // For hero: check if we've reached the limit
+          return res.status(400).json({ 
+            message: `Maximum ${rule.maxImages} images allowed for ${category} category. Delete an existing image first.` 
+          });
+        }
+      }
+      
+      // Insert new image
       const imageId = await new Promise((resolve, reject) => {
         db.run("INSERT INTO site_images (category, filename, original_name, path, size, mime_type) VALUES (?, ?, ?, ?, ?, ?)",
           [category, req.file.filename, req.file.originalname, imagePath, req.file.size, req.file.mimetype],
@@ -56,7 +121,6 @@ class ImageController {
           });
       });
       
-      // Clear image cache
       clearCache('/api/images');
       
       res.json({
@@ -66,7 +130,8 @@ class ImageController {
         original_name: req.file.originalname,
         path: imagePath,
         size: req.file.size,
-        mime_type: req.file.mimetype
+        mime_type: req.file.mimetype,
+        message: 'Image uploaded successfully'
       });
     } catch (error) {
       console.error('Upload image error:', error);
@@ -88,6 +153,22 @@ class ImageController {
       if (!image) {
         return res.status(404).json({ message: 'Image not found' });
       }
+
+      // Check if this is a required category that shouldn't be completely empty
+      if (image.category === 'logo' || image.category === 'about') {
+        const categoryCount = await new Promise((resolve, reject) => {
+          db.get("SELECT COUNT(*) as count FROM site_images WHERE category = ?", [image.category], (err, row) => {
+            if (err) reject(err);
+            else resolve(row.count);
+          });
+        });
+        
+        if (categoryCount <= 1) {
+          return res.status(400).json({ 
+            message: `Cannot delete the only ${image.category} image. Upload a replacement instead.` 
+          });
+        }
+      }
       
       // Delete file from filesystem
       const filePath = path.join(MigrationHelper.getUploadDir(), image.filename);
@@ -103,7 +184,6 @@ class ImageController {
         });
       });
 
-      // Clear image cache
       clearCache('/api/images');
       
       res.json({ message: 'Image deleted successfully' });
@@ -142,7 +222,7 @@ class ImageController {
       const newImagePath = `/uploads/${req.file.filename}`;
       
       await new Promise((resolve, reject) => {
-        db.run("UPDATE site_images SET filename = ?, original_name = ?, path = ?, size = ?, mime_type = ? WHERE id = ?",
+        db.run("UPDATE site_images SET filename = ?, original_name = ?, path = ?, size = ?, mime_type = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?",
           [req.file.filename, req.file.originalname, newImagePath, req.file.size, req.file.mimetype, id],
           function(err) {
             if (err) reject(err);
@@ -150,7 +230,6 @@ class ImageController {
           });
       });
       
-      // Clear image cache
       clearCache('/api/images');
       
       res.json({
@@ -160,7 +239,8 @@ class ImageController {
         original_name: req.file.originalname,
         path: newImagePath,
         size: req.file.size,
-        mime_type: req.file.mimetype
+        mime_type: req.file.mimetype,
+        message: 'Image replaced successfully'
       });
     } catch (error) {
       console.error('Replace image error:', error);
@@ -183,6 +263,43 @@ class ImageController {
       res.status(500).json({ message: 'Failed to fetch categories' });
     }
   }
+
+  async getImageRules(req, res) {
+    try {
+      // Get current image counts for each category
+      const categoryCounts = await new Promise((resolve, reject) => {
+        db.all(`
+          SELECT category, COUNT(*) as count 
+          FROM site_images 
+          GROUP BY category
+        `, (err, rows) => {
+          if (err) reject(err);
+          else {
+            const counts = {};
+            rows.forEach(row => {
+              counts[row.category] = row.count;
+            });
+            resolve(counts);
+          }
+        });
+      });
+
+      // Combine rules with current counts
+      const rulesWithCounts = Object.keys(IMAGE_RULES).map(category => ({
+        category,
+        ...IMAGE_RULES[category],
+        currentCount: categoryCounts[category] || 0,
+        canAdd: IMAGE_RULES[category].maxImages === null || 
+                (categoryCounts[category] || 0) < IMAGE_RULES[category].maxImages
+      }));
+
+      res.json(rulesWithCounts);
+    } catch (error) {
+      console.error('Get image rules error:', error);
+      res.status(500).json({ message: 'Failed to fetch image rules' });
+    }
+  }
 }
 
 module.exports = new ImageController();
+module.exports.IMAGE_RULES = IMAGE_RULES;

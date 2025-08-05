@@ -1,58 +1,7 @@
 import { apiCache } from './cache';
 import { ApiResponse } from './types';
 import { apiMonitor } from '@/utils/apiMonitor';
-
-// Environment-based API configuration
-const getApiBaseUrl = (): string => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  
-  if (!apiUrl) {
-    console.warn('VITE_API_URL not configured, using default');
-    return import.meta.env.DEV ? 'http://localhost:5000' : '';
-  }
-  
-  return apiUrl;
-};
-
-const getUploadsBaseUrl = (): string => {
-  const uploadsUrl = import.meta.env.VITE_UPLOADS_URL;
-  
-  if (!uploadsUrl) {
-    const baseUrl = getApiBaseUrl();
-    return baseUrl ? `${baseUrl}/uploads` : '/uploads';
-  }
-  
-  return uploadsUrl;
-};
-
-const getPythonServiceUrl = (): string => {
-  const pythonUrl = import.meta.env.VITE_PYTHON_SERVICE_URL;
-  
-  if (!pythonUrl) {
-    console.warn('VITE_PYTHON_SERVICE_URL not configured, using default');
-    return import.meta.env.DEV ? 'http://localhost:5001' : '';
-  }
-  
-  return pythonUrl;
-};
-
-export const API_CONFIG = {
-  BASE_URL: getApiBaseUrl(),
-  UPLOADS_URL: getUploadsBaseUrl(),
-  PYTHON_SERVICE_URL: getPythonServiceUrl(),
-  TIMEOUT: 10000, // 10 seconds
-  RETRY_ATTEMPTS: 3,
-} as const;
-
-// Validate configuration on startup
-if (import.meta.env.DEV) {
-  console.log('API Configuration:', {
-    BASE_URL: API_CONFIG.BASE_URL,
-    UPLOADS_URL: API_CONFIG.UPLOADS_URL,
-    PYTHON_SERVICE_URL: API_CONFIG.PYTHON_SERVICE_URL,
-    ENV: import.meta.env.MODE,
-  });
-}
+import { API_CONFIG } from './config';
 
 class ApiClient {
   private baseUrl: string;

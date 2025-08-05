@@ -9,7 +9,7 @@
   "muted": "260 15% 50%",
   "success": "150 60% 50%",
   "destructive": "0 84% 60%",
-  "gradientStart": "270 85% 60%",
+  "gradientStart": "270 50% 34%",
   "gradientEnd": "320 85% 65%",
   "gradientDirection": "135deg"
 }

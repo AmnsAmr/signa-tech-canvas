@@ -3,7 +3,7 @@ import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOptimizedContactSettings } from '@/hooks/useOptimizedContactSettings';
 import { useImageCache } from '@/hooks/useImageCache';
-import { buildUploadUrl } from '@/config/api';
+import { apiClient } from '@/api';
 
 const Footer = () => {
   const { t, language } = useLanguage();
@@ -21,7 +21,7 @@ const Footer = () => {
             <div className="flex items-center space-x-3 mb-4">
               {logoImage ? (
                 <img 
-                  src={buildUploadUrl(logoImage.filename)}
+                  src={apiClient.buildUploadUrl(logoImage.filename)}
                   alt="Signa Tech Logo"
                   className="h-10 w-auto object-contain"
                   onError={(e) => {

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { buildUploadUrl, buildApiUrl } from '@/config/api';
+import { apiClient } from '@/api';
 
 
 interface Project {
@@ -91,7 +91,7 @@ const ProjectCarousel: React.FC<ProjectCarouselProps> = ({ projects, title, onPr
             <div className="aspect-[4/3] overflow-hidden rounded-t-lg relative">
               {project.image_filename ? (
                 <img
-                  src={buildUploadUrl(project.image_filename)}
+                  src={apiClient.buildUploadUrl(project.image_filename)}
                   alt={project.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   onError={(e) => {

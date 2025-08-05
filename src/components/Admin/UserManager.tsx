@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Users, Shield } from 'lucide-react';
-import { buildApiUrl } from '@/config/api';
+import { apiClient } from '@/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -30,7 +30,7 @@ const UserManager: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/admin/users'), {
+      const response = await fetch(apiClient.buildUrl('/api/admin/users'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -51,7 +51,7 @@ const UserManager: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl(`/api/admin/users/${userId}`), {
+      const response = await fetch(apiClient.buildUrl(`/api/admin/users/${userId}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

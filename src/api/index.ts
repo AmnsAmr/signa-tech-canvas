@@ -1,13 +1,11 @@
-// Main API exports
+// Main API exports - single source of truth
 export * from './client';
 export * from './cache';
 export * from './types';
 export * from './endpoints';
+export * from './config';
 
-// Re-export commonly used APIs
-export { ImagesApi, ContactApi, AuthApi, RatingsApi, SecurityApi, VectorApi } from './endpoints';
-export { apiClient, pythonApiClient, API_CONFIG } from './client';
+// Commonly used exports
+export { ImagesApi, ContactApi, AuthApi, RatingsApi, SecurityApi, VectorApi, AdminApi, ProjectsApi, ContactDownloadApi } from './endpoints';
+export { apiClient, pythonApiClient } from './client';
 export { apiCache } from './cache';
-
-// Re-export configuration
-export { API_ENDPOINTS } from '@/config/endpoints';

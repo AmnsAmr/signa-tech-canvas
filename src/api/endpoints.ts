@@ -1,7 +1,22 @@
 import { apiClient } from './client';
 import { apiCache } from './cache';
 import { SiteImage, ContactSettings, ApiResponse } from './types';
-import { API_ENDPOINTS, buildEndpointWithParams } from '@/config/endpoints';
+import { API_ENDPOINTS } from './config';
+
+const buildEndpointWithParams = (
+  endpoint: string, 
+  params?: Record<string, string | number | boolean>
+): string => {
+  if (!params || Object.keys(params).length === 0) return endpoint;
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  return `${endpoint}${queryString ? '?' + queryString : ''}`;
+};
 
 // Cache TTL constants (in milliseconds)
 const CACHE_TTL = {
@@ -98,6 +113,14 @@ export class ImagesApi {
     }, 'images:categories', CACHE_TTL.SETTINGS);
   }
 
+  static async getRules(): Promise<ApiResponse<any[]>> {
+    const token = localStorage.getItem('token');
+    return apiClient.request<any[]>(API_ENDPOINTS.IMAGES.ADMIN.RULES, {
+      method: 'GET',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    }, 'images:rules', CACHE_TTL.SETTINGS);
+  }
+
   static invalidateCache(): void {
     apiCache.invalidatePattern('^images:');
     apiCache.invalidatePattern('^admin:images:');
@@ -180,11 +203,11 @@ export class AuthApi {
   }
 
   static async verifyResetCode(email: string, code: string): Promise<ApiResponse<any>> {
-    return apiClient.post('/api/auth/verify-reset-code', { email, code });
+    return apiClient.post(API_ENDPOINTS.AUTH.VERIFY_RESET_CODE, { email, code });
   }
 
   static async resetPassword(email: string, code: string, password: string): Promise<ApiResponse<any>> {
-    return apiClient.post('/api/auth/reset-password', { email, code, password });
+    return apiClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, { email, code, password });
   }
 
   static getGoogleAuthUrl(): string {
@@ -219,16 +242,203 @@ export class SecurityApi {
   }
 }
 
+// Admin API
+export class AdminApi {
+  private static getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
+  static async getUsers(): Promise<ApiResponse<any[]>> {
+    console.log('AdminApi.getUsers: Making request to', API_ENDPOINTS.ADMIN.USERS);
+    const headers = this.getAuthHeaders();
+    console.log('AdminApi.getUsers: Headers', headers);
+    
+    const response = await apiClient.request<any[]>(API_ENDPOINTS.ADMIN.USERS, {
+      method: 'GET',
+      headers,
+    });
+    
+    console.log('AdminApi.getUsers: Response', response);
+    return response;
+  }
+
+  static async getAdmins(): Promise<ApiResponse<any[]>> {
+    console.log('AdminApi.getAdmins: Making request to', API_ENDPOINTS.ADMIN.ADMINS);
+    const response = await apiClient.request<any[]>(API_ENDPOINTS.ADMIN.ADMINS, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+    console.log('AdminApi.getAdmins: Response', response);
+    return response;
+  }
+
+  static async getSubmissions(): Promise<ApiResponse<any[]>> {
+    console.log('AdminApi.getSubmissions: Making request to', API_ENDPOINTS.ADMIN.SUBMISSIONS);
+    const response = await apiClient.request<any[]>(API_ENDPOINTS.ADMIN.SUBMISSIONS, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+    console.log('AdminApi.getSubmissions: Response', response);
+    return response;
+  }
+
+  static async createAdmin(adminData: { name: string; email: string; password: string }): Promise<ApiResponse<any>> {
+    return apiClient.request(API_ENDPOINTS.ADMIN.ADMINS, {
+      method: 'POST',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(adminData),
+    });
+  }
+
+  static async deleteUser(id: number): Promise<ApiResponse<void>> {
+    return apiClient.request<void>(API_ENDPOINTS.ADMIN.DELETE_USER(id), {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async updateSubmissionStatus(id: number, status: string): Promise<ApiResponse<void>> {
+    return apiClient.request(API_ENDPOINTS.ADMIN.UPDATE_SUBMISSION_STATUS(id), {
+      method: 'PATCH',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  static async toggleNotifications(enabled: boolean): Promise<ApiResponse<any>> {
+    return apiClient.request(API_ENDPOINTS.ADMIN.NOTIFICATIONS.TOGGLE, {
+      method: 'POST',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    });
+  }
+
+  static async getNotificationStatus(): Promise<ApiResponse<{ enabled: boolean }>> {
+    return apiClient.request<{ enabled: boolean }>(API_ENDPOINTS.ADMIN.NOTIFICATIONS.STATUS, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async getFiles(): Promise<ApiResponse<any[]>> {
+    return apiClient.request<any[]>(API_ENDPOINTS.ADMIN.FILES, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async deleteFile(filename: string): Promise<ApiResponse<void>> {
+    return apiClient.request<void>(API_ENDPOINTS.ADMIN.DELETE_FILE(filename), {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+  }
+}
+
+// Projects API
+export class ProjectsApi {
+  private static getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
+  static async getSections(): Promise<ApiResponse<any[]>> {
+    return apiClient.request<any[]>(API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async getSectionProjects(sectionId: number): Promise<ApiResponse<any[]>> {
+    return apiClient.request<any[]>(API_ENDPOINTS.PROJECTS.ADMIN.SECTION_PROJECTS(sectionId), {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async createSection(sectionData: any): Promise<ApiResponse<any>> {
+    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS, {
+      method: 'POST',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(sectionData),
+    });
+  }
+
+  static async updateSection(id: number, sectionData: any): Promise<ApiResponse<any>> {
+    return apiClient.request(`${API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS}/${id}`, {
+      method: 'PUT',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(sectionData),
+    });
+  }
+
+  static async createProject(projectData: any): Promise<ApiResponse<any>> {
+    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.PROJECTS, {
+      method: 'POST',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(projectData),
+    });
+  }
+
+  static async updateProject(id: number, projectData: any): Promise<ApiResponse<any>> {
+    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.UPDATE_PROJECT(id), {
+      method: 'PUT',
+      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(projectData),
+    });
+  }
+
+  static async updateProjectImage(id: number, formData: FormData): Promise<ApiResponse<any>> {
+    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.UPDATE_PROJECT_IMAGE(id), {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: formData,
+    });
+  }
+
+  static async removeProjectImage(id: number): Promise<ApiResponse<void>> {
+    return apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.REMOVE_PROJECT_IMAGE(id), {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async deleteProject(id: number): Promise<ApiResponse<void>> {
+    return apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_PROJECT(id), {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  static async deleteSection(id: number): Promise<ApiResponse<void>> {
+    return apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_SECTION(id), {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+  }
+}
+
 // Python Vector Service API
 export class VectorApi {
   static async analyzeFile(formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.requestPythonService('/analyze', {
+    return apiClient.requestPythonService(API_ENDPOINTS.PYTHON_SERVICE.ANALYZE, {
       method: 'POST',
       body: formData,
     });
   }
 
   static async healthCheck(): Promise<ApiResponse<any>> {
-    return apiClient.requestPythonService('/health');
+    return apiClient.requestPythonService(API_ENDPOINTS.PYTHON_SERVICE.HEALTH);
+  }
+}
+
+// Contact Download API
+export class ContactDownloadApi {
+  static async downloadFile(filename: string): Promise<Response> {
+    const token = localStorage.getItem('token');
+    return fetch(apiClient.buildUrl(API_ENDPOINTS.CONTACT_DOWNLOAD(filename)), {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    });
   }
 }

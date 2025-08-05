@@ -37,6 +37,7 @@ router.post('/images/upload', uploadMiddleware.single('image'), imageController.
 router.delete('/images/:id', imageController.deleteImage);
 router.put('/images/:id/replace', uploadMiddleware.single('image'), imageController.replaceImage);
 router.get('/images/categories', imageController.getCategories);
+router.get('/images/rules', imageController.getImageRules);
 
 // Rating management routes
 router.get('/ratings', ratingController.getAllRatings);

@@ -247,6 +247,26 @@ const updateProjectImage = async (req, res) => {
       return res.status(400).json({ message: 'No image file provided' });
     }
 
+    // Get current project to check if it has an existing image
+    const currentProject = await new Promise((resolve, reject) => {
+      db.get("SELECT * FROM projects WHERE id = ?", [id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!currentProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Delete old image file if it exists
+    if (currentProject.image_filename) {
+      const oldFilePath = path.join(__dirname, '../uploads', currentProject.image_filename);
+      fs.unlink(oldFilePath, (fsErr) => {
+        if (fsErr) console.error('Failed to delete old project image:', fsErr);
+      });
+    }
+
     const filename = req.file.filename;
     
     const changes = await new Promise((resolve, reject) => {
@@ -271,6 +291,52 @@ const updateProjectImage = async (req, res) => {
   }
 };
 
+// Admin: Remove project image
+const removeProjectImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const currentProject = await new Promise((resolve, reject) => {
+      db.get("SELECT * FROM projects WHERE id = ?", [id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!currentProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Delete image file if it exists
+    if (currentProject.image_filename) {
+      const filePath = path.join(__dirname, '../uploads', currentProject.image_filename);
+      fs.unlink(filePath, (fsErr) => {
+        if (fsErr) console.error('Failed to delete project image file:', fsErr);
+      });
+    }
+    
+    const changes = await new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE projects SET image_filename = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        [id],
+        function(err) {
+          if (err) reject(err);
+          else resolve(this.changes);
+        }
+      );
+    });
+
+    if (changes === 0) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.json({ message: 'Project image removed successfully' });
+  } catch (error) {
+    console.error('Remove project image error:', error);
+    res.status(500).json({ message: 'Failed to remove project image' });
+  }
+};
+
 module.exports = {
   getSections,
   getAllSections,
@@ -281,5 +347,6 @@ module.exports = {
   createProject,
   updateProject,
   deleteProject,
-  updateProjectImage
+  updateProjectImage,
+  removeProjectImage
 };

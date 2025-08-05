@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { buildUploadUrl } from '@/config/api';
+import { apiClient } from '@/api';
 import { preloadImage, addLinkPreload } from '@/utils/performance';
 
 /**
@@ -20,7 +20,7 @@ export const usePreloadCriticalImages = (
     // Convert filenames to URLs
     const imageUrls = images
       .filter(Boolean)
-      .map(filename => buildUploadUrl(filename));
+      .map(filename => apiClient.buildUploadUrl(filename));
     
     // Preload images using Image API
     imageUrls.forEach(url => {

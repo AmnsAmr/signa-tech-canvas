@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { User, Mail, Building, Phone, Lock, Trash2 } from 'lucide-react';
-import { buildApiUrl } from '@/config/api';
+import { apiClient } from '@/api';
 
 const AccountSettings: React.FC = () => {
   const { user, logout } = useAuth();
@@ -31,7 +31,7 @@ const AccountSettings: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/user/profile'), {
+      const response = await fetch(apiClient.buildUrl('/api/user/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const AccountSettings: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/user/change-password'), {
+      const response = await fetch(apiClient.buildUrl('/api/user/change-password'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ const AccountSettings: React.FC = () => {
     setDeleteLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/auth/account'), {
+      const response = await fetch(apiClient.buildUrl('/api/auth/account'), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`

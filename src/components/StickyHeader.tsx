@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
 import { useImageCache } from '@/hooks/useImageCache';
-import { buildUploadUrl } from '@/config/api';
+import { apiClient } from '@/api';
 import { useMobileAccessibility } from '@/hooks/useMobileAccessibility';
 
 const StickyHeader = () => {
@@ -97,7 +97,7 @@ const StickyHeader = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <img
-                src={logoImage?.filename ? buildUploadUrl(logoImage.filename) : '/placeholder.svg'}
+                src={logoImage?.filename ? apiClient.buildUploadUrl(logoImage.filename) : '/placeholder.svg'}
                 alt="Signa Tech Logo"
                 className={`w-auto object-contain transition-all duration-300 ${
                   isCompact ? 'h-6' : 'h-8'

@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Zap
 } from 'lucide-react';
-import { buildApiUrl } from '@/config/api';
+import { apiClient } from '@/api';
 import ProjectCarousel from '@/components/ProjectCarousel';
 
 interface Project {
@@ -40,7 +40,7 @@ const Portfolio = () => {
 
   const fetchProjectSections = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/projects/sections'));
+      const response = await fetch(apiClient.buildUrl('/api/projects/sections'));
       if (response.ok) {
         const data = await response.json();
         setSections(data);

@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { useImageCache } from './useImageCache';
-import { buildUploadUrl } from '@/config/api';
+import { apiClient } from '@/api';
 
 export const useFavicon = () => {
   const { images: logoImages } = useImageCache('logo');
@@ -17,7 +17,7 @@ export const useFavicon = () => {
       favicon.rel = 'icon';
       
       if (logoImage?.filename) {
-        const logoUrl = buildUploadUrl(logoImage.filename);
+        const logoUrl = apiClient.buildUploadUrl(logoImage.filename);
         favicon.href = logoUrl;
         
         // Set appropriate type based on file extension

@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { buildApiUrl } from '@/config/api';
+import { AdminApi, ContactDownloadApi } from '@/api';
 import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star, Menu, ChevronLeft, HardDrive } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
@@ -21,11 +21,11 @@ import '@/components/Admin/admin-improvements.css';
 
 // Lazy load components
 const OrganizedImageManager = lazy(() => import('@/components/Admin/OrganizedImageManager'));
+const ProjectManager = lazy(() => import('@/components/Admin/ProjectManager'));
 const FileManager = lazy(() => import('@/components/Admin/FileManager'));
 const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
 const SimpleThemeSettings = lazy(() => import('@/components/Admin/SimpleThemeSettings'));
-const ProjectManager = lazy(() => import('@/components/Admin/ProjectManager'));
 const AuthDebug = lazy(() => import('@/components/Debug/AuthDebug'));
 
 interface User {
@@ -125,16 +125,9 @@ const Admin = () => {
 
   const fetchNotificationStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      const response = await secureApiRequest('/api/admin/notifications/status', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotificationsEnabled(data.enabled);
+      const response = await AdminApi.getNotificationStatus();
+      if (response.success) {
+        setNotificationsEnabled(response.data.enabled);
       }
     } catch (error) {
       console.error('Failed to fetch notification status:', error);
@@ -144,19 +137,9 @@ const Admin = () => {
   const toggleNotifications = async () => {
     setLoadingNotifications(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const response = await AdminApi.toggleNotifications(!notificationsEnabled);
       
-      const response = await secureApiRequest('/api/admin/notifications/toggle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ enabled: !notificationsEnabled })
-      });
-      
-      if (response.ok) {
+      if (response.success) {
         setNotificationsEnabled(!notificationsEnabled);
         toast({
           title: t('admin.notifications_updated'),
@@ -181,30 +164,21 @@ const Admin = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [usersRes, adminsRes, submissionsRes] = await Promise.all([
-        secureApiRequest('/api/admin/users', { headers }),
-        secureApiRequest('/api/admin/admins', { headers }),
-        secureApiRequest('/api/admin/submissions', { headers })
+        AdminApi.getUsers(),
+        AdminApi.getAdmins(),
+        AdminApi.getSubmissions()
       ]);
 
-      if (usersRes.status === 403 || adminsRes.status === 403 || submissionsRes.status === 403) {
-        localStorage.removeItem('token');
-        window.location.reload();
-        return;
+      if (usersRes.success) {
+        setUsers(usersRes.data);
       }
 
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        setUsers(usersData);
+      if (adminsRes.success) {
+        setAdmins(adminsRes.data);
       }
 
-      if (adminsRes.ok) {
-        const adminsData = await adminsRes.json();
-        setAdmins(adminsData);
-      }
-
-      if (submissionsRes.ok) {
-        const submissionsData = await submissionsRes.json();
-        setSubmissions(submissionsData);
+      if (submissionsRes.success) {
+        setSubmissions(submissionsRes.data);
       }
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
@@ -222,33 +196,15 @@ const Admin = () => {
 
   const updateSubmissionStatus = async (submissionId: number, newStatus: 'pending' | 'done') => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast({ title: "Error", description: "Please log in again", variant: "destructive" });
-        return;
-      }
+      const response = await AdminApi.updateSubmissionStatus(submissionId, newStatus);
       
-      const response = await secureApiRequest(`/api/admin/submissions/${submissionId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      
-      if (response.status === 403) {
-        toast({ title: "Access Denied", description: "Please log in again", variant: "destructive" });
-        localStorage.removeItem('token');
-        window.location.reload();
-        return;
-      }
-      
-      if (response.ok) {
+      if (response.success) {
         setSubmissions(prev => prev.map(sub => 
           sub.id === submissionId ? { ...sub, status: newStatus } : sub
         ));
         toast({ title: "Success", description: "Status updated successfully" });
+      } else {
+        toast({ title: "Error", description: response.error || "Failed to update status", variant: "destructive" });
       }
     } catch (error) {
       console.error('Failed to update status:', error);
@@ -258,13 +214,8 @@ const Admin = () => {
 
   const downloadFile = async (filename: string, originalName: string) => {
     try {
-      const token = localStorage.getItem('token');
       const filenameOnly = filename.split(/[\\/]/).pop() || filename;
-      const downloadUrl = buildApiUrl(`/api/contact/download/${filenameOnly}`);
-      
-      const response = await secureApiRequest(`/api/contact/download/${filenameOnly}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await ContactDownloadApi.downloadFile(filenameOnly);
       
       if (response.ok) {
         const blob = await response.blob();
@@ -291,18 +242,20 @@ const Admin = () => {
     if (!deleteUserId) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await secureApiRequest(`/api/admin/users/${deleteUserId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await AdminApi.deleteUser(deleteUserId);
 
-      if (response.ok) {
+      if (response.success) {
         toast({
           title: t('admin.user_deleted'),
           description: t('admin.user_deleted_success')
         });
         fetchData();
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to delete user",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to delete user:', error);
@@ -314,24 +267,21 @@ const Admin = () => {
 
   const createAdmin = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await secureApiRequest('/api/admin/admins', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(newAdmin)
-      });
+      const response = await AdminApi.createAdmin(newAdmin);
 
-      if (response.ok) {
-        const result = await response.json();
-        setAdmins(prev => [...prev, result.admin]);
+      if (response.success) {
+        setAdmins(prev => [...prev, response.data.admin]);
         setNewAdmin({ name: '', email: '', password: '' });
         setShowCreateAdmin(false);
         toast({
           title: t('admin.admin_created'),
           description: t('admin.admin_created_success')
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to create admin",
+          variant: "destructive"
         });
       }
     } catch (error) {
