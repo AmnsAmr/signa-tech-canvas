@@ -10,6 +10,14 @@
   "success": "150 60% 50%",
   "destructive": "0 84% 60%",
   "gradientStart": "270 85% 60%",
-  "gradientEnd": "32 100% 50%",
-  "gradientDirection": "135deg"
+  "gradientEnd": "320 85% 65%",
+  "gradientDirection": "135deg",
+  "textLink": "270 85% 60%",
+  "textPrimary": "260 20% 15%",
+  "textSecondary": "260 15% 35%",
+  "textAccent": "320 85% 65%",
+  "textMuted": "260 10% 50%",
+  "textSuccess": "150 60% 40%",
+  "textWarning": "45 95% 50%",
+  "textError": "0 84% 60%"
 }

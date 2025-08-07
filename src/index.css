@@ -109,15 +109,15 @@ All colors MUST be HSL.
     --popover: 215 28% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 210 100% 60%;
+    --primary: 270 85% 60%;
     --primary-foreground: 215 28% 8%;
-    --primary-light: 210 100% 85%;
-    --primary-dark: 210 100% 40%;
+    --primary-light: 270 85% 85%;
+    --primary-dark: 270 85% 40%;
 
-    --accent: 45 95% 65%;
+    --accent: 320 85% 65%;
     --accent-foreground: 215 28% 8%;
-    --accent-light: 45 95% 80%;
-    --accent-dark: 45 95% 50%;
+    --accent-light: 320 85% 80%;
+    --accent-dark: 320 85% 50%;
 
     --secondary: 215 28% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -133,7 +133,7 @@ All colors MUST be HSL.
 
     --border: 215 28% 20%;
     --input: 215 28% 20%;
-    --ring: 210 100% 60%;
+    --ring: 270 85% 60%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -147,11 +147,20 @@ All colors MUST be HSL.
     --text-primary: 0 0% 95%;
     --text-secondary: 215 20% 75%;
     --text-muted: 215 20% 65%;
-    --text-accent: 45 95% 65%;
+    --text-accent: 320 85% 65%;
     --text-success: 160 60% 55%;
     --text-warning: 45 95% 65%;
     --text-error: 0 84% 60%;
-    --text-link: 210 100% 60%;
+    --text-link: 270 85% 60%;
+
+    /* Update gradients for dark mode */
+    --gradientStart: 270 85% 60%;
+    --gradientEnd: 320 85% 65%;
+    --gradient-primary: linear-gradient(var(--gradientDirection), hsl(var(--gradientStart)), hsl(var(--gradientEnd)));
+    --gradient-hero: linear-gradient(var(--gradientDirection), hsl(var(--gradientStart)) 0%, hsl(var(--gradientEnd)) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
+    --gradient-creative: linear-gradient(180deg, hsl(var(--gradientStart)) 0%, hsl(var(--gradientEnd)) 50%, hsl(var(--primary)) 100%);
+    --gradient-subtle: linear-gradient(var(--gradientDirection), hsl(var(--gradientStart) / 0.05) 0%, hsl(var(--gradientEnd) / 0.05) 100%);
   }
 }
 

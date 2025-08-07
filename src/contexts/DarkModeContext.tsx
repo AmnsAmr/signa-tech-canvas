@@ -18,24 +18,37 @@ export const useDarkMode = () => {
 
 export const DarkModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Check localStorage first, then system preference
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) {
-      return JSON.parse(saved);
+    try {
+      // Check localStorage first, then system preference
+      const saved = localStorage.getItem('darkMode');
+      if (saved !== null) {
+        return JSON.parse(saved);
+      }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (error) {
+      console.error('Error initializing dark mode:', error);
+      return false;
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
+    console.log('Dark mode effect triggered, isDarkMode:', isDarkMode);
     // Apply dark mode class to document
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      console.log('Added dark class to document');
     } else {
       document.documentElement.classList.remove('dark');
+      console.log('Removed dark class from document');
     }
     
     // Save to localStorage
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+    try {
+      localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+      console.log('Saved dark mode to localStorage:', isDarkMode);
+    } catch (error) {
+      console.error('Error saving dark mode to localStorage:', error);
+    }
   }, [isDarkMode]);
 
   // Listen for system theme changes
@@ -54,6 +67,7 @@ export const DarkModeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const toggleDarkMode = () => {
+    console.log('Toggling dark mode from:', isDarkMode, 'to:', !isDarkMode);
     setIsDarkMode(prev => !prev);
   };
 

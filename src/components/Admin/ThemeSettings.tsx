@@ -25,28 +25,28 @@ const ThemeSettings = () => {
 
   const colorPresets = [
     {
-      name: t('theme_settings.default_purple'),
+      name: 'Default Purple',
       colors: {
         primary: '270 85% 60%',
         accent: '320 85% 65%'
       }
     },
     {
-      name: t('theme_settings.ocean_blue'),
+      name: 'Ocean Blue',
       colors: {
         primary: '210 100% 60%',
         accent: '190 100% 65%'
       }
     },
     {
-      name: t('theme_settings.forest_green'),
+      name: 'Forest Green',
       colors: {
         primary: '150 60% 50%',
         accent: '120 60% 55%'
       }
     },
     {
-      name: t('theme_settings.sunset_orange'),
+      name: 'Sunset Orange',
       colors: {
         primary: '25 95% 60%',
         accent: '45 95% 65%'
@@ -156,7 +156,7 @@ const ThemeSettings = () => {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('theme_settings.loading')}</p>
+            <p className="text-muted-foreground">Loading theme settings...</p>
           </div>
         </CardContent>
       </Card>
@@ -171,13 +171,13 @@ const ThemeSettings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
-            {t('theme_settings.title')}
+            Theme Settings
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Color Presets */}
           <div>
-            <Label className="text-sm font-medium mb-3 block">{t('theme_settings.color_presets')}</Label>
+            <Label className="text-sm font-medium mb-3 block">Color Presets</Label>
             <div className="grid grid-cols-2 gap-2">
               {colorPresets.map((preset) => (
                 <Button
@@ -205,11 +205,11 @@ const ThemeSettings = () => {
 
           {/* Custom Colors */}
           <div className="space-y-4">
-            <Label className="text-sm font-medium">{t('theme_settings.custom_colors')}</Label>
+            <Label className="text-sm font-medium">Custom Colors</Label>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="primary-color" className="text-xs">{t('theme_settings.primary_color')}</Label>
+                <Label htmlFor="primary-color" className="text-xs">Primary Color</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="primary-color"
@@ -228,7 +228,7 @@ const ThemeSettings = () => {
               </div>
 
               <div>
-                <Label htmlFor="accent-color" className="text-xs">{t('theme_settings.accent_color')}</Label>
+                <Label htmlFor="accent-color" className="text-xs">Accent Color</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="accent-color"
@@ -247,7 +247,7 @@ const ThemeSettings = () => {
               </div>
 
               <div>
-                <Label htmlFor="background-color" className="text-xs">{t('theme_settings.background')}</Label>
+                <Label htmlFor="background-color" className="text-xs">Background</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="background-color"
@@ -266,7 +266,7 @@ const ThemeSettings = () => {
               </div>
 
               <div>
-                <Label htmlFor="foreground-color" className="text-xs">{t('theme_settings.text_color')}</Label>
+                <Label htmlFor="foreground-color" className="text-xs">Text Color</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     id="foreground-color"
@@ -281,6 +281,178 @@ const ThemeSettings = () => {
                     placeholder="260 20% 15%"
                     className="flex-1"
                   />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="card-color" className="text-xs">Card Background</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="card-color"
+                    type="color"
+                    value={hslToHex(previewColors.card || '0 0% 100%')}
+                    onChange={(e) => handleColorChange('card', hexToHsl(e.target.value))}
+                    className="w-12 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={previewColors.card || '0 0% 100%'}
+                    onChange={(e) => handleColorChange('card', e.target.value)}
+                    placeholder="0 0% 100%"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="secondary-color" className="text-xs">Secondary Background</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="secondary-color"
+                    type="color"
+                    value={hslToHex(previewColors.secondary || '260 10% 95%')}
+                    onChange={(e) => handleColorChange('secondary', hexToHsl(e.target.value))}
+                    className="w-12 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={previewColors.secondary || '260 10% 95%'}
+                    onChange={(e) => handleColorChange('secondary', e.target.value)}
+                    placeholder="260 10% 95%"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="border-color" className="text-xs">Border Color</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="border-color"
+                    type="color"
+                    value={hslToHex(previewColors.border || '260 10% 90%')}
+                    onChange={(e) => handleColorChange('border', hexToHsl(e.target.value))}
+                    className="w-12 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={previewColors.border || '260 10% 90%'}
+                    onChange={(e) => handleColorChange('border', e.target.value)}
+                    placeholder="260 10% 90%"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="muted-color" className="text-xs">Muted Color</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="muted-color"
+                    type="color"
+                    value={hslToHex(previewColors.muted || '260 15% 50%')}
+                    onChange={(e) => handleColorChange('muted', hexToHsl(e.target.value))}
+                    className="w-12 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={previewColors.muted || '260 15% 50%'}
+                    onChange={(e) => handleColorChange('muted', e.target.value)}
+                    placeholder="260 15% 50%"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="success-color" className="text-xs">Success Color</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="success-color"
+                    type="color"
+                    value={hslToHex(previewColors.success || '150 60% 50%')}
+                    onChange={(e) => handleColorChange('success', hexToHsl(e.target.value))}
+                    className="w-12 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={previewColors.success || '150 60% 50%'}
+                    onChange={(e) => handleColorChange('success', e.target.value)}
+                    placeholder="150 60% 50%"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="destructive-color" className="text-xs">Destructive Color</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="destructive-color"
+                    type="color"
+                    value={hslToHex(previewColors.destructive || '0 84% 60%')}
+                    onChange={(e) => handleColorChange('destructive', hexToHsl(e.target.value))}
+                    className="w-12 h-10 p-1 border rounded"
+                  />
+                  <Input
+                    value={previewColors.destructive || '0 84% 60%'}
+                    onChange={(e) => handleColorChange('destructive', e.target.value)}
+                    placeholder="0 84% 60%"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Gradient Settings Section */}
+            <div className="space-y-4">
+              <Label className="text-sm font-medium">Gradient Settings</Label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="gradient-start" className="text-xs">Gradient Start</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="gradient-start"
+                      type="color"
+                      value={hslToHex(previewColors.gradientStart || previewColors.primary)}
+                      onChange={(e) => handleColorChange('gradientStart', hexToHsl(e.target.value))}
+                      className="w-12 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={previewColors.gradientStart || previewColors.primary}
+                      onChange={(e) => handleColorChange('gradientStart', e.target.value)}
+                      placeholder="270 85% 60%"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="gradient-end" className="text-xs">Gradient End</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="gradient-end"
+                      type="color"
+                      value={hslToHex(previewColors.gradientEnd || previewColors.accent)}
+                      onChange={(e) => handleColorChange('gradientEnd', hexToHsl(e.target.value))}
+                      className="w-12 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={previewColors.gradientEnd || previewColors.accent}
+                      onChange={(e) => handleColorChange('gradientEnd', e.target.value)}
+                      placeholder="320 85% 65%"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="gradient-direction" className="text-xs">Gradient Direction</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="gradient-direction"
+                      value={previewColors.gradientDirection || '135deg'}
+                      onChange={(e) => handleColorChange('gradientDirection', e.target.value)}
+                      placeholder="135deg"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -301,7 +473,7 @@ const ThemeSettings = () => {
                       className="w-12 h-10 p-1 border rounded"
                     />
                     <Input
-                      value={previewColors.textPrimary || previewColors.foreground}
+                      value={previewColors.textPrimary || previewColors.foreground || '260 20% 15%'}
                       onChange={(e) => handleColorChange('textPrimary', e.target.value)}
                       placeholder="260 20% 15%"
                       className="flex-1"
@@ -339,7 +511,7 @@ const ThemeSettings = () => {
                       className="w-12 h-10 p-1 border rounded"
                     />
                     <Input
-                      value={previewColors.textAccent || previewColors.accent}
+                      value={previewColors.textAccent || previewColors.accent || '320 85% 65%'}
                       onChange={(e) => handleColorChange('textAccent', e.target.value)}
                       placeholder="320 85% 65%"
                       className="flex-1"
@@ -358,7 +530,7 @@ const ThemeSettings = () => {
                       className="w-12 h-10 p-1 border rounded"
                     />
                     <Input
-                      value={previewColors.textLink || previewColors.primary}
+                      value={previewColors.textLink || previewColors.primary || '270 85% 60%'}
                       onChange={(e) => handleColorChange('textLink', e.target.value)}
                       placeholder="270 85% 60%"
                       className="flex-1"
@@ -378,7 +550,7 @@ const ThemeSettings = () => {
               className="flex items-center gap-2"
             >
               {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {isPreviewMode ? t('theme_settings.stop_preview') : t('theme_settings.preview')}
+              {isPreviewMode ? 'Stop Preview' : 'Preview'}
             </Button>
             
             <Button
@@ -386,7 +558,7 @@ const ThemeSettings = () => {
               disabled={!isPreviewMode || isSaving}
               className="flex items-center gap-2"
             >
-              {isSaving ? t('theme_settings.saving') : t('theme_settings.apply_theme')}
+              {isSaving ? 'Saving...' : 'Apply Theme'}
             </Button>
             
             <Button
@@ -403,7 +575,7 @@ const ThemeSettings = () => {
           {isPreviewMode && (
             <Badge variant="secondary" className="w-fit">
               <Eye className="h-3 w-3 mr-1" />
-              {t('theme_settings.preview_mode_active')}
+              Preview Mode Active
             </Badge>
           )}
         </CardContent>

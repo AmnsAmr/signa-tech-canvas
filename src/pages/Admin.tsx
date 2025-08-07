@@ -25,7 +25,7 @@ const ProjectManager = lazy(() => import('@/components/Admin/ProjectManager'));
 const FileManager = lazy(() => import('@/components/Admin/FileManager'));
 const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
-const SimpleThemeSettings = lazy(() => import('@/components/Admin/SimpleThemeSettings'));
+const ThemeSettings = lazy(() => import('@/components/Admin/ThemeSettings'));
 const AuthDebug = lazy(() => import('@/components/Debug/AuthDebug'));
 
 interface User {
@@ -446,7 +446,7 @@ const Admin = () => {
         return (
           <div className="space-y-6">
             <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_theme_settings')}</p></div>}>
-              <SimpleThemeSettings />
+              <ThemeSettings />
             </Suspense>
             <Suspense fallback={<div>Loading debug...</div>}>
               <AuthDebug />

@@ -6,18 +6,24 @@ import { useDarkMode } from '@/contexts/DarkModeContext';
 const ThemeToggle = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
+  const handleClick = () => {
+    console.log('Dark mode toggle clicked, current state:', isDarkMode);
+    toggleDarkMode();
+  };
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={toggleDarkMode}
+      onClick={handleClick}
       className="h-9 w-9 p-0 hover:bg-primary/10 transition-all duration-300"
       title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <div className="relative">
-        <Sun className={`h-4 w-4 absolute transition-all duration-300 ${isDarkMode ? 'rotate-90 scale-0' : 'rotate-0 scale-100'}`} />
-        <Moon className={`h-4 w-4 absolute transition-all duration-300 ${isDarkMode ? 'rotate-0 scale-100' : '-rotate-90 scale-0'}`} />
-      </div>
+      {isDarkMode ? (
+        <Moon className="h-4 w-4" />
+      ) : (
+        <Sun className="h-4 w-4" />
+      )}
     </Button>
   );
 };
