@@ -212,31 +212,7 @@ const ProjectManager: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Image Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Images</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 items-center">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImageUpload(file);
-              }}
-            />
-            <Button onClick={() => document.querySelector('input[type="file"]')?.click()}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Image
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {images.length} images available
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Sections */}
       <div className="flex justify-between items-center">
@@ -309,18 +285,49 @@ const ProjectManager: React.FC = () => {
                     value={newProject.description}
                     onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
                   />
-                  <select
-                    className="w-full p-2 border rounded"
-                    value={newProject.image_filename}
-                    onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
-                  >
-                    <option value="">Select image (optional)</option>
-                    {images.map(img => (
-                      <option key={img.filename} value={img.filename}>
-                        {img.original_name}
-                      </option>
-                    ))}
-                  </select>
+                  
+                  {/* Image Selection/Upload */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Project Image</label>
+                    <div className="flex gap-2">
+                      <select
+                        className="flex-1 p-2 border rounded"
+                        value={newProject.image_filename}
+                        onChange={(e) => setNewProject({ ...newProject, image_filename: e.target.value })}
+                      >
+                        <option value="">Select existing image</option>
+                        {images.map(img => (
+                          <option key={img.filename} value={img.filename}>
+                            {img.original_name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex gap-1">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          id={`upload-${section.id}`}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file);
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById(`upload-${section.id}`)?.click()}
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {images.length} images available • Upload new or select existing
+                    </p>
+                  </div>
+                  
                   <div className="flex gap-2">
                     <Button onClick={() => handleCreateProject(section.id)}>
                       Create Project
