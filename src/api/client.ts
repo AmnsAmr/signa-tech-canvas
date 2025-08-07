@@ -83,6 +83,8 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const endTimer = apiMonitor.startRequest(endpoint);
     const url = this.buildUrl(endpoint);
+    console.log(`[API] Making request: ${options.method || 'GET'} ${url}`);
+    console.log(`[API] Headers:`, options.headers);
     
     try {
       // Check cache first for GET requests (only if caching is enabled)
@@ -121,7 +123,9 @@ class ApiClient {
         credentials: 'include', // Always include credentials
       };
 
+      console.log(`[API] Final request options:`, requestOptions);
       const response = await this.retryRequest(url, requestOptions);
+      console.log(`[API] Response status:`, response.status, response.statusText);
 
       // Handle 304 Not Modified (only if caching is enabled)
       if (API_CONFIG.CACHE_ENABLED && response.status === 304 && cacheKey) {
@@ -153,6 +157,14 @@ class ApiClient {
         data = await response.json();
       } else {
         data = (await response.text()) as unknown as T;
+      }
+
+      // Check if response contains auth error
+      if (typeof data === 'object' && data && 'message' in data) {
+        const message = (data as any).message;
+        if (message === 'Access token required' || message === 'Invalid token' || message === 'Admin access required') {
+          return { data: null as any, success: false, error: message };
+        }
       }
 
       // Cache successful responses for GET requests (only if caching is enabled)

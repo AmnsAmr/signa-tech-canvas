@@ -293,7 +293,13 @@ export class AdminApi {
 export class ProjectsApi {
   private static getAuthHeaders() {
     const token = localStorage.getItem('token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    console.log('Auth token:', token ? 'exists' : 'missing');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+    console.log('Auth headers:', headers);
+    return headers;
   }
 
   // Public methods
@@ -311,9 +317,17 @@ export class ProjectsApi {
 
   // Admin methods
   static async adminGetSections(): Promise<ApiResponse<any[]>> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return { data: null as any, success: false, error: 'No auth token' };
+    }
+    
     return apiClient.request<any[]>(API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS, {
       method: 'GET',
-      headers: this.getAuthHeaders(),
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
     });
   }
 
@@ -421,9 +435,13 @@ export class ProjectsApi {
   }
 
   static async deleteSection(id: number): Promise<ApiResponse<void>> {
+    const headers = this.getAuthHeaders();
+    console.log('Delete section headers:', headers);
+    console.log('Token exists:', !!localStorage.getItem('token'));
+    
     const response = await apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_SECTION(id), {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
+      headers,
     });
     
     if (response.success) {

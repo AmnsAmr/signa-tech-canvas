@@ -132,8 +132,11 @@ const csrfMiddleware = (req, res, next) => {
     return next();
   }
   
-  // Skip CSRF for GET requests and API endpoints that don't modify data
-  if (req.method === 'GET' || req.path.startsWith('/api/auth/google')) {
+  // Skip CSRF for GET requests, admin routes, and specific API endpoints
+  if (req.method === 'GET' || 
+      req.path.startsWith('/api/auth/google') || 
+      req.path.startsWith('/api/admin/') ||
+      req.path.startsWith('/api/projects/admin/')) {
     return next();
   }
 

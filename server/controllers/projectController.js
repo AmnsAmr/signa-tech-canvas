@@ -71,6 +71,7 @@ const getAllSections = async (req, res) => {
 const createSection = async (req, res) => {
   try {
     const { name, display_order } = req.body;
+    console.log('Creating section:', { name, display_order });
     
     const sectionId = await new Promise((resolve, reject) => {
       db.run(
@@ -82,6 +83,7 @@ const createSection = async (req, res) => {
         }
       );
     });
+    console.log('Section created with ID:', sectionId);
 
     res.json({ id: sectionId, message: 'Section created successfully' });
   } catch (error) {
@@ -122,18 +124,32 @@ const updateSection = async (req, res) => {
 const deleteSection = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Deleting section with ID:', id);
     
+    // First delete all projects in this section
+    const projectChanges = await new Promise((resolve, reject) => {
+      db.run("DELETE FROM projects WHERE section_id = ?", [id], function(err) {
+        if (err) reject(err);
+        else resolve(this.changes);
+      });
+    });
+    console.log('Projects deleted:', projectChanges);
+    
+    // Then delete the section
     const changes = await new Promise((resolve, reject) => {
       db.run("DELETE FROM project_sections WHERE id = ?", [id], function(err) {
         if (err) reject(err);
         else resolve(this.changes);
       });
     });
+    console.log('Section delete changes:', changes);
 
     if (changes === 0) {
+      console.log('Section not found with ID:', id);
       return res.status(404).json({ message: 'Section not found' });
     }
 
+    console.log('Section deleted successfully');
     res.json({ message: 'Section deleted successfully' });
   } catch (error) {
     console.error('Delete section error:', error);
