@@ -72,12 +72,16 @@ const FileManager = () => {
   const checkFileUsage = async (filename: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await secureApiRequest(API_ENDPOINTS.ADMIN.FILE_USAGE(filename), {
+      const url = API_ENDPOINTS.ADMIN.FILE_USAGE(filename);
+      console.log('Checking file usage for:', filename, 'URL:', url);
+      
+      const response = await secureApiRequest(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.ok) {
         const data: FileUsageResponse = await response.json();
+        console.log('File usage data:', data);
         return data;
       }
       throw new Error('Failed to check file usage');
@@ -88,7 +92,26 @@ const FileManager = () => {
         description: 'Failed to check file usage',
         variant: 'destructive'
       });
-      return null;
+      return { filename, usage: [], isUsed: false }; // Return empty usage instead of null
+    }
+  };
+
+  const handleInitiateDelete = async (filename: string) => {
+    console.log('Initiating delete for:', filename);
+    
+    // Check file usage first
+    const usage = await checkFileUsage(filename);
+    console.log('Usage check result:', usage);
+    
+    if (usage && usage.isUsed) {
+      console.log('File is in use, showing usage dialog');
+      setDeleteFile(filename);
+      setFileUsage(usage);
+      setShowUsageDialog(true);
+    } else {
+      console.log('File is not in use, showing normal delete dialog');
+      // File is not in use, show normal delete dialog
+      setDeleteFile(filename);
     }
   };
 
@@ -116,11 +139,6 @@ const FileManager = () => {
         setShowUsageDialog(false);
         setFileUsage(null);
         setForceDelete(false);
-      } else if (response.status === 409) {
-        // File is in use
-        const data = await response.json();
-        setFileUsage(data);
-        setShowUsageDialog(true);
       } else {
         throw new Error('Failed to delete file');
       }
@@ -131,20 +149,6 @@ const FileManager = () => {
         description: 'Failed to delete file',
         variant: 'destructive'
       });
-    }
-  };
-
-  const handleInitiateDelete = async (filename: string) => {
-    setDeleteFile(filename);
-    
-    // Check file usage first
-    const usage = await checkFileUsage(filename);
-    if (usage && usage.isUsed) {
-      setFileUsage(usage);
-      setShowUsageDialog(true);
-    } else {
-      // File is not in use, proceed with normal delete
-      handleDeleteFile();
     }
   };
 
@@ -379,7 +383,7 @@ const FileManager = () => {
       </Dialog>
 
       {/* Simple Delete Confirmation Dialog */}
-      <AlertDialog open={deleteFile !== null && !showUsageDialog} onOpenChange={() => {
+      <AlertDialog open={deleteFile !== null && !showUsageDialog && !fileUsage} onOpenChange={() => {
         setDeleteFile(null);
         setForceDelete(false);
       }}>
