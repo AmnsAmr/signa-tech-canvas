@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { apiClient } from '@/api';
+import { apiClient } from '@/api/client';
 
 
 interface Project {
