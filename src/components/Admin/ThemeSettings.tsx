@@ -583,8 +583,8 @@ const ThemeSettings = () => {
         </div>
         
         <div className="space-y-6">
-          <ThemePreview />
-          <TextColorDemo />
+          <ThemePreview previewColors={isPreviewMode ? previewColors : theme} />
+          <TextColorDemo previewColors={isPreviewMode ? previewColors : theme} />
         </div>
       </div>
     </div>

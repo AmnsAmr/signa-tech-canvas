@@ -2,7 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Type } from 'lucide-react';
 
-const TextColorDemo = () => {
+interface TextColorDemoProps {
+  previewColors: any;
+}
+
+const TextColorDemo: React.FC<TextColorDemoProps> = ({ previewColors }) => {
   return (
     <Card>
       <CardHeader>
@@ -16,44 +20,44 @@ const TextColorDemo = () => {
           <div className="space-y-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Primary Text</p>
-              <p className="text-text-primary font-medium">This is primary text content</p>
+              <p className="font-medium" style={{ color: `hsl(${previewColors.textPrimary || previewColors.foreground})` }}>This is primary text content</p>
             </div>
             
             <div>
               <p className="text-xs text-muted-foreground mb-1">Secondary Text</p>
-              <p className="text-text-secondary">This is secondary text content</p>
+              <p style={{ color: `hsl(${previewColors.textSecondary || '260 15% 35%'})` }}>This is secondary text content</p>
             </div>
             
             <div>
               <p className="text-xs text-muted-foreground mb-1">Muted Text</p>
-              <p className="text-text-muted">This is muted text content</p>
+              <p style={{ color: `hsl(${previewColors.textMuted || previewColors.muted})` }}>This is muted text content</p>
             </div>
             
             <div>
               <p className="text-xs text-muted-foreground mb-1">Accent Text</p>
-              <p className="text-text-accent font-medium">This is accent text content</p>
+              <p className="font-medium" style={{ color: `hsl(${previewColors.textAccent || previewColors.accent})` }}>This is accent text content</p>
             </div>
           </div>
           
           <div className="space-y-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Success Text</p>
-              <p className="text-text-success font-medium">Operation completed successfully</p>
+              <p className="font-medium" style={{ color: `hsl(${previewColors.textSuccess || previewColors.success})` }}>Operation completed successfully</p>
             </div>
             
             <div>
               <p className="text-xs text-muted-foreground mb-1">Warning Text</p>
-              <p className="text-text-warning font-medium">Please review this content</p>
+              <p className="font-medium" style={{ color: `hsl(${previewColors.textWarning || '45 95% 50%'})` }}>Please review this content</p>
             </div>
             
             <div>
               <p className="text-xs text-muted-foreground mb-1">Error Text</p>
-              <p className="text-text-error font-medium">An error has occurred</p>
+              <p className="font-medium" style={{ color: `hsl(${previewColors.textError || previewColors.destructive})` }}>An error has occurred</p>
             </div>
             
             <div>
               <p className="text-xs text-muted-foreground mb-1">Link Text</p>
-              <p className="text-text-link font-medium hover:underline cursor-pointer">This is a clickable link</p>
+              <p className="font-medium hover:underline cursor-pointer" style={{ color: `hsl(${previewColors.textLink || previewColors.primary})` }}>This is a clickable link</p>
             </div>
           </div>
         </div>
@@ -61,14 +65,14 @@ const TextColorDemo = () => {
         <div className="pt-4 border-t">
           <p className="text-xs text-muted-foreground mb-2">Mixed Content Example:</p>
           <div className="space-y-2">
-            <p className="text-text-primary">
-              Welcome to our platform! <span className="text-text-accent font-medium">Signa Tech</span> provides 
-              <span className="text-text-link hover:underline cursor-pointer"> innovative solutions</span> for your business needs.
+            <p style={{ color: `hsl(${previewColors.textPrimary || previewColors.foreground})` }}>
+              Welcome to our platform! <span className="font-medium" style={{ color: `hsl(${previewColors.textAccent || previewColors.accent})` }}>Signa Tech</span> provides 
+              <span className="hover:underline cursor-pointer" style={{ color: `hsl(${previewColors.textLink || previewColors.primary})` }}> innovative solutions</span> for your business needs.
             </p>
-            <p className="text-text-secondary">
-              <span className="text-text-success">✓ Verified</span> | 
-              <span className="text-text-warning"> ⚠ Review required</span> | 
-              <span className="text-text-error"> ✗ Action needed</span>
+            <p style={{ color: `hsl(${previewColors.textSecondary || '260 15% 35%'})` }}>
+              <span style={{ color: `hsl(${previewColors.textSuccess || previewColors.success})` }}>✓ Verified</span> | 
+              <span style={{ color: `hsl(${previewColors.textWarning || '45 95% 50%'})` }}> ⚠ Review required</span> | 
+              <span style={{ color: `hsl(${previewColors.textError || previewColors.destructive})` }}> ✗ Action needed</span>
             </p>
           </div>
         </div>
