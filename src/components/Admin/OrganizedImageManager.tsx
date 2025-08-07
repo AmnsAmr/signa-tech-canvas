@@ -110,6 +110,7 @@ const OrganizedImageManager: React.FC = () => {
       const response = await ImagesApi.adminGetAll();
       
       if (response.success) {
+        console.log('Fetched images:', response.data);
         const grouped = response.data.reduce((acc: Record<string, SiteImage[]>, img: SiteImage) => {
           if (!acc[img.category]) acc[img.category] = [];
           acc[img.category].push(img);
@@ -122,6 +123,8 @@ const OrganizedImageManager: React.FC = () => {
         });
         
         setImages(grouped);
+      } else {
+        console.error('Failed to fetch images:', response.error);
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
@@ -144,14 +147,11 @@ const OrganizedImageManager: React.FC = () => {
       if (response.success) {
         setUploadFiles(prev => ({ ...prev, [category]: null }));
         fetchAllImages();
-        // Clear browser cache for images
-        const images = document.querySelectorAll('img');
-        images.forEach(img => {
-          if (img.src.includes('/uploads/')) {
-            const originalSrc = img.src.split('?')[0];
-            img.src = `${originalSrc}?t=${Date.now()}`;
-          }
-        });
+        // Clear all image caches to force refresh on frontend pages
+        if (API_CONFIG.CACHE_ENABLED) {
+          apiCache.invalidatePattern('^images:');
+          apiCache.invalidatePattern('^admin:images:');
+        }
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
         alert(response.data.message || 'Image ajoutée avec succès!');
       } else {
@@ -171,6 +171,11 @@ const OrganizedImageManager: React.FC = () => {
 
       if (response.success) {
         fetchAllImages();
+        // Clear all image caches to force refresh on frontend pages
+        if (API_CONFIG.CACHE_ENABLED) {
+          apiCache.invalidatePattern('^images:');
+          apiCache.invalidatePattern('^admin:images:');
+        }
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
         alert('Image supprimée avec succès!');
       } else {
@@ -191,14 +196,11 @@ const OrganizedImageManager: React.FC = () => {
 
       if (response.success) {
         fetchAllImages();
-        // Clear browser cache for images
-        const images = document.querySelectorAll('img');
-        images.forEach(img => {
-          if (img.src.includes('/uploads/')) {
-            const originalSrc = img.src.split('?')[0];
-            img.src = `${originalSrc}?t=${Date.now()}`;
-          }
-        });
+        // Clear all image caches to force refresh on frontend pages
+        if (API_CONFIG.CACHE_ENABLED) {
+          apiCache.invalidatePattern('^images:');
+          apiCache.invalidatePattern('^admin:images:');
+        }
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
         alert(response.data.message || 'Image remplacée avec succès!');
       } else {
@@ -397,6 +399,7 @@ const OrganizedImageManager: React.FC = () => {
                   <Button 
                     onClick={() => handleUpload(section.key)}
                     disabled={!uploadFiles[section.key]}
+                    className="hover:bg-primary/90 active:scale-95 transition-all duration-200"
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     {t('organized_images.add')}
@@ -440,7 +443,7 @@ const OrganizedImageManager: React.FC = () => {
                               <Button 
                                 variant="secondary" 
                                 size="sm" 
-                                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary/80 active:scale-95"
                               >
                                 <Settings className="h-4 w-4" />
                               </Button>
@@ -484,12 +487,17 @@ const OrganizedImageManager: React.FC = () => {
                 })}
               </div>
 
-              {sectionImages.length === 0 && (
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading images...</p>
+                </div>
+              ) : sectionImages.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <section.icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>{t('organized_images.no_images_section')}</p>
                 </div>
-              )}
+              ) : null}
 
               {/* Carousel Management for Portfolio Section */}
               {section.key === 'portfolio' && (

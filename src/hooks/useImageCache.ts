@@ -58,12 +58,13 @@ export const useImageCache = (category?: string) => {
 
     // Listen for cache updates
     const handleImageUpdate = () => {
+      console.log('Images updated event received, clearing cache and refetching');
       // Clear all image cache when images are updated
       imageCache.clear();
       loadingStates.clear();
       // Force immediate refetch
       setLoading(true);
-      fetchImages(cacheKey);
+      setTimeout(() => fetchImages(cacheKey), 100); // Small delay to ensure backend cache is cleared
     };
     
     window.addEventListener('imagesUpdated', handleImageUpdate);
@@ -78,13 +79,16 @@ export const useImageCache = (category?: string) => {
       setLoading(true);
       
       const url = category 
-        ? `${apiClient.buildUrl('/api/images')}?category=${category}`
-        : apiClient.buildUrl('/api/images');
+        ? `/api/images?category=${category}`
+        : '/api/images';
       
+      console.log('Fetching images from:', url);
       const response = await fetch(url);
+      console.log('Response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched images data:', data);
         imageCache.set(cacheKey, data);
         
         if (mountedRef.current) {

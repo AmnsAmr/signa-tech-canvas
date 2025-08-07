@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { AdminApi, ContactDownloadApi } from '@/api';
+import { AdminService, ContactDownloadApi } from '@/api';
 import { secureApiRequest, handleCSRFError } from '@/utils/csrf';
 import { Users, FileText, Search, Calendar, Mail, Phone, Building, Eye, Check, Clock, Filter, Image, UserPlus, Shield, Bell, BellOff, Download, Paperclip, Settings, MoreVertical, Edit, Trash2, Palette, FolderOpen, Star, Menu, ChevronLeft, HardDrive } from 'lucide-react';
 import { ProjectCard } from '@/components/shared';
@@ -120,12 +120,14 @@ const Admin = () => {
     if (isAdmin) {
       fetchData();
       fetchNotificationStatus();
+    } else {
+      setLoading(false);
     }
   }, [isAdmin]);
 
   const fetchNotificationStatus = async () => {
     try {
-      const response = await AdminApi.getNotificationStatus();
+      const response = await AdminService.getNotificationSettings();
       if (response.success) {
         setNotificationsEnabled(response.data.enabled);
       }
@@ -137,7 +139,7 @@ const Admin = () => {
   const toggleNotifications = async () => {
     setLoadingNotifications(true);
     try {
-      const response = await AdminApi.toggleNotifications(!notificationsEnabled);
+      const response = await AdminService.updateNotificationSettings(!notificationsEnabled);
       
       if (response.success) {
         setNotificationsEnabled(!notificationsEnabled);
@@ -155,30 +157,35 @@ const Admin = () => {
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('token');
       if (!token) {
         setLoading(false);
         return;
       }
-      
-      const headers = { Authorization: `Bearer ${token}` };
 
       const [usersRes, adminsRes, submissionsRes] = await Promise.all([
-        AdminApi.getUsers(),
-        AdminApi.getAdmins(),
-        AdminApi.getSubmissions()
+        AdminService.getUsers(),
+        AdminService.getAdmins(),
+        AdminService.getSubmissions()
       ]);
 
       if (usersRes.success) {
         setUsers(usersRes.data);
+      } else {
+        console.error('Failed to fetch users:', usersRes.error);
       }
 
       if (adminsRes.success) {
         setAdmins(adminsRes.data);
+      } else {
+        console.error('Failed to fetch admins:', adminsRes.error);
       }
 
       if (submissionsRes.success) {
         setSubmissions(submissionsRes.data);
+      } else {
+        console.error('Failed to fetch submissions:', submissionsRes.error);
       }
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
@@ -196,7 +203,7 @@ const Admin = () => {
 
   const updateSubmissionStatus = async (submissionId: number, newStatus: 'pending' | 'done') => {
     try {
-      const response = await AdminApi.updateSubmissionStatus(submissionId, newStatus);
+      const response = await AdminService.updateSubmissionStatus(submissionId, newStatus);
       
       if (response.success) {
         setSubmissions(prev => prev.map(sub => 
@@ -242,7 +249,7 @@ const Admin = () => {
     if (!deleteUserId) return;
     
     try {
-      const response = await AdminApi.deleteUser(deleteUserId);
+      const response = await AdminService.deleteUser(deleteUserId);
 
       if (response.success) {
         toast({
@@ -267,10 +274,10 @@ const Admin = () => {
 
   const createAdmin = async () => {
     try {
-      const response = await AdminApi.createAdmin(newAdmin);
+      const response = await AdminService.createAdmin(newAdmin);
 
       if (response.success) {
-        setAdmins(prev => [...prev, response.data.admin]);
+        setAdmins(prev => [...prev, response.data]);
         setNewAdmin({ name: '', email: '', password: '' });
         setShowCreateAdmin(false);
         toast({

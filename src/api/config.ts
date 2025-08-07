@@ -1,46 +1,23 @@
 /**
  * API Configuration
- * Centralized configuration for all API endpoints and URLs
+ * All URLs loaded from .env file only
  */
 
-const getApiBaseUrl = (): string => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (!apiUrl) {
-    console.warn('VITE_API_URL not configured, using default');
-    return import.meta.env.DEV ? 'http://localhost:3001' : '';
+const getEnvVar = (key: string, fallback?: string): string => {
+  const value = import.meta.env[key];
+  if (!value && !fallback) {
+    throw new Error(`Environment variable ${key} is required`);
   }
-  return apiUrl;
-};
-
-const getUploadsBaseUrl = (): string => {
-  // In development, always use the proxy path to avoid CORS issues
-  if (import.meta.env.DEV) {
-    return '/uploads';
-  }
-  
-  const uploadsUrl = import.meta.env.VITE_UPLOADS_URL;
-  if (!uploadsUrl) {
-    const baseUrl = getApiBaseUrl();
-    return baseUrl ? `${baseUrl}/uploads` : '/uploads';
-  }
-  return uploadsUrl;
-};
-
-const getPythonServiceUrl = (): string => {
-  const pythonUrl = import.meta.env.VITE_PYTHON_SERVICE_URL;
-  if (!pythonUrl) {
-    console.warn('VITE_PYTHON_SERVICE_URL not configured, using default');
-    return import.meta.env.DEV ? 'http://localhost:5001' : '';
-  }
-  return pythonUrl;
+  return value || fallback!;
 };
 
 export const API_CONFIG = {
-  BASE_URL: getApiBaseUrl(),
-  UPLOADS_URL: getUploadsBaseUrl(),
-  PYTHON_SERVICE_URL: getPythonServiceUrl(),
+  BASE_URL: getEnvVar('VITE_API_URL'),
+  UPLOADS_URL: getEnvVar('VITE_UPLOADS_URL'),
+  PYTHON_SERVICE_URL: getEnvVar('VITE_PYTHON_SERVICE_URL'),
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
+  CACHE_ENABLED: true, // Master cache switch
 } as const;
 
 export const API_ENDPOINTS = {
@@ -84,16 +61,10 @@ export const API_ENDPOINTS = {
     USERS: '/api/admin/users',
     ADMINS: '/api/admin/admins',
     SUBMISSIONS: '/api/admin/submissions',
-    PROJECTS: '/api/admin/projects',
     THEME: '/api/admin/theme',
     FILES: '/api/admin/files',
-    NOTIFICATIONS: {
-      TOGGLE: '/api/admin/notifications/toggle',
-      STATUS: '/api/admin/notifications/status',
-    },
-    DELETE_USER: (id: number) => `/api/admin/users/${id}`,
-    UPDATE_SUBMISSION_STATUS: (id: number) => `/api/admin/submissions/${id}/status`,
-    DELETE_FILE: (filename: string) => `/api/admin/files/${filename}`,
+    NOTIFICATIONS: '/api/admin/notifications',
+    RATINGS: '/api/admin/ratings',
   },
 
   PROJECTS: {
@@ -118,6 +89,3 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
-if (import.meta.env.DEV) {
-  console.log('API Configuration:', API_CONFIG);
-}

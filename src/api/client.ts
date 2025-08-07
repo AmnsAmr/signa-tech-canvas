@@ -85,11 +85,10 @@ class ApiClient {
     const url = this.buildUrl(endpoint);
     
     try {
-      // Check cache first for GET requests
-      if (cacheKey && (!options.method || options.method === 'GET')) {
+      // Check cache first for GET requests (only if caching is enabled)
+      if (API_CONFIG.CACHE_ENABLED && cacheKey && (!options.method || options.method === 'GET')) {
         const cached = apiCache.getWithEtag<T>(cacheKey, cacheTtl);
         if (cached) {
-          // Add If-None-Match header for conditional requests
           if (cached.etag) {
             options.headers = {
               ...options.headers,
@@ -124,8 +123,8 @@ class ApiClient {
 
       const response = await this.retryRequest(url, requestOptions);
 
-      // Handle 304 Not Modified
-      if (response.status === 304 && cacheKey) {
+      // Handle 304 Not Modified (only if caching is enabled)
+      if (API_CONFIG.CACHE_ENABLED && response.status === 304 && cacheKey) {
         const cached = apiCache.get<T>(cacheKey);
         if (cached) {
           return { data: cached, success: true };
@@ -156,8 +155,8 @@ class ApiClient {
         data = (await response.text()) as unknown as T;
       }
 
-      // Cache successful responses for GET requests
-      if (cacheKey && response.ok && (!options.method || options.method === 'GET')) {
+      // Cache successful responses for GET requests (only if caching is enabled)
+      if (API_CONFIG.CACHE_ENABLED && cacheKey && response.ok && (!options.method || options.method === 'GET')) {
         const etag = response.headers.get('etag');
         apiCache.set(cacheKey, data, cacheTtl, etag || undefined);
       }
@@ -202,21 +201,14 @@ class ApiClient {
   buildUploadUrl(filename: string): string {
     if (!filename) return '';
     
-    // Handle absolute URLs
     if (filename.startsWith('http://') || filename.startsWith('https://')) {
       return filename;
     }
     
-    // Handle relative paths
     const cleanFilename = filename.startsWith('/') ? filename.slice(1) : filename;
-    const timestamp = Date.now();
     
-    // In development, use the proxy path to avoid CORS issues
-    if (import.meta.env.DEV) {
-      return `/uploads/${cleanFilename}?t=${timestamp}`;
-    }
-    
-    return `${API_CONFIG.UPLOADS_URL}/${cleanFilename}?t=${timestamp}`;
+    // Use proxy path to avoid CORS issues - no timestamp for better caching
+    return `/uploads/${cleanFilename}`;
   }
 
   // Method to make requests to Python service

@@ -1,7 +1,8 @@
 import { apiClient } from './client';
 import { apiCache } from './cache';
 import { SiteImage, ContactSettings, ApiResponse } from './types';
-import { API_ENDPOINTS } from './config';
+import { API_ENDPOINTS, API_CONFIG } from './config';
+import { AdminService } from './admin';
 
 const buildEndpointWithParams = (
   endpoint: string, 
@@ -122,8 +123,10 @@ export class ImagesApi {
   }
 
   static invalidateCache(): void {
-    apiCache.invalidatePattern('^images:');
-    apiCache.invalidatePattern('^admin:images:');
+    if (API_CONFIG.CACHE_ENABLED) {
+      apiCache.invalidatePattern('^images:');
+      apiCache.invalidatePattern('^admin:images:');
+    }
   }
 
   static getImageUrl(filename: string): string {
@@ -156,8 +159,9 @@ export class ContactApi {
     });
     
     if (response.success) {
-      apiCache.delete('contact:settings');
-      // Trigger settings update event
+      if (API_CONFIG.CACHE_ENABLED) {
+        apiCache.delete('contact:settings');
+      }
       window.dispatchEvent(new CustomEvent('contactSettingsUpdated'));
     }
     
@@ -224,7 +228,7 @@ export class RatingsApi {
 
   static async create(rating: any): Promise<ApiResponse<any>> {
     const response = await apiClient.post(API_ENDPOINTS.RATINGS.CREATE, rating);
-    if (response.success) {
+    if (response.success && API_CONFIG.CACHE_ENABLED) {
       apiCache.invalidatePattern('^ratings:');
     }
     return response;
@@ -242,97 +246,46 @@ export class SecurityApi {
   }
 }
 
-// Admin API
+// Legacy AdminApi - use AdminService instead
 export class AdminApi {
-  private static getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  static async getUsers() {
+    return AdminService.getUsers();
   }
 
-  static async getUsers(): Promise<ApiResponse<any[]>> {
-    console.log('AdminApi.getUsers: Making request to', API_ENDPOINTS.ADMIN.USERS);
-    const headers = this.getAuthHeaders();
-    console.log('AdminApi.getUsers: Headers', headers);
-    
-    const response = await apiClient.request<any[]>(API_ENDPOINTS.ADMIN.USERS, {
-      method: 'GET',
-      headers,
-    });
-    
-    console.log('AdminApi.getUsers: Response', response);
-    return response;
+  static async getAdmins() {
+    return AdminService.getAdmins();
   }
 
-  static async getAdmins(): Promise<ApiResponse<any[]>> {
-    console.log('AdminApi.getAdmins: Making request to', API_ENDPOINTS.ADMIN.ADMINS);
-    const response = await apiClient.request<any[]>(API_ENDPOINTS.ADMIN.ADMINS, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-    console.log('AdminApi.getAdmins: Response', response);
-    return response;
+  static async getSubmissions() {
+    return AdminService.getSubmissions();
   }
 
-  static async getSubmissions(): Promise<ApiResponse<any[]>> {
-    console.log('AdminApi.getSubmissions: Making request to', API_ENDPOINTS.ADMIN.SUBMISSIONS);
-    const response = await apiClient.request<any[]>(API_ENDPOINTS.ADMIN.SUBMISSIONS, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-    console.log('AdminApi.getSubmissions: Response', response);
-    return response;
+  static async createAdmin(adminData: { name: string; email: string; password: string }) {
+    return AdminService.createAdmin(adminData);
   }
 
-  static async createAdmin(adminData: { name: string; email: string; password: string }): Promise<ApiResponse<any>> {
-    return apiClient.request(API_ENDPOINTS.ADMIN.ADMINS, {
-      method: 'POST',
-      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify(adminData),
-    });
+  static async deleteUser(id: number) {
+    return AdminService.deleteUser(id);
   }
 
-  static async deleteUser(id: number): Promise<ApiResponse<void>> {
-    return apiClient.request<void>(API_ENDPOINTS.ADMIN.DELETE_USER(id), {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-    });
+  static async updateSubmissionStatus(id: number, status: string) {
+    return AdminService.updateSubmissionStatus(id, status as 'pending' | 'done');
   }
 
-  static async updateSubmissionStatus(id: number, status: string): Promise<ApiResponse<void>> {
-    return apiClient.request(API_ENDPOINTS.ADMIN.UPDATE_SUBMISSION_STATUS(id), {
-      method: 'PATCH',
-      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
+  static async toggleNotifications(enabled: boolean) {
+    return AdminService.updateNotificationSettings(enabled);
   }
 
-  static async toggleNotifications(enabled: boolean): Promise<ApiResponse<any>> {
-    return apiClient.request(API_ENDPOINTS.ADMIN.NOTIFICATIONS.TOGGLE, {
-      method: 'POST',
-      headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled }),
-    });
+  static async getNotificationStatus() {
+    return AdminService.getNotificationSettings();
   }
 
-  static async getNotificationStatus(): Promise<ApiResponse<{ enabled: boolean }>> {
-    return apiClient.request<{ enabled: boolean }>(API_ENDPOINTS.ADMIN.NOTIFICATIONS.STATUS, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
+  static async getFiles() {
+    return AdminService.getFiles();
   }
 
-  static async getFiles(): Promise<ApiResponse<any[]>> {
-    return apiClient.request<any[]>(API_ENDPOINTS.ADMIN.FILES, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-  }
-
-  static async deleteFile(filename: string): Promise<ApiResponse<void>> {
-    return apiClient.request<void>(API_ENDPOINTS.ADMIN.DELETE_FILE(filename), {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-    });
+  static async deleteFile(filename: string) {
+    return AdminService.deleteFile(filename);
   }
 }
 
