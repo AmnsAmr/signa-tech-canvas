@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { secureApiRequest } from '@/utils/csrf';
-import { Trash2, File, Download, RefreshCw, Eye, Image } from 'lucide-react';
+import { API_ENDPOINTS } from '@/api/config';
+import { Trash2, File, Download, RefreshCw, Eye, Image, AlertTriangle } from 'lucide-react';
 
 interface UploadedFile {
   name: string;
@@ -16,11 +17,26 @@ interface UploadedFile {
   modified: string;
 }
 
+interface FileUsage {
+  type: string;
+  location: string;
+  details: string;
+}
+
+interface FileUsageResponse {
+  filename: string;
+  usage: FileUsage[];
+  isUsed: boolean;
+}
+
 const FileManager = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteFile, setDeleteFile] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
+  const [fileUsage, setFileUsage] = useState<FileUsageResponse | null>(null);
+  const [showUsageDialog, setShowUsageDialog] = useState(false);
+  const [forceDelete, setForceDelete] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -29,7 +45,7 @@ const FileManager = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await secureApiRequest('/api/admin/files', {
+      const response = await secureApiRequest(API_ENDPOINTS.ADMIN.FILES, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -53,12 +69,39 @@ const FileManager = () => {
     fetchFiles();
   }, []);
 
-  const handleDeleteFile = async () => {
+  const checkFileUsage = async (filename: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await secureApiRequest(API_ENDPOINTS.ADMIN.FILE_USAGE(filename), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data: FileUsageResponse = await response.json();
+        return data;
+      }
+      throw new Error('Failed to check file usage');
+    } catch (error) {
+      console.error('Check file usage error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to check file usage',
+        variant: 'destructive'
+      });
+      return null;
+    }
+  };
+
+  const handleDeleteFile = async (force = false) => {
     if (!deleteFile) return;
 
     try {
       const token = localStorage.getItem('token');
-      const response = await secureApiRequest(`/api/admin/files/${deleteFile}`, {
+      const url = force 
+        ? `${API_ENDPOINTS.ADMIN.FILES}/${deleteFile}?force=true`
+        : `${API_ENDPOINTS.ADMIN.FILES}/${deleteFile}`;
+      
+      const response = await secureApiRequest(url, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -66,9 +109,18 @@ const FileManager = () => {
       if (response.ok) {
         toast({
           title: 'Success',
-          description: 'File deleted successfully'
+          description: force ? 'File force deleted successfully' : 'File deleted successfully'
         });
         setFiles(prev => prev.filter(f => f.name !== deleteFile));
+        setDeleteFile(null);
+        setShowUsageDialog(false);
+        setFileUsage(null);
+        setForceDelete(false);
+      } else if (response.status === 409) {
+        // File is in use
+        const data = await response.json();
+        setFileUsage(data);
+        setShowUsageDialog(true);
       } else {
         throw new Error('Failed to delete file');
       }
@@ -79,8 +131,20 @@ const FileManager = () => {
         description: 'Failed to delete file',
         variant: 'destructive'
       });
-    } finally {
-      setDeleteFile(null);
+    }
+  };
+
+  const handleInitiateDelete = async (filename: string) => {
+    setDeleteFile(filename);
+    
+    // Check file usage first
+    const usage = await checkFileUsage(filename);
+    if (usage && usage.isUsed) {
+      setFileUsage(usage);
+      setShowUsageDialog(true);
+    } else {
+      // File is not in use, proceed with normal delete
+      handleDeleteFile();
     }
   };
 
@@ -168,6 +232,7 @@ const FileManager = () => {
                     <TableHead>Size</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Modified</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -194,6 +259,11 @@ const FileManager = () => {
                       <TableCell>{formatFileSize(file.size)}</TableCell>
                       <TableCell>{formatDate(file.created)}</TableCell>
                       <TableCell>{formatDate(file.modified)}</TableCell>
+                      <TableCell>
+                        <span className="text-xs text-muted-foreground">
+                          Click delete to check usage
+                        </span>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {isImageFile(file.name) && (
@@ -222,7 +292,7 @@ const FileManager = () => {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => setDeleteFile(file.name)}
+                            onClick={() => handleInitiateDelete(file.name)}
                             title="Delete file"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -238,7 +308,81 @@ const FileManager = () => {
         </CardContent>
       </Card>
 
-      <AlertDialog open={deleteFile !== null} onOpenChange={() => setDeleteFile(null)}>
+      {/* File Usage Warning Dialog */}
+      <Dialog open={showUsageDialog} onOpenChange={() => {
+        setShowUsageDialog(false);
+        setDeleteFile(null);
+        setFileUsage(null);
+        setForceDelete(false);
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              File In Use - Cannot Delete
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              The file <strong>{fileUsage?.filename}</strong> is currently being used in the following locations:
+            </p>
+            
+            <div className="max-h-60 overflow-y-auto space-y-2">
+              {fileUsage?.usage.map((usage, index) => (
+                <div key={index} className="p-3 bg-muted rounded-lg">
+                  <div className="font-medium text-sm">{usage.location}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{usage.details}</div>
+                  <div className="text-xs text-blue-600 mt-1 capitalize">
+                    Type: {usage.type.replace('_', ' ')}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                <strong>Recommendation:</strong> Replace the file in these locations first, or use the "Force Delete" option which will remove all references and may break the website display.
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                Force delete will clean up all database references automatically.
+              </p>
+            </div>
+            
+            <div className="flex items-center justify-between pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowUsageDialog(false);
+                  setDeleteFile(null);
+                  setFileUsage(null);
+                  setForceDelete(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    setForceDelete(true);
+                    handleDeleteFile(true);
+                  }}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Force Delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Simple Delete Confirmation Dialog */}
+      <AlertDialog open={deleteFile !== null && !showUsageDialog} onOpenChange={() => {
+        setDeleteFile(null);
+        setForceDelete(false);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete File</AlertDialogTitle>
@@ -248,7 +392,7 @@ const FileManager = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteFile} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={() => handleDeleteFile()} className="bg-red-600 hover:bg-red-700">
               Delete File
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -311,7 +455,7 @@ const FileManager = () => {
                 variant="destructive"
                 onClick={() => {
                   if (previewFile) {
-                    setDeleteFile(previewFile);
+                    handleInitiateDelete(previewFile);
                     setPreviewFile(null);
                   }
                 }}
