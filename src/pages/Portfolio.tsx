@@ -11,7 +11,8 @@ import {
   ArrowRight,
   Zap
 } from 'lucide-react';
-import { apiClient } from '@/api';
+import { ProjectsApi } from '@/api';
+import { useProjectCache } from '@/hooks/useProjectCache';
 import ProjectCarousel from '@/components/ProjectCarousel';
 
 interface Project {
@@ -31,25 +32,26 @@ interface ProjectSection {
 
 const Portfolio = () => {
   const { t } = useLanguage();
-  const [sections, setSections] = useState<ProjectSection[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sections, loading } = useProjectCache('sections');
+  const [sectionsWithProjects, setSectionsWithProjects] = useState<ProjectSection[]>([]);
 
   useEffect(() => {
-    fetchProjectSections();
-  }, []);
-
-  const fetchProjectSections = async () => {
-    try {
-      const response = await fetch(apiClient.buildUrl('/api/projects/sections'));
-      if (response.ok) {
-        const data = await response.json();
-        setSections(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch project sections:', error);
-    } finally {
-      setLoading(false);
+    if (sections.length > 0) {
+      fetchProjectsForSections();
     }
+  }, [sections]);
+
+  const fetchProjectsForSections = async () => {
+    const sectionsWithProjectsData = await Promise.all(
+      sections.map(async (section) => {
+        const response = await ProjectsApi.getSectionProjects(section.id);
+        return {
+          ...section,
+          projects: response.success ? response.data : []
+        };
+      })
+    );
+    setSectionsWithProjects(sectionsWithProjectsData);
   };
 
   return (
@@ -104,14 +106,14 @@ const Portfolio = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
               <p className="mt-4 text-muted-foreground">{t('portfolio.loading_projects')}</p>
             </div>
-          ) : sections.length > 0 ? (
+          ) : sectionsWithProjects.length > 0 ? (
             <div className="space-y-16">
-              {sections.map((section) => (
+              {sectionsWithProjects.map((section) => (
                 <ProjectCarousel
                   key={section.id}
                   title={section.name}
                   projects={section.projects}
-                  onProjectUpdate={fetchProjectSections}
+                  onProjectUpdate={fetchProjectsForSections}
                 />
               ))}
             </div>

@@ -216,7 +216,7 @@ const OrganizedImageManager: React.FC = () => {
 
   const fetchProjectSections = async () => {
     try {
-      const response = await ProjectsApi.getSections();
+      const response = await ProjectsApi.adminGetSections();
       
       if (response.success) {
         setProjectSections(response.data);
@@ -233,7 +233,7 @@ const OrganizedImageManager: React.FC = () => {
 
   const fetchProjectsForSection = async (sectionId: number) => {
     try {
-      const response = await ProjectsApi.getSectionProjects(sectionId);
+      const response = await ProjectsApi.adminGetSectionProjects(sectionId);
       
       if (response.success) {
         setProjects(prev => ({ ...prev, [sectionId]: response.data }));
