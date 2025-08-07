@@ -7,7 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Palette, RotateCcw, Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { Palette, RotateCcw, Eye, EyeOff, Moon, Sun, History, Save, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ThemePreview from './ThemePreview';
 import TextColorDemo from './TextColorDemo';
 
@@ -17,11 +18,62 @@ const ThemeSettings = () => {
   const [previewColors, setPreviewColors] = useState(theme);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [themeHistory, setThemeHistory] = useState<any[]>([]);
+  const [savedThemes, setSavedThemes] = useState<{name: string, theme: any}[]>([]);
+  const [saveThemeName, setSaveThemeName] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   // Sync preview colors when theme changes
   React.useEffect(() => {
     setPreviewColors(theme);
   }, [theme]);
+
+  // Load saved themes from localStorage
+  React.useEffect(() => {
+    const saved = localStorage.getItem('savedThemes');
+    if (saved) {
+      setSavedThemes(JSON.parse(saved));
+    }
+  }, []);
+
+  const addToHistory = (newTheme: any) => {
+    setThemeHistory(prev => [previewColors, ...prev.slice(0, 9)]); // Keep last 10
+  };
+
+  const undoLastChange = () => {
+    if (themeHistory.length > 0) {
+      const lastTheme = themeHistory[0];
+      setPreviewColors(lastTheme);
+      setThemeHistory(prev => prev.slice(1));
+      if (isPreviewMode) {
+        previewTheme(lastTheme);
+      }
+    }
+  };
+
+  const saveCurrentTheme = () => {
+    if (!saveThemeName.trim()) return;
+    const newSavedTheme = { name: saveThemeName, theme: { ...previewColors } };
+    const updatedSaved = [...savedThemes, newSavedTheme];
+    setSavedThemes(updatedSaved);
+    localStorage.setItem('savedThemes', JSON.stringify(updatedSaved));
+    setSaveThemeName('');
+    setShowSaveDialog(false);
+  };
+
+  const loadSavedTheme = (savedTheme: any) => {
+    addToHistory(previewColors);
+    setPreviewColors(savedTheme);
+    if (isPreviewMode) {
+      previewTheme(savedTheme);
+    }
+  };
+
+  const deleteSavedTheme = (index: number) => {
+    const updatedSaved = savedThemes.filter((_, i) => i !== index);
+    setSavedThemes(updatedSaved);
+    localStorage.setItem('savedThemes', JSON.stringify(updatedSaved));
+  };
 
   const colorPresets = [
     {
@@ -55,6 +107,7 @@ const ThemeSettings = () => {
   ];
 
   const handleColorChange = (colorKey: string, value: string) => {
+    addToHistory(previewColors);
     const newColors = { ...previewColors, [colorKey]: value };
     setPreviewColors(newColors);
     
@@ -86,6 +139,7 @@ const ThemeSettings = () => {
   };
 
   const applyPreset = (preset: typeof colorPresets[0]) => {
+    addToHistory(previewColors);
     const newColors = { ...previewColors, ...preset.colors };
     setPreviewColors(newColors);
     
@@ -542,34 +596,105 @@ const ThemeSettings = () => {
           </div>
 
           {/* Preview and Actions */}
-          <div className="flex flex-wrap gap-2 pt-4 border-t">
-            <Button
-              variant={isPreviewMode ? "destructive" : "secondary"}
-              size="sm"
-              onClick={togglePreview}
-              className="flex items-center gap-2"
-            >
-              {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {isPreviewMode ? 'Stop Preview' : 'Preview'}
-            </Button>
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={isPreviewMode ? "destructive" : "secondary"}
+                size="sm"
+                onClick={togglePreview}
+                className="flex items-center gap-2"
+              >
+                {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {isPreviewMode ? 'Stop Preview' : 'Preview'}
+              </Button>
+              
+              <Button
+                onClick={applyTheme}
+                disabled={!isPreviewMode || isSaving}
+                className="flex items-center gap-2"
+              >
+                {isSaving ? 'Saving...' : 'Apply Theme'}
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetTheme}
+                className="flex items-center gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={undoLastChange}
+                disabled={themeHistory.length === 0}
+                className="flex items-center gap-2"
+              >
+                <History className="h-4 w-4" />
+                Undo ({themeHistory.length})
+              </Button>
+              
+              <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Save className="h-4 w-4" />
+                    Save Theme
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Save Current Theme</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Input
+                      placeholder="Theme name..."
+                      value={saveThemeName}
+                      onChange={(e) => setSaveThemeName(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button onClick={saveCurrentTheme} disabled={!saveThemeName.trim()}>
+                        Save
+                      </Button>
+                      <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
             
-            <Button
-              onClick={applyTheme}
-              disabled={!isPreviewMode || isSaving}
-              className="flex items-center gap-2"
-            >
-              {isSaving ? 'Saving...' : 'Apply Theme'}
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetTheme}
-              className="flex items-center gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              {t('theme_settings.reset')}
-            </Button>
+            {/* Saved Themes */}
+            {savedThemes.length > 0 && (
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Saved Themes</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {savedThemes.map((saved, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => loadSavedTheme(saved.theme)}
+                        className="flex-1 justify-start"
+                      >
+                        {saved.name}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteSavedTheme(index)}
+                        className="h-8 w-8 p-0 text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {isPreviewMode && (

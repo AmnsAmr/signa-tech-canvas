@@ -1,23 +1,4 @@
 {
   "primary": "270 85% 60%",
-  "accent": "320 85% 65%",
-  "background": "0 0% 99%",
-  "foreground": "260 20% 15%",
-  "card": "0 0% 100%",
-  "border": "260 10% 90%",
-  "secondary": "260 10% 95%",
-  "muted": "260 15% 50%",
-  "success": "150 60% 50%",
-  "destructive": "0 84% 60%",
-  "gradientStart": "0 0% 0%",
-  "gradientEnd": "320 100% 44%",
-  "gradientDirection": "135deg",
-  "textLink": "270 85% 60%",
-  "textPrimary": "260 20% 15%",
-  "textSecondary": "260 15% 35%",
-  "textAccent": "320 85% 65%",
-  "textMuted": "260 10% 50%",
-  "textSuccess": "150 60% 40%",
-  "textWarning": "45 95% 50%",
-  "textError": "0 84% 60%"
+  "accent": "320 85% 65%"
 }
