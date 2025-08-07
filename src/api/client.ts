@@ -209,7 +209,14 @@ class ApiClient {
     
     // Handle relative paths
     const cleanFilename = filename.startsWith('/') ? filename.slice(1) : filename;
-    return `${API_CONFIG.UPLOADS_URL}/${cleanFilename}`;
+    const timestamp = Date.now();
+    
+    // In development, use the proxy path to avoid CORS issues
+    if (import.meta.env.DEV) {
+      return `/uploads/${cleanFilename}?t=${timestamp}`;
+    }
+    
+    return `${API_CONFIG.UPLOADS_URL}/${cleanFilename}?t=${timestamp}`;
   }
 
   // Method to make requests to Python service

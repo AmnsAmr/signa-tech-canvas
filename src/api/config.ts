@@ -13,6 +13,11 @@ const getApiBaseUrl = (): string => {
 };
 
 const getUploadsBaseUrl = (): string => {
+  // In development, always use the proxy path to avoid CORS issues
+  if (import.meta.env.DEV) {
+    return '/uploads';
+  }
+  
   const uploadsUrl = import.meta.env.VITE_UPLOADS_URL;
   if (!uploadsUrl) {
     const baseUrl = getApiBaseUrl();

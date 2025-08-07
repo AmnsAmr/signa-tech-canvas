@@ -61,6 +61,8 @@ export const useImageCache = (category?: string) => {
       // Clear all image cache when images are updated
       imageCache.clear();
       loadingStates.clear();
+      // Force immediate refetch
+      setLoading(true);
       fetchImages(cacheKey);
     };
     

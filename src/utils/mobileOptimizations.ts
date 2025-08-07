@@ -71,6 +71,12 @@ export const optimizeScrollPerformance = () => {
 
 // Preload critical resources
 export const preloadCriticalResources = () => {
+  // Skip preloading in development to avoid CORS issues with hardcoded URLs
+  // Let the image cache and usePreloadCriticalImages hook handle this instead
+  if (import.meta.env.DEV) {
+    return;
+  }
+  
   const criticalImages = [
     '/uploads/Logo.png',
     '/uploads/hero-workshop.jpg',

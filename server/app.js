@@ -74,7 +74,8 @@ app.use(cors({
     const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
     callback(null, isAllowed);
   },
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200 // For legacy browser support
 }));
 
 // Body parsing middleware

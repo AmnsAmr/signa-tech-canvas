@@ -12,7 +12,7 @@ export const usePreloadCriticalImages = (
   options: { 
     addLinkTags?: boolean,
     fetchPriority?: 'high' | 'low' | 'auto'
-  } = { addLinkTags: true, fetchPriority: 'high' }
+  } = { addLinkTags: false, fetchPriority: 'high' } // Disable link tags by default to avoid CORS issues
 ) => {
   useEffect(() => {
     if (!images || images.length === 0) return;
@@ -22,13 +22,13 @@ export const usePreloadCriticalImages = (
       .filter(Boolean)
       .map(filename => apiClient.buildUploadUrl(filename));
     
-    // Preload images using Image API
+    // Preload images using Image API (this works with proxy)
     imageUrls.forEach(url => {
       preloadImage(url, { fetchPriority: options.fetchPriority });
     });
     
-    // Optionally add link preload tags to document head
-    if (options.addLinkTags) {
+    // Skip link preload tags in development to avoid CORS issues
+    if (options.addLinkTags && !import.meta.env.DEV) {
       imageUrls.forEach(url => {
         addLinkPreload(url, 'image');
       });
@@ -36,7 +36,7 @@ export const usePreloadCriticalImages = (
     
     return () => {
       // Clean up link preload tags if needed
-      if (options.addLinkTags) {
+      if (options.addLinkTags && !import.meta.env.DEV && imageUrls.length > 0) {
         const linkTags = document.querySelectorAll(`link[rel="preload"][href^="${imageUrls[0].split('/')[0]}/"]`);
         linkTags.forEach(tag => tag.remove());
       }

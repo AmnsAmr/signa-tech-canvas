@@ -646,6 +646,8 @@ const translations: Record<Language, Record<string, string>> = {
     'organized_images.image_updated': 'Image mise à jour avec succès! Actualisez la page du site pour voir les changements.',
     'organized_images.image_replaced': 'Image remplacée avec succès! Actualisez la page du site pour voir les changements.',
     'organized_images.access_denied': 'Accès refusé',
+    'organized_images.add': 'Ajouter',
+    'organized_images.usage': 'Utilisation',
     // Project Manager translations
     'project_manager.title': 'Gestion des Projets',
     'project_manager.new_section': 'Nouvelle Section',
@@ -1298,6 +1300,8 @@ const translations: Record<Language, Record<string, string>> = {
     'organized_images.image_updated': 'Image updated successfully! Refresh the site page to see changes.',
     'organized_images.image_replaced': 'Image replaced successfully! Refresh the site page to see changes.',
     'organized_images.access_denied': 'Access denied',
+    'organized_images.add': 'Add',
+    'organized_images.usage': 'Usage',
     // Project Manager translations
     'project_manager.title': 'Project Management',
     'project_manager.new_section': 'New Section',

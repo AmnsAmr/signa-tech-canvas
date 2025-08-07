@@ -144,11 +144,22 @@ const OrganizedImageManager: React.FC = () => {
       if (response.success) {
         setUploadFiles(prev => ({ ...prev, [category]: null }));
         fetchAllImages();
+        // Clear browser cache for images
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          if (img.src.includes('/uploads/')) {
+            const originalSrc = img.src.split('?')[0];
+            img.src = `${originalSrc}?t=${Date.now()}`;
+          }
+        });
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
-        alert(t('organized_images.image_updated'));
+        alert(response.data.message || 'Image ajoutée avec succès!');
+      } else {
+        alert(response.error || 'Erreur lors de l\'upload');
       }
     } catch (error) {
       console.error('Upload failed:', error);
+      alert('Erreur lors de l\'upload');
     }
   };
 
@@ -161,9 +172,13 @@ const OrganizedImageManager: React.FC = () => {
       if (response.success) {
         fetchAllImages();
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
+        alert('Image supprimée avec succès!');
+      } else {
+        alert(response.error || 'Erreur lors de la suppression');
       }
     } catch (error) {
       console.error('Delete failed:', error);
+      alert('Erreur lors de la suppression');
     }
   };
 
@@ -176,11 +191,22 @@ const OrganizedImageManager: React.FC = () => {
 
       if (response.success) {
         fetchAllImages();
+        // Clear browser cache for images
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          if (img.src.includes('/uploads/')) {
+            const originalSrc = img.src.split('?')[0];
+            img.src = `${originalSrc}?t=${Date.now()}`;
+          }
+        });
         window.dispatchEvent(new CustomEvent('imagesUpdated'));
-        alert(t('organized_images.image_replaced'));
+        alert(response.data.message || 'Image remplacée avec succès!');
+      } else {
+        alert(response.error || 'Erreur lors du remplacement');
       }
     } catch (error) {
       console.error('Replace failed:', error);
+      alert('Erreur lors du remplacement');
     }
   };
 
