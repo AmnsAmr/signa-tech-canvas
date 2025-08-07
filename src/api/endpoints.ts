@@ -296,14 +296,28 @@ export class ProjectsApi {
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   }
 
+  // Public methods
   static async getSections(): Promise<ApiResponse<any[]>> {
+    return apiClient.get<any[]>(API_ENDPOINTS.PROJECTS.GET_SECTIONS, 'projects:sections', CACHE_TTL.DYNAMIC);
+  }
+
+  static async getSectionProjects(sectionId: number): Promise<ApiResponse<any[]>> {
+    return apiClient.get<any[]>(
+      API_ENDPOINTS.PROJECTS.GET_SECTION_PROJECTS(sectionId), 
+      `projects:section:${sectionId}`, 
+      CACHE_TTL.DYNAMIC
+    );
+  }
+
+  // Admin methods
+  static async adminGetSections(): Promise<ApiResponse<any[]>> {
     return apiClient.request<any[]>(API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
   }
 
-  static async getSectionProjects(sectionId: number): Promise<ApiResponse<any[]>> {
+  static async adminGetSectionProjects(sectionId: number): Promise<ApiResponse<any[]>> {
     return apiClient.request<any[]>(API_ENDPOINTS.PROJECTS.ADMIN.SECTION_PROJECTS(sectionId), {
       method: 'GET',
       headers: this.getAuthHeaders(),
@@ -311,64 +325,119 @@ export class ProjectsApi {
   }
 
   static async createSection(sectionData: any): Promise<ApiResponse<any>> {
-    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS, {
+    const response = await apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS, {
       method: 'POST',
       headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify(sectionData),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async updateSection(id: number, sectionData: any): Promise<ApiResponse<any>> {
-    return apiClient.request(`${API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS}/${id}`, {
+    const response = await apiClient.request(`${API_ENDPOINTS.PROJECTS.ADMIN.SECTIONS}/${id}`, {
       method: 'PUT',
       headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify(sectionData),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async createProject(projectData: any): Promise<ApiResponse<any>> {
-    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.PROJECTS, {
+    const response = await apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.PROJECTS, {
       method: 'POST',
       headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify(projectData),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async updateProject(id: number, projectData: any): Promise<ApiResponse<any>> {
-    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.UPDATE_PROJECT(id), {
+    const response = await apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.UPDATE_PROJECT(id), {
       method: 'PUT',
       headers: { ...this.getAuthHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify(projectData),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async updateProjectImage(id: number, formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.UPDATE_PROJECT_IMAGE(id), {
+    const response = await apiClient.request(API_ENDPOINTS.PROJECTS.ADMIN.UPDATE_PROJECT_IMAGE(id), {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: formData,
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async removeProjectImage(id: number): Promise<ApiResponse<void>> {
-    return apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.REMOVE_PROJECT_IMAGE(id), {
+    const response = await apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.REMOVE_PROJECT_IMAGE(id), {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async deleteProject(id: number): Promise<ApiResponse<void>> {
-    return apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_PROJECT(id), {
+    const response = await apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_PROJECT(id), {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
   }
 
   static async deleteSection(id: number): Promise<ApiResponse<void>> {
-    return apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_SECTION(id), {
+    const response = await apiClient.request<void>(API_ENDPOINTS.PROJECTS.ADMIN.DELETE_SECTION(id), {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
+    
+    if (response.success) {
+      this.invalidateCache();
+    }
+    
+    return response;
+  }
+
+  static invalidateCache(): void {
+    if (API_CONFIG.CACHE_ENABLED) {
+      apiCache.invalidatePattern('^projects:');
+    }
+    window.dispatchEvent(new CustomEvent('projectsUpdated'));
   }
 }
 

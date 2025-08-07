@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { apiClient } from '@/api';
+import { apiClient } from '@/api/client';
 
 interface SiteImage {
   id: number;
@@ -31,8 +31,12 @@ export const useImageCache = (category?: string) => {
   useEffect(() => {
     const cacheKey = category || 'all';
     
+    console.log(`[useImageCache] Effect triggered for category: ${category}`);
+    console.log(`[useImageCache] Cache key: ${cacheKey}`);
+    
     // Check cache first
     if (imageCache.has(cacheKey)) {
+      console.log(`[useImageCache] Found cached data for ${cacheKey}`);
       setImages(imageCache.get(cacheKey) || []);
       setLoading(false);
       return;
@@ -40,6 +44,7 @@ export const useImageCache = (category?: string) => {
 
     // Check if already loading
     if (loadingStates.get(cacheKey)) {
+      console.log(`[useImageCache] Already loading ${cacheKey}, waiting...`);
       const checkLoading = () => {
         if (!loadingStates.get(cacheKey) && imageCache.has(cacheKey)) {
           if (mountedRef.current) {
@@ -54,6 +59,7 @@ export const useImageCache = (category?: string) => {
       return;
     }
 
+    console.log(`[useImageCache] Starting fetch for ${cacheKey}`);
     fetchImages(cacheKey);
 
     // Listen for cache updates
@@ -78,33 +84,37 @@ export const useImageCache = (category?: string) => {
       loadingStates.set(cacheKey, true);
       setLoading(true);
       
-      const url = category 
+      const endpoint = category 
         ? `/api/images?category=${category}`
         : '/api/images';
       
-      console.log('Fetching images from:', url);
-      const response = await fetch(url);
-      console.log('Response status:', response.status);
+      console.log(`[useImageCache] Fetching images for category: ${category || 'all'}`);
+      console.log(`[useImageCache] Endpoint: ${endpoint}`);
+      console.log(`[useImageCache] Cache key: ${cacheKey}`);
+      console.log(`[useImageCache] Full URL will be: ${apiClient.buildUrl(endpoint)}`);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Fetched images data:', data);
-        imageCache.set(cacheKey, data);
+      const response = await apiClient.get<SiteImage[]>(endpoint, cacheKey);
+      console.log(`[useImageCache] API response:`, response);
+      
+      if (response.success && response.data) {
+        console.log(`[useImageCache] Successfully fetched ${response.data.length} images:`, response.data);
+        imageCache.set(cacheKey, response.data);
         
         if (mountedRef.current) {
-          setImages(data);
+          setImages(response.data);
           setError(null);
         }
       } else {
+        console.error(`[useImageCache] API call failed:`, response.error);
         if (mountedRef.current) {
-          setError('Failed to fetch images');
+          setError(response.error || 'Failed to fetch images');
         }
       }
     } catch (err) {
+      console.error(`[useImageCache] Exception caught:`, err);
       if (mountedRef.current) {
         setError('Network error');
       }
-      console.error('Failed to fetch images:', err);
     } finally {
       loadingStates.set(cacheKey, false);
       if (mountedRef.current) {

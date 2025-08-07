@@ -8,6 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ImagesApi, ProjectsApi } from '@/api';
+import { API_CONFIG } from '@/api/config';
+import { apiCache } from '@/api/cache';
 import { IMAGE_USAGE_MAP, isCategoryFull, getPriorityColor } from '@/utils/imageOrganizer';
 
 interface SiteImage {
