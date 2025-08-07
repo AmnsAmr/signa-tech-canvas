@@ -87,6 +87,16 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Text color types */
+    --text-primary: 260 20% 15%;
+    --text-secondary: 260 15% 35%;
+    --text-muted: 260 10% 50%;
+    --text-accent: 320 85% 65%;
+    --text-success: 150 60% 40%;
+    --text-warning: 45 95% 50%;
+    --text-error: 0 84% 60%;
+    --text-link: 270 85% 60%;
   }
 
   .dark {
@@ -132,6 +142,16 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Dark mode text color types */
+    --text-primary: 0 0% 95%;
+    --text-secondary: 215 20% 75%;
+    --text-muted: 215 20% 65%;
+    --text-accent: 45 95% 65%;
+    --text-success: 160 60% 55%;
+    --text-warning: 45 95% 65%;
+    --text-error: 0 84% 60%;
+    --text-link: 210 100% 60%;
   }
 }
 

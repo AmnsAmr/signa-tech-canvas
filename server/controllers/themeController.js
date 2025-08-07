@@ -18,7 +18,16 @@ const defaultTheme = {
   destructive: '0 84% 60%',
   gradientStart: '270 85% 60%',
   gradientEnd: '320 85% 65%',
-  gradientDirection: '135deg'
+  gradientDirection: '135deg',
+  // Text color types
+  textPrimary: '260 20% 15%',
+  textSecondary: '260 15% 35%',
+  textMuted: '260 10% 50%',
+  textAccent: '320 85% 65%',
+  textSuccess: '150 60% 40%',
+  textWarning: '45 95% 50%',
+  textError: '0 84% 60%',
+  textLink: '270 85% 60%'
 };
 
 const getTheme = async (req, res) => {

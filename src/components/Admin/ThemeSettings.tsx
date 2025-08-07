@@ -9,6 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Palette, RotateCcw, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import ThemePreview from './ThemePreview';
+import TextColorDemo from './TextColorDemo';
 
 const ThemeSettings = () => {
   const { theme, updateTheme, resetTheme, previewTheme, clearPreview, isLoading } = useTheme();
@@ -409,8 +410,9 @@ const ThemeSettings = () => {
           </Card>
         </div>
         
-        <div>
+        <div className="space-y-6">
           <ThemePreview />
+          <TextColorDemo />
         </div>
       </div>
     </div>

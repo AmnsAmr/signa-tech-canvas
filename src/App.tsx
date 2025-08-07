@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { DarkModeProvider } from "@/contexts/DarkModeContext";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -62,15 +63,17 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <AuthProvider>
-        <ThemeProvider>
-          <TooltipProvider>
-            <AppContent />
-          </TooltipProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <DarkModeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <AppContent />
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </DarkModeProvider>
   </QueryClientProvider>
 );
 ;

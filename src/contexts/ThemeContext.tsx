@@ -132,6 +132,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     root.style.setProperty('--shadow-strong', `0 20px 40px hsl(${themeSettings.primary} / 0.2)`);
     root.style.setProperty('--shadow-glow', `0 0 40px hsl(${themeSettings.primary} / 0.3)`);
     root.style.setProperty('--shadow-pink', `0 8px 30px hsl(${themeSettings.accent} / 0.2)`);
+    
+    // Apply text color types if they exist
+    if (themeSettings.textPrimary) root.style.setProperty('--text-primary', themeSettings.textPrimary);
+    if (themeSettings.textSecondary) root.style.setProperty('--text-secondary', themeSettings.textSecondary);
+    if (themeSettings.textMuted) root.style.setProperty('--text-muted', themeSettings.textMuted);
+    if (themeSettings.textAccent) root.style.setProperty('--text-accent', themeSettings.textAccent);
+    if (themeSettings.textSuccess) root.style.setProperty('--text-success', themeSettings.textSuccess);
+    if (themeSettings.textWarning) root.style.setProperty('--text-warning', themeSettings.textWarning);
+    if (themeSettings.textError) root.style.setProperty('--text-error', themeSettings.textError);
+    if (themeSettings.textLink) root.style.setProperty('--text-link', themeSettings.textLink);
   };
 
   const updateTheme = async (newTheme: Partial<ThemeSettings>) => {
