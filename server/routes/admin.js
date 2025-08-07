@@ -49,6 +49,7 @@ router.post('/theme', themeController.updateTheme);
 
 // File management routes
 router.get('/files', adminController.getUploadedFiles);
+router.get('/files/:filename/usage', adminController.checkFileUsage);
 router.delete('/files/:filename', adminController.deleteUploadedFile);
 
 module.exports = router;

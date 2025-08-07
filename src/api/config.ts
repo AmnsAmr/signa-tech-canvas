@@ -63,6 +63,7 @@ export const API_ENDPOINTS = {
     SUBMISSIONS: '/api/admin/submissions',
     THEME: '/api/admin/theme',
     FILES: '/api/admin/files',
+    FILE_USAGE: (filename: string) => `/api/admin/files/${filename}/usage`,
     NOTIFICATIONS: '/api/admin/notifications',
     RATINGS: '/api/admin/ratings',
   },

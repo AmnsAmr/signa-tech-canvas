@@ -310,9 +310,71 @@ class AdminController {
     }
   }
 
+  async checkFileUsage(req, res) {
+    try {
+      const { filename } = req.params;
+      const usage = [];
+      
+      // Check site_images table
+      const siteImages = await new Promise((resolve, reject) => {
+        db.all("SELECT * FROM site_images WHERE filename = ? OR path LIKE ?", 
+          [filename, `%${filename}%`], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      siteImages.forEach(img => {
+        usage.push({
+          type: 'site_image',
+          location: `Site Images - ${img.category}`,
+          details: `Image ID: ${img.id}, Category: ${img.category}`
+        });
+      });
+      
+      // Check projects table
+      const projects = await new Promise((resolve, reject) => {
+        db.all("SELECT * FROM projects WHERE image_filename = ?", [filename], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      projects.forEach(project => {
+        usage.push({
+          type: 'project',
+          location: `Project: ${project.title}`,
+          details: `Project ID: ${project.id}, Section ID: ${project.section_id}`
+        });
+      });
+      
+      // Check contact submissions for file attachments
+      const submissions = await new Promise((resolve, reject) => {
+        db.all("SELECT * FROM contact_submissions WHERE file_name = ?", [filename], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      });
+      
+      submissions.forEach(sub => {
+        usage.push({
+          type: 'contact_attachment',
+          location: `Contact Submission from ${sub.name}`,
+          details: `Submission ID: ${sub.id}, Date: ${sub.created_at}`
+        });
+      });
+      
+      res.json({ filename, usage, isUsed: usage.length > 0 });
+    } catch (error) {
+      console.error('Check file usage error:', error);
+      res.status(500).json({ message: 'Failed to check file usage' });
+    }
+  }
+
   async deleteUploadedFile(req, res) {
     try {
       const { filename } = req.params;
+      const { force } = req.query;
       const fs = require('fs');
       const path = require('path');
       
@@ -321,11 +383,87 @@ class AdminController {
         return res.status(400).json({ message: 'Invalid filename' });
       }
       
+      // Check file usage unless force delete
+      if (!force) {
+        const usage = [];
+        
+        // Check site_images table
+        const siteImages = await new Promise((resolve, reject) => {
+          db.all("SELECT * FROM site_images WHERE filename = ? OR path LIKE ?", 
+            [filename, `%${filename}%`], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          });
+        });
+        
+        siteImages.forEach(img => {
+          usage.push({
+            type: 'site_image',
+            location: `Site Images - ${img.category}`,
+            details: `Image ID: ${img.id}`
+          });
+        });
+        
+        // Check projects table
+        const projects = await new Promise((resolve, reject) => {
+          db.all("SELECT * FROM projects WHERE image_filename = ?", [filename], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          });
+        });
+        
+        projects.forEach(project => {
+          usage.push({
+            type: 'project',
+            location: `Project: ${project.title}`,
+            details: `Project ID: ${project.id}`
+          });
+        });
+        
+        // Check contact submissions
+        const submissions = await new Promise((resolve, reject) => {
+          db.all("SELECT * FROM contact_submissions WHERE file_name = ?", [filename], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          });
+        });
+        
+        submissions.forEach(sub => {
+          usage.push({
+            type: 'contact_attachment',
+            location: `Contact Submission from ${sub.name}`,
+            details: `Submission ID: ${sub.id}`
+          });
+        });
+        
+        if (usage.length > 0) {
+          return res.status(409).json({ 
+            message: 'File is currently in use and cannot be deleted',
+            usage,
+            canForceDelete: true
+          });
+        }
+      }
+      
       const filePath = path.join(__dirname, '../uploads', filename);
       
       // Check if file exists
       if (!fs.existsSync(filePath)) {
         return res.status(404).json({ message: 'File not found' });
+      }
+      
+      // If force delete, clean up database references
+      if (force) {
+        await new Promise((resolve, reject) => {
+          db.serialize(() => {
+            db.run("DELETE FROM site_images WHERE filename = ? OR path LIKE ?", [filename, `%${filename}%`]);
+            db.run("UPDATE projects SET image_filename = NULL WHERE image_filename = ?", [filename]);
+            db.run("UPDATE contact_submissions SET file_name = NULL, file_path = NULL WHERE file_name = ?", [filename], function(err) {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+        });
       }
       
       // Delete the file
