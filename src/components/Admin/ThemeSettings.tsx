@@ -283,6 +283,89 @@ const ThemeSettings = () => {
                 </div>
               </div>
             </div>
+
+            {/* Text Color Types Section */}
+            <div className="space-y-4">
+              <Label className="text-sm font-medium">Text Color Types</Label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="text-primary" className="text-xs">Primary Text</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="text-primary"
+                      type="color"
+                      value={hslToHex(previewColors.textPrimary || previewColors.foreground)}
+                      onChange={(e) => handleColorChange('textPrimary', hexToHsl(e.target.value))}
+                      className="w-12 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={previewColors.textPrimary || previewColors.foreground}
+                      onChange={(e) => handleColorChange('textPrimary', e.target.value)}
+                      placeholder="260 20% 15%"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="text-secondary" className="text-xs">Secondary Text</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="text-secondary"
+                      type="color"
+                      value={hslToHex(previewColors.textSecondary || '260 15% 35%')}
+                      onChange={(e) => handleColorChange('textSecondary', hexToHsl(e.target.value))}
+                      className="w-12 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={previewColors.textSecondary || '260 15% 35%'}
+                      onChange={(e) => handleColorChange('textSecondary', e.target.value)}
+                      placeholder="260 15% 35%"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="text-accent" className="text-xs">Accent Text</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="text-accent"
+                      type="color"
+                      value={hslToHex(previewColors.textAccent || previewColors.accent)}
+                      onChange={(e) => handleColorChange('textAccent', hexToHsl(e.target.value))}
+                      className="w-12 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={previewColors.textAccent || previewColors.accent}
+                      onChange={(e) => handleColorChange('textAccent', e.target.value)}
+                      placeholder="320 85% 65%"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="text-link" className="text-xs">Link Text</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="text-link"
+                      type="color"
+                      value={hslToHex(previewColors.textLink || previewColors.primary)}
+                      onChange={(e) => handleColorChange('textLink', hexToHsl(e.target.value))}
+                      className="w-12 h-10 p-1 border rounded"
+                    />
+                    <Input
+                      value={previewColors.textLink || previewColors.primary}
+                      onChange={(e) => handleColorChange('textLink', e.target.value)}
+                      placeholder="270 85% 60%"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Preview and Actions */}
