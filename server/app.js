@@ -20,7 +20,11 @@ const {
 } = require('./middleware/security');
 
 // Import database to initialize
-require('./config/database');
+if (process.env.DB_TYPE === 'mongodb') {
+  require('./config/mongodb');
+} else {
+  require('./config/database');
+}
 
 // Run all startup tasks
 StartupManager.initialize().catch(err => {

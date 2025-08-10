@@ -27,6 +27,7 @@ const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
 const ThemeSettings = lazy(() => import('@/components/Admin/ThemeSettings'));
 const MenuManagement = lazy(() => import('@/components/Admin/MenuManagement'));
+const MegaMenuManager = lazy(() => import('@/components/Admin/MegaMenuManager'));
 const AuthDebug = lazy(() => import('@/components/Debug/AuthDebug'));
 
 interface User {
@@ -516,7 +517,7 @@ const Admin = () => {
       case 'menu':
         return (
           <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading menu management...</p></div>}>
-            <MenuManagement />
+            <MegaMenuManager />
           </Suspense>
         );
       case 'ratings':

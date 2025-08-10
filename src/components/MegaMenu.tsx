@@ -5,13 +5,20 @@ import { apiClient } from '@/api';
 import './MegaMenu.css';
 
 interface Subcategory {
-  id: number;
+  id: string;
   name: string;
+  imageUrl?: string;
+  description?: string;
+  customFields?: Record<string, any>;
+  type: 'category' | 'product';
 }
 
 interface Category {
-  id: number;
+  id: string;
   name: string;
+  imageUrl?: string;
+  description?: string;
+  customFields?: Record<string, any>;
   subcategories: Subcategory[];
 }
 
@@ -21,9 +28,9 @@ interface MegaMenuProps {
 
 const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null);
+  const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,7 +55,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     }
   };
 
-  const handleMouseEnter = (categoryId: number) => {
+  const handleMouseEnter = (categoryId: string) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -66,7 +73,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     }, 300);
   };
 
-  const toggleMobileCategory = (categoryId: number) => {
+  const toggleMobileCategory = (categoryId: string) => {
     setExpandedMobileCategory(expandedMobileCategory === categoryId ? null : categoryId);
   };
 
@@ -110,7 +117,21 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 onMouseLeave={handleMouseLeave}
               >
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-primary mb-4">{category.name}</h3>
+                  <div className="flex items-center gap-3 mb-4">
+                    {category.imageUrl && (
+                      <img 
+                        src={category.imageUrl} 
+                        alt={category.name}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                    )}
+                    <div>
+                      <h3 className="text-lg font-semibold text-primary">{category.name}</h3>
+                      {category.description && (
+                        <p className="text-sm text-muted-foreground">{category.description}</p>
+                      )}
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     {category.subcategories.map((subcategory) => (
                       <a
@@ -118,9 +139,28 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                         href="#"
                         className="mega-menu-item block p-3 rounded-lg hover:bg-primary/5 transition-colors duration-200"
                       >
-                        <span className="font-medium text-foreground hover:text-primary">
-                          {subcategory.name}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          {subcategory.imageUrl && (
+                            <img 
+                              src={subcategory.imageUrl} 
+                              alt={subcategory.name}
+                              className="w-8 h-8 object-cover rounded"
+                            />
+                          )}
+                          <div>
+                            <span className="font-medium text-foreground hover:text-primary">
+                              {subcategory.name}
+                            </span>
+                            {subcategory.description && (
+                              <p className="text-xs text-muted-foreground mt-1">{subcategory.description}</p>
+                            )}
+                            {subcategory.type === 'product' && (
+                              <span className="inline-block text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded mt-1">
+                                Product
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </a>
                     ))}
                   </div>
@@ -195,7 +235,23 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                         className="mobile-subcategory-item block p-2 text-sm text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        {subcategory.name}
+                        <div className="flex items-center gap-2">
+                          {subcategory.imageUrl && (
+                            <img 
+                              src={subcategory.imageUrl} 
+                              alt={subcategory.name}
+                              className="w-6 h-6 object-cover rounded"
+                            />
+                          )}
+                          <div>
+                            <span>{subcategory.name}</span>
+                            {subcategory.type === 'product' && (
+                              <span className="inline-block text-xs bg-secondary text-secondary-foreground px-1 py-0.5 rounded ml-2">
+                                Product
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </a>
                     ))}
                   </div>
