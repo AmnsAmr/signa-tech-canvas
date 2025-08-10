@@ -26,6 +26,7 @@ const FileManager = lazy(() => import('@/components/Admin/FileManager'));
 const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
 const ThemeSettings = lazy(() => import('@/components/Admin/ThemeSettings'));
+const MenuManagement = lazy(() => import('@/components/Admin/MenuManagement'));
 const AuthDebug = lazy(() => import('@/components/Debug/AuthDebug'));
 
 interface User {
@@ -86,6 +87,7 @@ const menuItems = [
   { id: 'images', labelKey: 'admin.images', icon: Image },
   { id: 'files', labelKey: 'admin.files', icon: HardDrive },
   { id: 'projects', labelKey: 'admin.projects', icon: FolderOpen },
+  { id: 'menu', labelKey: 'Menu Management', icon: Menu },
   { id: 'theme', labelKey: 'admin.theme', icon: Palette },
   { id: 'contact', labelKey: 'admin.contact', icon: Phone },
   { id: 'admins', labelKey: 'admin.admins', icon: Shield },
@@ -510,6 +512,12 @@ const Admin = () => {
               </Table>
             </CardContent>
           </Card>
+        );
+      case 'menu':
+        return (
+          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading menu management...</p></div>}>
+            <MenuManagement />
+          </Suspense>
         );
       case 'ratings':
         return (
