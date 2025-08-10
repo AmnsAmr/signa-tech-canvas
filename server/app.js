@@ -39,6 +39,7 @@ const ratingRoutes = require('./routes/ratings');
 const userRoutes = require('./routes/user');
 const themeRoutes = require('./routes/theme');
 const projectRoutes = require('./routes/projects');
+const menuRoutes = require('./routes/menu');
 
 const app = express();
 
@@ -104,6 +105,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/theme', cacheMiddleware(1800), themeRoutes);
 app.use('/api/projects', rateLimits.upload, projectRoutes);
 app.use('/api/contact-settings', require('./routes/contact-settings'));
+app.use('/api/menu', cacheMiddleware(300), menuRoutes);
 
 // Serve uploaded images with optimization and caching
 const uploadDir = MigrationHelper.ensureUploadDir();

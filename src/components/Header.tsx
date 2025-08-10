@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AuthModal from './Auth/AuthModal';
+import MegaMenu from './MegaMenu';
 import { useImageCache } from '@/hooks/useImageCache';
 import { apiClient } from '@/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -125,47 +126,53 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation with sliding highlight */}
-          <nav 
-            ref={navRef}
-            className="hidden md:flex items-center space-x-1 relative"
-          >
-            {/* Sliding highlight background */}
-            <div 
-              className="absolute bg-primary/10 rounded-lg pointer-events-none"
-              style={{
-                left: highlightStyle.left,
-                width: highlightStyle.width,
-                height: '40px',
-                opacity: highlightStyle.opacity,
-                transition: 'opacity 0.15s ease-out'
-              }}
-            />
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                data-active={isActive(item.path)}
-                className={`relative px-4 py-2 font-medium rounded-lg z-10 ${
-                  isActive(item.path) ? 'text-primary' : 'text-foreground hover:text-primary'
-                }`}
-                onMouseEnter={(e) => updateHighlight(e.currentTarget)}
-              >
-                {item.name}
-              </Link>
-            ))}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                data-active={isActive('/admin')}
-                className={`relative px-4 py-2 font-medium transition-colors duration-200 rounded-lg flex items-center z-10 ${
-                  isActive('/admin') ? 'text-primary' : 'text-foreground hover:text-primary'
-                }`}
-                onMouseEnter={(e) => updateHighlight(e.currentTarget)}
-              >
-                <Shield className="h-4 w-4 mr-1" />
-                Admin
-              </Link>
-            )}
+          <div className="hidden md:flex items-center space-x-6">
+            <nav 
+              ref={navRef}
+              className="flex items-center space-x-1 relative"
+            >
+              {/* Sliding highlight background */}
+              <div 
+                className="absolute bg-primary/10 rounded-lg pointer-events-none"
+                style={{
+                  left: highlightStyle.left,
+                  width: highlightStyle.width,
+                  height: '40px',
+                  opacity: highlightStyle.opacity,
+                  transition: 'opacity 0.15s ease-out'
+                }}
+              />
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  data-active={isActive(item.path)}
+                  className={`relative px-4 py-2 font-medium rounded-lg z-10 ${
+                    isActive(item.path) ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                  onMouseEnter={(e) => updateHighlight(e.currentTarget)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  data-active={isActive('/admin')}
+                  className={`relative px-4 py-2 font-medium transition-colors duration-200 rounded-lg flex items-center z-10 ${
+                    isActive('/admin') ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                  onMouseEnter={(e) => updateHighlight(e.currentTarget)}
+                >
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin
+                </Link>
+              )}
+            </nav>
+            
+            {/* Mega Menu */}
+            <MegaMenu isScrolled={isScrolled} />
+            
             <div className="flex items-center space-x-3">
               <LanguageSwitcher />
               {isAuthenticated ? (
@@ -208,24 +215,12 @@ const Header = () => {
                 </Link>
               </Button>
             </div>
-          </nav>
+          </div>
 
-          {/* Enhanced mobile menu button with proper centering */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden hamburger-container p-3 hover:bg-primary/10 transition-all duration-300 touch-manipulation button-centered"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <div className="hamburger-lines icon-centered">
-              <Menu className={`h-6 w-6 absolute transition-all duration-300 ${
-                isMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'
-              }`} />
-              <X className={`h-6 w-6 absolute transition-all duration-300 ${
-                isMenuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
-              }`} />
-            </div>
-          </Button>
+          {/* Mobile Mega Menu */}
+          <div className="md:hidden">
+            <MegaMenu isScrolled={isScrolled} />
+          </div>
         </div>
 
         {/* Enhanced Mobile Navigation */}
