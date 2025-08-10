@@ -1,5 +1,30 @@
-const Database = require('../config/database');
+const MenuCategory = require('../models/MenuCategory');
 const { cacheManager } = require('../utils/cacheManager');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 class MenuController {
   // Get menu data with caching
@@ -22,60 +47,46 @@ class MenuController {
 
   // Build hierarchical menu structure from database
   async buildMenuFromDatabase() {
-    const db = Database.getDb();
-    
-    return new Promise((resolve, reject) => {
-      db.all(
-        'SELECT * FROM categories WHERE is_active = 1 ORDER BY display_order ASC',
-        (err, rows) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          
-          const categories = rows.map(row => ({
-            id: row.id,
-            name: row.name,
-            parent_id: row.parent_id,
-            display_order: row.display_order
-          }));
-          
-          // Build hierarchical structure
-          const topLevel = categories.filter(cat => cat.parent_id === null);
-          const menuData = topLevel.map(parent => ({
-            id: parent.id,
-            name: parent.name,
-            subcategories: categories
-              .filter(cat => cat.parent_id === parent.id)
-              .sort((a, b) => a.display_order - b.display_order)
-              .map(sub => ({
-                id: sub.id,
-                name: sub.name
-              }))
-          }));
-          
-          resolve(menuData);
-        }
-      );
-    });
+    try {
+      const categories = await MenuCategory.find({ isActive: true })
+        .sort({ displayOrder: 1 })
+        .lean();
+      
+      // Build hierarchical structure
+      const topLevel = categories.filter(cat => !cat.parentId);
+      const menuData = topLevel.map(parent => ({
+        id: parent._id,
+        name: parent.name,
+        imageUrl: parent.imageUrl,
+        description: parent.description,
+        customFields: parent.customFields,
+        subcategories: categories
+          .filter(cat => cat.parentId && cat.parentId.toString() === parent._id.toString())
+          .sort((a, b) => a.displayOrder - b.displayOrder)
+          .map(sub => ({
+            id: sub._id,
+            name: sub.name,
+            imageUrl: sub.imageUrl,
+            description: sub.description,
+            customFields: sub.customFields,
+            type: sub.type
+          }))
+      }));
+      
+      return menuData;
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Admin: Get all categories
   async getAllCategories(req, res) {
     try {
-      const db = Database.getDb();
+      const categories = await MenuCategory.find()
+        .populate('parentId', 'name')
+        .sort({ parentId: 1, displayOrder: 1 });
       
-      db.all(
-        'SELECT * FROM categories ORDER BY parent_id ASC, display_order ASC',
-        (err, rows) => {
-          if (err) {
-            console.error('Error fetching categories:', err);
-            return res.status(500).json({ error: 'Failed to fetch categories' });
-          }
-          
-          res.json(rows);
-        }
-      );
+      res.json(categories);
     } catch (error) {
       console.error('Error in getAllCategories:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -85,34 +96,33 @@ class MenuController {
   // Admin: Create category
   async createCategory(req, res) {
     try {
-      const { name, parent_id, display_order } = req.body;
+      const { name, parentId, displayOrder, description, customFields, type } = req.body;
       
       if (!name) {
         return res.status(400).json({ error: 'Category name is required' });
       }
       
-      const db = Database.getDb();
+      const categoryData = {
+        name,
+        parentId: parentId || null,
+        displayOrder: displayOrder || 0,
+        description: description || '',
+        customFields: customFields || {},
+        type: type || 'category'
+      };
       
-      db.run(
-        'INSERT INTO categories (name, parent_id, display_order) VALUES (?, ?, ?)',
-        [name, parent_id || null, display_order || 0],
-        function(err) {
-          if (err) {
-            console.error('Error creating category:', err);
-            return res.status(500).json({ error: 'Failed to create category' });
-          }
-          
-          // Clear menu cache
-          cacheManager.delete('menu_data');
-          
-          res.json({ 
-            id: this.lastID, 
-            name, 
-            parent_id: parent_id || null, 
-            display_order: display_order || 0 
-          });
-        }
-      );
+      // Handle image upload if present
+      if (req.file) {
+        categoryData.imageUrl = `/uploads/${req.file.filename}`;
+      }
+      
+      const category = new MenuCategory(categoryData);
+      await category.save();
+      
+      // Clear menu cache
+      cacheManager.delete('menu_data');
+      
+      res.json(category);
     } catch (error) {
       console.error('Error in createCategory:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -123,33 +133,37 @@ class MenuController {
   async updateCategory(req, res) {
     try {
       const { id } = req.params;
-      const { name, parent_id, display_order, is_active } = req.body;
+      const { name, parentId, displayOrder, description, customFields, type, isActive } = req.body;
       
       if (!name) {
         return res.status(400).json({ error: 'Category name is required' });
       }
       
-      const db = Database.getDb();
+      const updateData = {
+        name,
+        parentId: parentId || null,
+        displayOrder: displayOrder || 0,
+        description: description || '',
+        customFields: customFields || {},
+        type: type || 'category',
+        isActive: isActive !== undefined ? isActive : true
+      };
       
-      db.run(
-        'UPDATE categories SET name = ?, parent_id = ?, display_order = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [name, parent_id || null, display_order || 0, is_active !== undefined ? is_active : 1, id],
-        function(err) {
-          if (err) {
-            console.error('Error updating category:', err);
-            return res.status(500).json({ error: 'Failed to update category' });
-          }
-          
-          if (this.changes === 0) {
-            return res.status(404).json({ error: 'Category not found' });
-          }
-          
-          // Clear menu cache
-          cacheManager.delete('menu_data');
-          
-          res.json({ message: 'Category updated successfully' });
-        }
-      );
+      // Handle image upload if present
+      if (req.file) {
+        updateData.imageUrl = `/uploads/${req.file.filename}`;
+      }
+      
+      const category = await MenuCategory.findByIdAndUpdate(id, updateData, { new: true });
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      
+      // Clear menu cache
+      cacheManager.delete('menu_data');
+      
+      res.json(category);
     } catch (error) {
       console.error('Error in updateCategory:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -160,27 +174,52 @@ class MenuController {
   async deleteCategory(req, res) {
     try {
       const { id } = req.params;
-      const db = Database.getDb();
       
-      db.run('DELETE FROM categories WHERE id = ?', [id], function(err) {
-        if (err) {
-          console.error('Error deleting category:', err);
-          return res.status(500).json({ error: 'Failed to delete category' });
-        }
-        
-        if (this.changes === 0) {
-          return res.status(404).json({ error: 'Category not found' });
-        }
-        
-        // Clear menu cache
-        cacheManager.delete('menu_data');
-        
-        res.json({ message: 'Category deleted successfully' });
-      });
+      const category = await MenuCategory.findByIdAndDelete(id);
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      
+      // Clear menu cache
+      cacheManager.delete('menu_data');
+      
+      res.json({ message: 'Category deleted successfully' });
     } catch (error) {
       console.error('Error in deleteCategory:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
+  }
+
+  // Admin: Reorder categories
+  async reorderCategories(req, res) {
+    try {
+      const { categories } = req.body;
+      
+      if (!Array.isArray(categories)) {
+        return res.status(400).json({ error: 'Categories array is required' });
+      }
+      
+      // Update display order for each category
+      const updatePromises = categories.map((cat, index) => 
+        MenuCategory.findByIdAndUpdate(cat.id, { displayOrder: index })
+      );
+      
+      await Promise.all(updatePromises);
+      
+      // Clear menu cache
+      cacheManager.delete('menu_data');
+      
+      res.json({ message: 'Categories reordered successfully' });
+    } catch (error) {
+      console.error('Error in reorderCategories:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // Get upload middleware
+  getUploadMiddleware() {
+    return upload.single('image');
   }
 }
 
