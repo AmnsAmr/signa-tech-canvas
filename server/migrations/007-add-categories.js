@@ -23,34 +23,8 @@ const migration = {
             return;
           }
           
-          // Insert sample data
-          const sampleCategories = [
-            { name: 'Products', parent_id: null, display_order: 1 },
-            { name: 'Services', parent_id: null, display_order: 2 },
-            { name: 'Banners', parent_id: 1, display_order: 1 },
-            { name: 'Business Cards', parent_id: 1, display_order: 2 },
-            { name: 'Signage', parent_id: 1, display_order: 3 },
-            { name: 'Brochures', parent_id: 1, display_order: 4 },
-            { name: 'Design', parent_id: 2, display_order: 1 },
-            { name: 'Installation', parent_id: 2, display_order: 2 },
-            { name: 'Maintenance', parent_id: 2, display_order: 3 }
-          ];
-          
-          let completed = 0;
-          sampleCategories.forEach((category, index) => {
-            db.run(
-              'INSERT INTO categories (name, parent_id, display_order) VALUES (?, ?, ?)',
-              [category.name, category.parent_id, category.display_order],
-              (err) => {
-                if (err) console.error('Error inserting sample category:', err);
-                completed++;
-                if (completed === sampleCategories.length) {
-                  console.log('Categories migration completed successfully');
-                  resolve();
-                }
-              }
-            );
-          });
+          console.log('Categories migration completed successfully');
+          resolve();
         });
       });
     });
