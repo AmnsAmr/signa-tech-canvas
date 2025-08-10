@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/api';
+import './MegaMenu.css';
 
 interface Subcategory {
   id: number;
@@ -23,6 +24,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -32,10 +35,16 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
 
   const fetchMenuData = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       const response = await apiClient.get('/api/menu');
-      setCategories(response.data);
+      setCategories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch menu data:', error);
+      setError('Failed to load menu');
+      setCategories([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,11 +70,20 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     setExpandedMobileCategory(expandedMobileCategory === categoryId ? null : categoryId);
   };
 
+  // Don't render anything if still loading or if there are no categories
+  if (isLoading) {
+    return null;
+  }
+
+  if (error || !Array.isArray(categories) || categories.length === 0) {
+    return null;
+  }
+
   return (
     <>
       {/* Desktop Mega Menu */}
       <div className="hidden md:flex items-center space-x-1 relative">
-        {categories.map((category) => (
+        {Array.isArray(categories) && categories.map((category) => (
           <div
             key={category.id}
             className="relative"
@@ -87,7 +105,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
             {activeDropdown === category.id && category.subcategories.length > 0 && (
               <div
                 ref={dropdownRef}
-                className="absolute top-full left-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[300px] max-w-[600px]"
+                className="mega-menu-dropdown absolute top-full left-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[300px] max-w-[600px]"
                 onMouseEnter={() => handleMouseEnter(category.id)}
                 onMouseLeave={handleMouseLeave}
               >
@@ -98,7 +116,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                       <a
                         key={subcategory.id}
                         href="#"
-                        className="block p-3 rounded-lg hover:bg-primary/5 transition-colors duration-200"
+                        className="mega-menu-item block p-3 rounded-lg hover:bg-primary/5 transition-colors duration-200"
                       >
                         <span className="font-medium text-foreground hover:text-primary">
                           {subcategory.name}
@@ -136,7 +154,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       )}
 
       {/* Mobile Menu Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-80 bg-background border-l border-border z-50 transform transition-transform duration-300 md:hidden ${
+      <div className={`mobile-menu-sidebar fixed top-0 right-0 h-full w-80 bg-background/95 border-l border-border z-50 transform transition-transform duration-300 md:hidden ${
         isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="p-6">
@@ -153,11 +171,11 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
           </div>
 
           <div className="space-y-2">
-            {categories.map((category) => (
+            {Array.isArray(categories) && categories.map((category) => (
               <div key={category.id} className="border-b border-border/50 pb-2">
                 <button
                   onClick={() => toggleMobileCategory(category.id)}
-                  className="w-full flex items-center justify-between p-3 text-left font-medium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                  className="mobile-category-item w-full flex items-center justify-between p-3 text-left font-medium hover:bg-primary/5 rounded-lg transition-colors duration-200"
                 >
                   {category.name}
                   {category.subcategories.length > 0 && (
@@ -174,7 +192,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                       <a
                         key={subcategory.id}
                         href="#"
-                        className="block p-2 text-sm text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors duration-200"
+                        className="mobile-subcategory-item block p-2 text-sm text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {subcategory.name}
