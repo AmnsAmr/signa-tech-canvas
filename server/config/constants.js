@@ -6,6 +6,8 @@ module.exports = {
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   EMAIL_SERVICE: process.env.EMAIL_SERVICE || 'gmail',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:8080',
+  SERVER_URL: process.env.SERVER_URL || 'http://localhost:3001',
   UPLOAD_LIMITS: {
     FILE_SIZE: 10 * 1024 * 1024, // 10MB
     ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']

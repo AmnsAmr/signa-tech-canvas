@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator');
 const database = require('../config/database');
-const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/constants');
+const { JWT_SECRET, RESET_CODE_EXPIRY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SERVER_URL, FRONTEND_URL } = require('../config/constants');
 const { sanitizeForLog, generateSecureCode } = require('../middleware/security');
 const Logger = require('../utils/logger');
 
@@ -504,7 +504,7 @@ class AuthController {
         googleClient = new OAuth2Client(
           GOOGLE_CLIENT_ID,
           GOOGLE_CLIENT_SECRET,
-          'http://localhost:5000/api/auth/google/callback'
+          `${SERVER_URL}/api/auth/google/callback`
         );
       }
       
@@ -527,7 +527,7 @@ class AuthController {
         googleClient = new OAuth2Client(
           GOOGLE_CLIENT_ID,
           GOOGLE_CLIENT_SECRET,
-          'http://localhost:5000/api/auth/google/callback'
+          `${SERVER_URL}/api/auth/google/callback`
         );
       }
       
@@ -573,10 +573,10 @@ class AuthController {
       const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
       
       // Redirect to frontend with token
-      res.redirect(`http://localhost:8080?token=${token}`);
+      res.redirect(`${FRONTEND_URL}?token=${token}`);
     } catch (error) {
       Logger.logError('GoogleCallback', error, { code: req.query?.code });
-      res.redirect('http://localhost:8080?error=auth_failed');
+      res.redirect(`${FRONTEND_URL}?error=auth_failed`);
     }
   }
 }

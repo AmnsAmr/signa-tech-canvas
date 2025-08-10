@@ -5,7 +5,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
-import ThemeToggle from './ThemeToggle';
 import AuthModal from './Auth/AuthModal';
 import { useImageCache } from '@/hooks/useImageCache';
 import { apiClient } from '@/api';
@@ -168,7 +167,6 @@ const Header = () => {
               </Link>
             )}
             <div className="flex items-center space-x-3">
-              <ThemeToggle />
               <LanguageSwitcher />
               {isAuthenticated ? (
                 <div className="flex items-center space-x-3">
@@ -320,10 +318,7 @@ const Header = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                     </Link>
                   </Button>
-                  <div className="flex items-center space-x-2">
-                    <ThemeToggle />
-                    <LanguageSwitcher />
-                  </div>
+                  <LanguageSwitcher />
                 </div>
               </div>
             </nav>
