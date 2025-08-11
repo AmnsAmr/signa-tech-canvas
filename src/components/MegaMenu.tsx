@@ -271,24 +271,10 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
-      {/* Mobile Menu Sidebar */}
-      <div className={`mobile-menu-sidebar fixed top-0 right-0 h-full w-80 bg-background/95 border-l border-border z-50 transform transition-transform duration-300 md:hidden ${
-        isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Menu</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-
-          <div className="space-y-2">
+      {/* Mobile Menu Accordion */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-background border-t border-border">
+          <div className="container mx-auto px-4 py-2 space-y-2">
             {isAdmin && safeCategories.length === 0 && (
               <div className="text-center py-4">
                 <p className="text-muted-foreground mb-2">No categories yet</p>
@@ -298,56 +284,71 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 </Button>
               </div>
             )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAddCategory()}
+                className="w-full mb-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Category
+              </Button>
+            )}
             {safeCategories.map((category) => (
-              <div key={category.id} className="border-b border-border/50 pb-2">
+              <div key={category.id} className="border border-border rounded-lg">
                 <button
                   onClick={() => toggleMobileCategory(category.id)}
-                  className="mobile-category-item w-full flex items-center justify-between p-3 text-left font-medium hover:bg-primary/5 rounded-lg transition-colors duration-200"
+                  className="w-full flex items-center justify-between p-3 text-left font-medium hover:bg-primary/5 rounded-lg transition-colors duration-200"
                 >
                   {category.name}
-                  {category.subcategories.length > 0 && (
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
-                      expandedMobileCategory === category.id ? 'rotate-180' : ''
-                    }`} />
-                  )}
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
+                    expandedMobileCategory === category.id ? 'rotate-180' : ''
+                  }`} />
                 </button>
 
-                {/* Mobile Subcategories */}
-                {expandedMobileCategory === category.id && category.subcategories.length > 0 && (
-                  <div className="ml-4 mt-2 space-y-1">
+                {expandedMobileCategory === category.id && (
+                  <div className="border-t border-border p-3 space-y-1">
                     {category.subcategories.map((subcategory) => (
                       <a
                         key={subcategory.id}
                         href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
-                        className="mobile-subcategory-item block p-2 text-sm text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors duration-200"
+                        className="block p-2 text-sm hover:bg-primary/5 rounded transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <div className="flex items-center gap-2">
-                          {subcategory.imageUrl && subcategory.type === 'product' && (
-                            <img 
-                              src={subcategory.imageUrl} 
-                              alt={subcategory.name}
-                              className="w-6 h-6 object-cover rounded"
-                            />
-                          )}
-                          <div>
-                            <span>{subcategory.name}</span>
-                            {subcategory.type === 'product' && (
-                              <span className="inline-block text-xs bg-secondary text-secondary-foreground px-1 py-0.5 rounded ml-2">
-                                Product
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                        <span className="font-medium">{subcategory.name}</span>
+                        {subcategory.type === 'product' && (
+                          <span className="ml-2 text-xs bg-secondary text-secondary-foreground px-1 py-0.5 rounded">
+                            Product
+                          </span>
+                        )}
                       </a>
                     ))}
+                    {isAdmin && (
+                      <div className="border-t pt-2 mt-2 space-y-1">
+                        <button
+                          onClick={() => handleAddCategory(category.id)}
+                          className="w-full text-left p-2 text-sm border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 rounded transition-colors duration-200"
+                        >
+                          <Plus className="h-3 w-3 inline mr-2" />
+                          Add Category
+                        </button>
+                        <button
+                          onClick={() => handleAddProduct(category.id)}
+                          className="w-full text-left p-2 text-sm border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 rounded transition-colors duration-200"
+                        >
+                          <Plus className="h-3 w-3 inline mr-2" />
+                          Add Product
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Add Item Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
