@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Menu, X, Plus, Edit } from 'lucide-react';
+import { ChevronDown, Menu, X, Plus, Edit, Settings, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/api';
@@ -41,6 +42,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [addType, setAddType] = useState<'category' | 'product'>('category');
   const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const { isAdmin } = useAuth();
@@ -104,27 +106,66 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     if (!newItemName.trim()) return;
 
     try {
-      const data = {
-        name: newItemName.trim(),
-        parentId: parentCategoryId,
-        type: addType,
-        displayOrder: 0
-      };
-
-      await apiClient.post('/api/menu/admin/categories', data);
-      
-      toast({
-        title: 'Success',
-        description: `${addType === 'category' ? 'Category' : 'Product'} added successfully`
-      });
+      if (editingCategory) {
+        await apiClient.put(`/api/menu/admin/categories/${editingCategory.id}`, {
+          name: newItemName.trim(),
+          parentId: editingCategory.subcategories.length > 0 ? null : parentCategoryId,
+          type: addType,
+          displayOrder: 0
+        });
+        toast({
+          title: 'Success',
+          description: 'Category updated successfully'
+        });
+      } else {
+        const data = {
+          name: newItemName.trim(),
+          parentId: parentCategoryId,
+          type: addType,
+          displayOrder: 0
+        };
+        await apiClient.post('/api/menu/admin/categories', data);
+        toast({
+          title: 'Success',
+          description: `${addType === 'category' ? 'Category' : 'Product'} added successfully`
+        });
+      }
       
       setShowAddDialog(false);
       setNewItemName('');
+      setEditingCategory(null);
       fetchMenuData();
     } catch (error) {
       toast({
         title: 'Error',
-        description: `Failed to add ${addType}`,
+        description: editingCategory ? 'Failed to update category' : `Failed to add ${addType}`,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setNewItemName(category.name);
+    setAddType('category');
+    setParentCategoryId(null);
+    setShowAddDialog(true);
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!confirm('Are you sure you want to delete this category? This will also delete all subcategories and products.')) return;
+
+    try {
+      await apiClient.delete(`/api/menu/admin/categories/${categoryId}`);
+      toast({
+        title: 'Success',
+        description: 'Category deleted successfully'
+      });
+      fetchMenuData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete category',
         variant: 'destructive'
       });
     }
@@ -172,17 +213,40 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                     {category.name}
                   </span>
                   {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground hover:bg-primary/90"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddProduct(category.id);
-                      }}
-                    >
-                      <Plus className="h-2 w-2" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-300 hover:bg-gray-50"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-3 w-3 text-gray-600" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => handleEditCategory(category)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Category
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAddProduct(category.id)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Product
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAddCategory(category.id)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Subcategory
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Category
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
 
@@ -347,8 +411,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Add New {addType === 'category' ? 'Category' : 'Product'}
-              {parentCategoryId && (
+              {editingCategory ? 'Edit Category' : `Add New ${addType === 'category' ? 'Category' : 'Product'}`}
+              {parentCategoryId && !editingCategory && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
                   to {categories.find(c => c.id === parentCategoryId)?.name || 'category'}
                 </span>
@@ -376,7 +440,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 Cancel
               </Button>
               <Button onClick={handleSubmitNewItem} disabled={!newItemName.trim()}>
-                Add {addType === 'category' ? 'Category' : 'Product'}
+                {editingCategory ? 'Update' : `Add ${addType === 'category' ? 'Category' : 'Product'}`}
               </Button>
             </div>
           </div>
