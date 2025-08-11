@@ -149,15 +149,15 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     <>
       {/* Desktop Categories Grid */}
       <div className="hidden md:block">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex flex-wrap gap-3 items-center">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex flex-wrap gap-2 items-center">
             {isAdmin && (
               <button
                 onClick={() => handleAddCategory()}
-                className="category-card bg-primary/10 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/20 transition-all duration-200 rounded-lg p-4 min-w-[120px] h-16 flex items-center justify-center group"
+                className="category-card bg-primary/10 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/20 transition-all duration-200 rounded-lg p-3 min-w-[100px] h-12 flex items-center justify-center group"
               >
-                <Plus className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-                <span className="ml-2 text-sm font-medium text-primary">Add Category</span>
+                <Plus className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+                <span className="ml-1 text-xs font-medium text-primary">Add</span>
               </button>
             )}
             {safeCategories.map((category) => (
@@ -167,21 +167,21 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 onMouseEnter={() => handleMouseEnter(category.id)}
                 onMouseLeave={handleMouseLeave}
               >
-                <div className="category-card bg-card hover:bg-primary/5 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg p-4 min-w-[120px] h-16 flex items-center justify-center cursor-pointer group">
-                  <span className="text-sm font-medium text-center group-hover:text-primary transition-colors">
+                <div className="category-card bg-card hover:bg-primary/5 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg p-3 min-w-[100px] h-12 flex items-center justify-center cursor-pointer group">
+                  <span className="text-xs font-medium text-center group-hover:text-primary transition-colors">
                     {category.name}
                   </span>
                   {isAdmin && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground hover:bg-primary/90"
+                      className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground hover:bg-primary/90"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAddProduct(category.id);
                       }}
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-2 w-2" />
                     </Button>
                   )}
                 </div>
