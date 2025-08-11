@@ -87,7 +87,6 @@ const menuItems = [
   { id: 'images', labelKey: 'admin.images', icon: Image },
   { id: 'files', labelKey: 'admin.files', icon: HardDrive },
   { id: 'projects', labelKey: 'admin.projects', icon: FolderOpen },
-  { id: 'menu', labelKey: 'Menu Management', icon: Menu },
   { id: 'theme', labelKey: 'admin.theme', icon: Palette },
   { id: 'contact', labelKey: 'admin.contact', icon: Phone },
   { id: 'admins', labelKey: 'admin.admins', icon: Shield },
@@ -513,12 +512,7 @@ const Admin = () => {
             </CardContent>
           </Card>
         );
-      case 'menu':
-        return (
-          <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>Loading menu management...</p></div>}>
-            <MegaMenuManager />
-          </Suspense>
-        );
+
       case 'ratings':
         return (
           <Suspense fallback={<div className="admin-loading"><div className="admin-spinner"></div><p>{t('admin.loading_reviews')}</p></div>}>
