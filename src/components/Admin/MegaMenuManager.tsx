@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Trash2, Edit, Plus, Upload, Move } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
+import { apiClient } from '../../api';
 
 interface MenuCategory {
   _id: string;
@@ -43,14 +44,11 @@ const MegaMenuManager: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/menu/admin/categories', {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
+      const response = await apiClient.get('/api/menu/admin/categories');
+      setCategories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      setCategories([]);
       toast({
         title: 'Error',
         description: 'Failed to fetch categories',
@@ -64,41 +62,29 @@ const MegaMenuManager: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('parentId', formData.parentId);
-    formDataToSend.append('displayOrder', formData.displayOrder.toString());
-    formDataToSend.append('description', formData.description);
-    formDataToSend.append('type', formData.type);
-    formDataToSend.append('customFields', JSON.stringify(formData.customFields));
-    
-    if (imageFile) {
-      formDataToSend.append('image', imageFile);
-    }
+    const dataToSend = {
+      name: formData.name,
+      parentId: formData.parentId,
+      displayOrder: formData.displayOrder,
+      description: formData.description,
+      type: formData.type,
+      customFields: formData.customFields,
+      imageUrl: editingCategory?.imageUrl || ''
+    };
 
     try {
-      const url = editingCategory 
-        ? `/api/menu/admin/categories/${editingCategory._id}`
-        : '/api/menu/admin/categories';
-      
-      const method = editingCategory ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        credentials: 'include',
-        body: formDataToSend
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: `Category ${editingCategory ? 'updated' : 'created'} successfully`
-        });
-        resetForm();
-        fetchCategories();
+      if (editingCategory) {
+        await apiClient.put(`/api/menu/admin/categories/${editingCategory._id}`, dataToSend);
       } else {
-        throw new Error('Failed to save category');
+        await apiClient.post('/api/menu/admin/categories', dataToSend);
       }
+      
+      toast({
+        title: 'Success',
+        description: `Category ${editingCategory ? 'updated' : 'created'} successfully`
+      });
+      resetForm();
+      await fetchCategories();
     } catch (error) {
       toast({
         title: 'Error',
@@ -125,20 +111,12 @@ const MegaMenuManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
-      const response = await fetch(`/api/menu/admin/categories/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
+      await apiClient.delete(`/api/menu/admin/categories/${id}`);
+      toast({
+        title: 'Success',
+        description: 'Category deleted successfully'
       });
-
-      if (response.ok) {
-        toast({
-          title: 'Success',
-          description: 'Category deleted successfully'
-        });
-        fetchCategories();
-      } else {
-        throw new Error('Failed to delete category');
-      }
+      fetchCategories();
     } catch (error) {
       toast({
         title: 'Error',
@@ -163,11 +141,11 @@ const MegaMenuManager: React.FC = () => {
   };
 
   const getParentCategories = () => {
-    return categories.filter(cat => !cat.parentId);
+    return Array.isArray(categories) ? categories.filter(cat => !cat.parentId) : [];
   };
 
   const getSubcategories = (parentId: string) => {
-    return categories.filter(cat => cat.parentId === parentId);
+    return Array.isArray(categories) ? categories.filter(cat => cat.parentId === parentId) : [];
   };
 
   if (loading) {

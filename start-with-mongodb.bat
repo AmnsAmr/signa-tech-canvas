@@ -12,12 +12,8 @@ start "Python Vector Service" cmd /k "cd python-vector-service && python app.py"
 REM Wait a moment for Python service to start
 timeout /t 3 /nobreak > nul
 
-REM Run MongoDB migration
-echo Running MongoDB migration...
-cd server
-node scripts/migrate-to-mongodb.js
-
 REM Start Node.js server
+cd server
 echo Starting Node.js server...
 start "Node.js Server" cmd /k "npm start"
 

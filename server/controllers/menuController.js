@@ -2,6 +2,7 @@ const MenuCategory = require('../models/MenuCategory');
 const { cacheManager } = require('../utils/cacheManager');
 const multer = require('multer');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -84,7 +85,8 @@ class MenuController {
     try {
       const categories = await MenuCategory.find()
         .populate('parentId', 'name')
-        .sort({ parentId: 1, displayOrder: 1 });
+        .sort({ parentId: 1, displayOrder: 1 })
+        .lean();
       
       res.json(categories);
     } catch (error) {
@@ -96,35 +98,31 @@ class MenuController {
   // Admin: Create category
   async createCategory(req, res) {
     try {
-      const { name, parentId, displayOrder, description, customFields, type } = req.body;
+      const { name, parentId, displayOrder, description, customFields, type, imageUrl } = req.body;
       
-      if (!name) {
+      if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Category name is required' });
       }
       
       const categoryData = {
-        name,
-        parentId: parentId || null,
+        name: name.trim(),
+        parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
         customFields: customFields || {},
-        type: type || 'category'
+        type: type || 'category',
+        imageUrl: imageUrl || ''
       };
-      
-      // Handle image upload if present
-      if (req.file) {
-        categoryData.imageUrl = `/uploads/${req.file.filename}`;
-      }
       
       const category = new MenuCategory(categoryData);
       await category.save();
       
-      // Clear menu cache
-      cacheManager.delete('menu_data');
-      
-      res.json(category);
+      res.json(category.toObject());
     } catch (error) {
       console.error('Error in createCategory:', error);
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: error.message });
+      }
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -132,16 +130,29 @@ class MenuController {
   // Admin: Update category
   async updateCategory(req, res) {
     try {
-      const { id } = req.params;
-      const { name, parentId, displayOrder, description, customFields, type, isActive } = req.body;
+      console.log('UPDATE - ID:', req.params.id);
+      console.log('UPDATE - Body:', req.body);
+      console.log('UPDATE - Content-Type:', req.headers['content-type']);
       
-      if (!name) {
+      const { id } = req.params;
+      
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+      
+      if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({ error: 'Request body is empty' });
+      }
+      
+      const { name, parentId, displayOrder, description, customFields, type, isActive, imageUrl } = req.body;
+      
+      if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Category name is required' });
       }
       
       const updateData = {
-        name,
-        parentId: parentId || null,
+        name: name.trim(),
+        parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
         customFields: customFields || {},
@@ -149,23 +160,27 @@ class MenuController {
         isActive: isActive !== undefined ? isActive : true
       };
       
-      // Handle image upload if present
-      if (req.file) {
-        updateData.imageUrl = `/uploads/${req.file.filename}`;
+      if (imageUrl !== undefined) {
+        updateData.imageUrl = imageUrl;
       }
       
+      console.log('Executing update with data:', updateData);
       const category = await MenuCategory.findByIdAndUpdate(id, updateData, { new: true });
+      console.log('Update result:', category);
       
       if (!category) {
+        console.log('Category not found for ID:', id);
         return res.status(404).json({ error: 'Category not found' });
       }
       
-      // Clear menu cache
-      cacheManager.delete('menu_data');
+      console.log('Update successful, returning:', category.toObject());
       
-      res.json(category);
+      res.json(category.toObject());
     } catch (error) {
       console.error('Error in updateCategory:', error);
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: error.message });
+      }
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -175,19 +190,23 @@ class MenuController {
     try {
       const { id } = req.params;
       
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+      
+      // Delete all subcategories recursively
+      await MenuController.deleteSubcategories(id);
+      
       const category = await MenuCategory.findByIdAndDelete(id);
       
       if (!category) {
         return res.status(404).json({ error: 'Category not found' });
       }
       
-      // Clear menu cache
-      cacheManager.delete('menu_data');
-      
       res.json({ message: 'Category deleted successfully' });
     } catch (error) {
       console.error('Error in deleteCategory:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: error.message || 'Internal server error' });
     }
   }
 
@@ -207,13 +226,19 @@ class MenuController {
       
       await Promise.all(updatePromises);
       
-      // Clear menu cache
-      cacheManager.delete('menu_data');
-      
       res.json({ message: 'Categories reordered successfully' });
     } catch (error) {
       console.error('Error in reorderCategories:', error);
       res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // Helper method to delete subcategories recursively
+  static async deleteSubcategories(parentId) {
+    const children = await MenuCategory.find({ parentId }).lean();
+    for (const child of children) {
+      await MenuController.deleteSubcategories(child._id);
+      await MenuCategory.findByIdAndDelete(child._id);
     }
   }
 
