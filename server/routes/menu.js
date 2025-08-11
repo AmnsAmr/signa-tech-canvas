@@ -3,8 +3,10 @@ const router = express.Router();
 const menuController = require('../controllers/menuController');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// Public route - Get menu data
+// Public routes
 router.get('/', menuController.getMenu);
+router.get('/category/:categoryId', menuController.getCategory);
+router.get('/product/:productId', menuController.getProduct);
 
 // Admin routes - Require authentication and admin role
 router.get('/admin/categories', authenticateToken, requireAdmin, menuController.getAllCategories);

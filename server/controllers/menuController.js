@@ -249,6 +249,69 @@ class MenuController {
     }
   }
 
+  // Get single category with products
+  async getCategory(req, res) {
+    try {
+      const { categoryId } = req.params;
+      
+      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+      
+      const category = await MenuCategory.findById(categoryId).lean();
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      
+      // Get all products in this category
+      const products = await MenuCategory.find({ 
+        parentId: categoryId, 
+        type: 'product',
+        isActive: true 
+      }).sort({ displayOrder: 1 }).lean();
+      
+      const categoryData = {
+        ...category,
+        products: products.map(product => ({
+          _id: product._id,
+          name: product.name,
+          imageUrl: product.imageUrl,
+          description: product.description,
+          customFields: product.customFields,
+          type: product.type
+        }))
+      };
+      
+      res.json(categoryData);
+    } catch (error) {
+      console.error('Error in getCategory:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // Get single product
+  async getProduct(req, res) {
+    try {
+      const { productId } = req.params;
+      
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
+      }
+      
+      const product = await MenuCategory.findById(productId).lean();
+      
+      if (!product || product.type !== 'product') {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error('Error in getProduct:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
   // Helper method to delete subcategories recursively
   static async deleteSubcategories(parentId) {
     const children = await MenuCategory.find({ parentId }).lean();
