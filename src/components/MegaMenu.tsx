@@ -167,8 +167,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 onMouseEnter={() => handleMouseEnter(category.id)}
                 onMouseLeave={handleMouseLeave}
               >
-                <div className="category-card bg-card hover:bg-primary/5 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg p-1 w-[80px] h-[60px] flex items-center justify-center cursor-pointer group">
-                  <span className="text-xs font-medium text-center leading-tight group-hover:text-primary transition-colors">
+                <div className="category-card bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-500 hover:shadow-md transition-all duration-200 rounded-lg p-1 w-[80px] h-[60px] flex items-center justify-center cursor-pointer group">
+                  <span className="text-xs font-medium text-center leading-tight text-gray-900 group-hover:text-black transition-colors">
                     {category.name}
                   </span>
                   {isAdmin && (

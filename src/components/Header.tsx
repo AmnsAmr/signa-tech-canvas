@@ -310,12 +310,14 @@ const Header = () => {
       
       </header>
       
-      {/* Second Row - Categories */}
-      <div className={`fixed top-0 left-0 right-0 z-40 ${
-        isScrolled ? 'mt-16' : 'mt-20'
-      } transition-all duration-300`}>
-        <MegaMenu isScrolled={isScrolled} />
-      </div>
+      {/* Second Row - Categories - Only on Home Page */}
+      {location.pathname === '/' && (
+        <div className={`fixed top-0 left-0 right-0 z-40 ${
+          isScrolled ? 'mt-16' : 'mt-20'
+        } transition-all duration-300`}>
+          <MegaMenu isScrolled={isScrolled} />
+        </div>
+      )}
       
       {/* Mobile Floating Header Access Button */}
       {isMobile && showFloatingButton && (
