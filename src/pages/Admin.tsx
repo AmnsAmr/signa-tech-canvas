@@ -26,7 +26,6 @@ const FileManager = lazy(() => import('@/components/Admin/FileManager'));
 const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
 const ThemeSettings = lazy(() => import('@/components/Admin/ThemeSettings'));
-const MegaMenuManager = lazy(() => import('@/components/Admin/MegaMenuManager'));
 const AuthDebug = lazy(() => import('@/components/Debug/AuthDebug'));
 
 interface User {

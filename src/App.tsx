@@ -17,6 +17,8 @@ import Admin from "./pages/Admin";
 import ForgotPassword from "./pages/ForgotPassword";
 import UserDashboard from "./pages/UserDashboard";
 import Ratings from "./pages/Ratings";
+import CategoryPage from "./pages/CategoryPage";
+import ProductPage from "./pages/ProductPage";
 import NotFound from "./pages/NotFound";
 
 import ScrollToTop from "./components/ScrollToTop";
@@ -52,6 +54,8 @@ const AppContent = () => {
               <Route path="/dashboard" element={<ErrorBoundary fallback={<DashboardFallback />}><UserDashboard /></ErrorBoundary>} />
               <Route path="/ratings" element={<Ratings />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/category/:categoryId" element={<CategoryPage />} />
+              <Route path="/product/:productId" element={<ProductPage />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

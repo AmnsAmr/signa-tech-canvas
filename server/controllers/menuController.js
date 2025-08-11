@@ -53,8 +53,8 @@ class MenuController {
         .sort({ displayOrder: 1 })
         .lean();
       
-      // Build hierarchical structure
-      const topLevel = categories.filter(cat => !cat.parentId);
+      // Build hierarchical structure - only top-level categories appear in main menu
+      const topLevel = categories.filter(cat => !cat.parentId && cat.type === 'category');
       const menuData = topLevel.map(parent => ({
         id: parent._id,
         name: parent.name,
@@ -121,6 +121,9 @@ class MenuController {
       const savedCategory = await category.save();
       console.log('CREATE - Saved successfully:', savedCategory._id);
       
+      // Clear menu cache to refresh the menu
+      cacheManager.delete('menu_data');
+      
       res.json(savedCategory.toObject());
     } catch (error) {
       console.error('Error in createCategory:', error);
@@ -181,6 +184,9 @@ class MenuController {
       }
       
       console.log('Update successful, returning:', category.toObject());
+      
+      // Clear menu cache to refresh the menu
+      cacheManager.delete('menu_data');
       
       res.json(category.toObject());
     } catch (error) {
