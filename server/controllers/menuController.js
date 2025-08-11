@@ -31,14 +31,10 @@ class MenuController {
   // Get menu data with caching
   async getMenu(req, res) {
     try {
-      const cacheKey = 'menu_data';
-      let menuData = cacheManager.get(cacheKey);
-      
-      if (!menuData) {
-        menuData = await this.buildMenuFromDatabase();
-        cacheManager.set(cacheKey, menuData, 300); // Cache for 5 minutes
-      }
-      
+      console.log('getMenu called');
+      // Skip cache for now to debug
+      const menuData = await MenuController.buildMenuFromDatabase();
+      console.log('Sending menu data:', menuData);
       res.json(menuData);
     } catch (error) {
       console.error('Error fetching menu:', error);
@@ -47,14 +43,18 @@ class MenuController {
   }
 
   // Build hierarchical menu structure from database
-  async buildMenuFromDatabase() {
+  static async buildMenuFromDatabase() {
     try {
       const categories = await MenuCategory.find({ isActive: true })
         .sort({ displayOrder: 1 })
         .lean();
       
+      console.log('All categories from DB:', categories);
+      
       // Build hierarchical structure - only top-level categories appear in main menu
-      const topLevel = categories.filter(cat => !cat.parentId && cat.type === 'category');
+      const topLevel = categories.filter(cat => cat.parentId === null && cat.type === 'category');
+      console.log('Top level categories:', topLevel);
+      
       const menuData = topLevel.map(parent => ({
         id: parent._id,
         name: parent.name,
@@ -74,6 +74,7 @@ class MenuController {
           }))
       }));
       
+      console.log('Final menu data:', menuData);
       return menuData;
     } catch (error) {
       throw error;
@@ -122,7 +123,7 @@ class MenuController {
       console.log('CREATE - Saved successfully:', savedCategory._id);
       
       // Clear menu cache to refresh the menu
-      cacheManager.delete('menu_data');
+      cacheManager.del('menu_data');
       
       res.json(savedCategory.toObject());
     } catch (error) {
@@ -186,7 +187,7 @@ class MenuController {
       console.log('Update successful, returning:', category.toObject());
       
       // Clear menu cache to refresh the menu
-      cacheManager.delete('menu_data');
+      cacheManager.del('menu_data');
       
       res.json(category.toObject());
     } catch (error) {

@@ -55,7 +55,12 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       setIsLoading(true);
       setError(null);
       const response = await apiClient.get('/api/menu');
-      setCategories(Array.isArray(response.data) ? response.data : []);
+      console.log('Menu API full response:', response);
+      console.log('Menu API response data:', response.data);
+      console.log('Menu API response data keys:', Object.keys(response.data || {}));
+      const data = response.data?.data || response.data;
+      console.log('Final data to set:', data);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch menu data:', error);
       setError('Failed to load menu');
@@ -131,12 +136,21 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     }
   };
 
-  // Don't render anything if still loading or if there are no categories
+  // Don't render anything if still loading
   if (isLoading) {
     return null;
   }
 
-  if (error || !Array.isArray(categories) || categories.length === 0) {
+  // Ensure categories is always an array
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  
+  console.log('MegaMenu render - categories:', categories);
+  console.log('MegaMenu render - safeCategories:', safeCategories);
+  console.log('MegaMenu render - isAdmin:', isAdmin);
+  console.log('MegaMenu render - isLoading:', isLoading);
+
+  // Don't render if no categories and user is not admin
+  if (safeCategories.length === 0 && !isAdmin) {
     return null;
   }
 
@@ -148,14 +162,14 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-8 w-8 p-0"
             onClick={() => handleAddCategory()}
             title="Add Top-Level Category"
           >
             <Plus className="h-3 w-3" />
           </Button>
         )}
-        {Array.isArray(categories) && categories.map((category) => (
+        {safeCategories.map((category) => (
           <div
             key={category.id}
             className="relative"
@@ -177,11 +191,12 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAddProduct(category.id);
                   }}
+                  title="Add Product"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -273,13 +288,14 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         ))}
       </div>
 
-      {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="md:hidden p-3 hover:bg-primary/10 transition-all duration-300"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      >
+      {/* Mobile Menu Button - only show if there are categories or user is admin */}
+      {(safeCategories.length > 0 || isAdmin) && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden p-3 hover:bg-primary/10 transition-all duration-300"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
         <div className="relative">
           <Menu className={`h-6 w-6 absolute transition-all duration-300 ${
             isMobileMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'
@@ -288,7 +304,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
             isMobileMenuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
           }`} />
         </div>
-      </Button>
+        </Button>
+      )}
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
@@ -313,7 +330,16 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
           </div>
 
           <div className="space-y-2">
-            {Array.isArray(categories) && categories.map((category) => (
+            {isAdmin && safeCategories.length === 0 && (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground mb-2">No categories yet</p>
+                <Button size="sm" onClick={() => handleAddCategory()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Category
+                </Button>
+              </div>
+            )}
+            {safeCategories.map((category) => (
               <div key={category.id} className="border-b border-border/50 pb-2">
                 <button
                   onClick={() => toggleMobileCategory(category.id)}
