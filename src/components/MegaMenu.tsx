@@ -154,10 +154,10 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
             {isAdmin && (
               <button
                 onClick={() => handleAddCategory()}
-                className="category-card bg-primary/10 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/20 transition-all duration-200 rounded-lg p-3 min-w-[100px] h-12 flex items-center justify-center group"
+                className="category-card bg-green-100 border-2 border-dashed border-green-300 hover:border-green-500 hover:bg-green-200 transition-all duration-200 rounded-lg p-1 w-[80px] h-[60px] flex items-center justify-center group"
               >
-                <Plus className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
-                <span className="ml-1 text-xs font-medium text-primary">Add</span>
+                <Plus className="h-4 w-4 text-green-600 group-hover:scale-110 transition-transform" />
+                <span className="ml-1 text-xs font-medium text-green-600">Add</span>
               </button>
             )}
             {safeCategories.map((category) => (
@@ -167,8 +167,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 onMouseEnter={() => handleMouseEnter(category.id)}
                 onMouseLeave={handleMouseLeave}
               >
-                <div className="category-card bg-card hover:bg-primary/5 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg p-3 min-w-[100px] h-12 flex items-center justify-center cursor-pointer group">
-                  <span className="text-xs font-medium text-center group-hover:text-primary transition-colors">
+                <div className="category-card bg-card hover:bg-primary/5 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg p-1 w-[80px] h-[60px] flex items-center justify-center cursor-pointer group">
+                  <span className="text-xs font-medium text-center leading-tight group-hover:text-primary transition-colors">
                     {category.name}
                   </span>
                   {isAdmin && (
