@@ -205,14 +205,6 @@ const Header = () => {
                   Login
                 </Button>
               )}
-              <Button 
-                asChild 
-                className="bg-gradient-primary mobile-transform"
-              >
-                <Link to="/contact">
-                  <span>{t('nav.quote')}</span>
-                </Link>
-              </Button>
             </div>
           </div>
 
@@ -305,7 +297,6 @@ const Header = () => {
                     className="bg-gradient-primary hover:shadow-glow transition-all duration-300 flex-1 mr-3 relative overflow-hidden group mobile-button"
                   >
                     <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="relative z-10 button-centered">
-                      <span>{t('nav.quote')}</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                     </Link>
                   </Button>
