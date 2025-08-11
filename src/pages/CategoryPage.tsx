@@ -122,7 +122,7 @@ const CategoryPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="container mx-auto px-4 py-24 text-center">
+        <div className="container mx-auto px-4 py-32 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading category...</p>
         </div>
@@ -135,7 +135,7 @@ const CategoryPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="container mx-auto px-4 py-24 text-center">
+        <div className="container mx-auto px-4 py-32 text-center">
           <h1 className="text-4xl font-bold mb-4">Category Not Found</h1>
           <p className="text-muted-foreground mb-8">The category you're looking for doesn't exist.</p>
           <Button asChild>
@@ -150,7 +150,7 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto px-4 py-24">
+      <div className="container mx-auto px-4 py-32">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-4xl font-bold">{category.name}</h1>

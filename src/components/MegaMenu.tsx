@@ -36,6 +36,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [addType, setAddType] = useState<'category' | 'product'>('category');
   const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
@@ -54,15 +55,9 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       setIsLoading(true);
       setError(null);
       const response = await apiClient.get('/api/menu');
-      console.log('Menu API full response:', response);
-      console.log('Menu API response data:', response.data);
-      console.log('Menu API response data keys:', Object.keys(response.data || {}));
-      const data = response.data?.data || response.data;
-      console.log('Final data to set:', data);
-      setCategories(Array.isArray(data) ? data : []);
+      setCategories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch menu data:', error);
-      setError('Failed to load menu');
       setCategories([]);
     } finally {
       setIsLoading(false);
@@ -143,10 +138,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   // Ensure categories is always an array
   const safeCategories = Array.isArray(categories) ? categories : [];
   
-  console.log('MegaMenu render - categories:', categories);
-  console.log('MegaMenu render - safeCategories:', safeCategories);
-  console.log('MegaMenu render - isAdmin:', isAdmin);
-  console.log('MegaMenu render - isLoading:', isLoading);
+
 
   // Don't render if no categories and user is not admin
   if (safeCategories.length === 0 && !isAdmin) {
