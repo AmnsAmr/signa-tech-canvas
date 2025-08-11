@@ -170,8 +170,7 @@ const Header = () => {
               )}
             </nav>
             
-            {/* Mega Menu */}
-            <MegaMenu isScrolled={isScrolled} />
+
             
             <div className="flex items-center space-x-3">
               <LanguageSwitcher />
@@ -217,10 +216,7 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile Mega Menu */}
-          <div className="md:hidden">
-            <MegaMenu isScrolled={isScrolled} />
-          </div>
+
         </div>
 
         {/* Enhanced Mobile Navigation */}
@@ -322,6 +318,13 @@ const Header = () => {
       </div>
       
       </header>
+      
+      {/* Second Row - Categories */}
+      <div className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/50 ${
+        isScrolled ? 'mt-16' : 'mt-20'
+      } transition-all duration-300`}>
+        <MegaMenu isScrolled={isScrolled} />
+      </div>
       
       {/* Mobile Floating Header Access Button */}
       {isMobile && showFloatingButton && (

@@ -36,7 +36,6 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [addType, setAddType] = useState<'category' | 'product'>('category');
   const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
@@ -156,156 +155,116 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
 
   return (
     <>
-      {/* Desktop Mega Menu */}
-      <div className="hidden md:flex items-center space-x-1 relative group">
-        {isAdmin && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => handleAddCategory()}
-            title="Add Top-Level Category"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        )}
-        {safeCategories.map((category) => (
-          <div
-            key={category.id}
-            className="relative"
-            onMouseEnter={() => handleMouseEnter(category.id)}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="flex items-center gap-1">
+      {/* Desktop Categories Grid */}
+      <div className="hidden md:block">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex flex-wrap gap-3 items-center">
+            {isAdmin && (
               <button
-                className={`px-4 py-2 font-medium rounded-lg flex items-center transition-colors duration-200 ${
-                  activeDropdown === category.id ? 'text-primary bg-primary/10' : 'text-foreground hover:text-primary'
-                }`}
+                onClick={() => handleAddCategory()}
+                className="category-card bg-primary/10 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/20 transition-all duration-200 rounded-lg p-4 min-w-[120px] h-16 flex items-center justify-center group"
               >
-                {category.name}
-                <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${
-                  activeDropdown === category.id ? 'rotate-180' : ''
-                }`} />
+                <Plus className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+                <span className="ml-2 text-sm font-medium text-primary">Add Category</span>
               </button>
-              {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddProduct(category.id);
-                  }}
-                  title="Add Product"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-
-            {/* Mega Menu Dropdown */}
-            {activeDropdown === category.id && category.subcategories.length > 0 && (
+            )}
+            {safeCategories.map((category) => (
               <div
-                ref={dropdownRef}
-                className="mega-menu-dropdown absolute top-full left-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[300px] max-w-[600px]"
+                key={category.id}
+                className="relative"
                 onMouseEnter={() => handleMouseEnter(category.id)}
                 onMouseLeave={handleMouseLeave}
               >
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    {category.imageUrl && (
-                      <img 
-                        src={category.imageUrl} 
-                        alt={category.name}
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
-                    )}
-                    <div>
-                      <h3 className="text-lg font-semibold text-primary">{category.name}</h3>
-                      {category.description && (
-                        <p className="text-sm text-muted-foreground">{category.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {category.subcategories.map((subcategory) => (
-                      <a
-                        key={subcategory.id}
-                        href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
-                        className="mega-menu-item block p-3 rounded-lg hover:bg-primary/5 transition-colors duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          {subcategory.imageUrl && subcategory.type === 'product' && (
-                            <img 
-                              src={subcategory.imageUrl} 
-                              alt={subcategory.name}
-                              className="w-8 h-8 object-cover rounded"
-                            />
-                          )}
-                          <div>
-                            <span className="font-medium text-foreground hover:text-primary">
+                <div className="category-card bg-card hover:bg-primary/5 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg p-4 min-w-[120px] h-16 flex items-center justify-center cursor-pointer group">
+                  <span className="text-sm font-medium text-center group-hover:text-primary transition-colors">
+                    {category.name}
+                  </span>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddProduct(category.id);
+                      }}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Dropdown Menu */}
+                {activeDropdown === category.id && category.subcategories.length > 0 && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute top-full left-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[250px] max-w-[400px]"
+                    onMouseEnter={() => handleMouseEnter(category.id)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-primary mb-3">{category.name}</h3>
+                      <div className="space-y-1">
+                        {category.subcategories.map((subcategory) => (
+                          <a
+                            key={subcategory.id}
+                            href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
+                            className="block p-2 rounded hover:bg-primary/5 transition-colors duration-200"
+                          >
+                            <span className="text-sm font-medium hover:text-primary">
                               {subcategory.name}
                             </span>
-                            {subcategory.description && (
-                              <p className="text-xs text-muted-foreground mt-1">{subcategory.description}</p>
-                            )}
                             {subcategory.type === 'product' && (
-                              <span className="inline-block text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded mt-1">
+                              <span className="ml-2 text-xs bg-secondary text-secondary-foreground px-1 py-0.5 rounded">
                                 Product
                               </span>
                             )}
+                          </a>
+                        ))}
+                        {isAdmin && (
+                          <div className="border-t pt-2 mt-2 space-y-1">
+                            <button
+                              onClick={() => handleAddCategory(category.id)}
+                              className="w-full text-left p-2 rounded border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
+                            >
+                              <Plus className="h-3 w-3 inline mr-2" />
+                              <span className="text-xs">Add Category</span>
+                            </button>
+                            <button
+                              onClick={() => handleAddProduct(category.id)}
+                              className="w-full text-left p-2 rounded border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
+                            >
+                              <Plus className="h-3 w-3 inline mr-2" />
+                              <span className="text-xs">Add Product</span>
+                            </button>
                           </div>
-                        </div>
-                      </a>
-                    ))}
-                    {isAdmin && (
-                      <>
-                        <button
-                          onClick={() => handleAddCategory(category.id)}
-                          className="mega-menu-item block p-3 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
-                        >
-                          <div className="flex items-center gap-3 text-muted-foreground hover:text-primary">
-                            <Plus className="h-4 w-4" />
-                            <span className="text-sm">Add Category</span>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => handleAddProduct(category.id)}
-                          className="mega-menu-item block p-3 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
-                        >
-                          <div className="flex items-center gap-3 text-muted-foreground hover:text-primary">
-                            <Plus className="h-4 w-4" />
-                            <span className="text-sm">Add Product</span>
-                          </div>
-                        </button>
-                      </>
-                    )}
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Mobile Menu Button - only show if there are categories or user is admin */}
-      {(safeCategories.length > 0 || isAdmin) && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden p-3 hover:bg-primary/10 transition-all duration-300"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-        <div className="relative">
-          <Menu className={`h-6 w-6 absolute transition-all duration-300 ${
-            isMobileMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'
-          }`} />
-          <X className={`h-6 w-6 absolute transition-all duration-300 ${
-            isMobileMenuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
-          }`} />
+      {/* Mobile Categories */}
+      <div className="md:hidden">
+        <div className="container mx-auto px-4 py-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-between"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <span>Categories</span>
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
+              isMobileMenuOpen ? 'rotate-180' : ''
+            }`} />
+          </Button>
         </div>
-        </Button>
-      )}
+      </div>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
