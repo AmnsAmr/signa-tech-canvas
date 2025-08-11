@@ -98,9 +98,11 @@ class MenuController {
   // Admin: Create category
   async createCategory(req, res) {
     try {
+      console.log('CREATE - Body:', req.body);
       const { name, parentId, displayOrder, description, customFields, type, imageUrl } = req.body;
       
       if (!name || name.trim() === '') {
+        console.log('CREATE - Missing name');
         return res.status(400).json({ error: 'Category name is required' });
       }
       
@@ -114,14 +116,19 @@ class MenuController {
         imageUrl: imageUrl || ''
       };
       
+      console.log('CREATE - Data to save:', categoryData);
       const category = new MenuCategory(categoryData);
-      await category.save();
+      const savedCategory = await category.save();
+      console.log('CREATE - Saved successfully:', savedCategory._id);
       
-      res.json(category.toObject());
+      res.json(savedCategory.toObject());
     } catch (error) {
       console.error('Error in createCategory:', error);
       if (error.name === 'ValidationError') {
         return res.status(400).json({ error: error.message });
+      }
+      if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+        return res.status(500).json({ error: 'Database error: ' + error.message });
       }
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -188,24 +195,33 @@ class MenuController {
   // Admin: Delete category
   async deleteCategory(req, res) {
     try {
+      console.log('DELETE - ID:', req.params.id);
       const { id } = req.params;
       
       if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.log('DELETE - Invalid ObjectId');
         return res.status(400).json({ error: 'Invalid category ID' });
       }
       
       // Delete all subcategories recursively
+      console.log('DELETE - Deleting subcategories');
       await MenuController.deleteSubcategories(id);
       
+      console.log('DELETE - Deleting main category');
       const category = await MenuCategory.findByIdAndDelete(id);
       
       if (!category) {
+        console.log('DELETE - Category not found');
         return res.status(404).json({ error: 'Category not found' });
       }
       
+      console.log('DELETE - Success');
       res.json({ message: 'Category deleted successfully' });
     } catch (error) {
       console.error('Error in deleteCategory:', error);
+      if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+        return res.status(500).json({ error: 'Database error: ' + error.message });
+      }
       res.status(500).json({ error: error.message || 'Internal server error' });
     }
   }

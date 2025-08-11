@@ -44,7 +44,9 @@ const MegaMenuManager: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await apiClient.get('/api/menu/admin/categories');
+      // Add timestamp to bypass any caching
+      const timestamp = Date.now();
+      const response = await apiClient.request(`/api/menu/admin/categories?t=${timestamp}`, { method: 'GET' });
       setCategories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -79,12 +81,15 @@ const MegaMenuManager: React.FC = () => {
         await apiClient.post('/api/menu/admin/categories', dataToSend);
       }
       
+      // Force immediate refresh
+      setLoading(true);
+      await fetchCategories();
+      
       toast({
         title: 'Success',
         description: `Category ${editingCategory ? 'updated' : 'created'} successfully`
       });
       resetForm();
-      await fetchCategories();
     } catch (error) {
       toast({
         title: 'Error',
@@ -112,11 +117,15 @@ const MegaMenuManager: React.FC = () => {
 
     try {
       await apiClient.delete(`/api/menu/admin/categories/${id}`);
+      
+      // Force immediate refresh
+      setLoading(true);
+      await fetchCategories();
+      
       toast({
         title: 'Success',
         description: 'Category deleted successfully'
       });
-      fetchCategories();
     } catch (error) {
       toast({
         title: 'Error',

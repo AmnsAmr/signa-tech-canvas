@@ -136,7 +136,8 @@ const csrfMiddleware = (req, res, next) => {
   if (req.method === 'GET' || 
       req.path.startsWith('/api/auth/google') || 
       req.path.startsWith('/api/admin/') ||
-      req.path.startsWith('/api/projects/admin/')) {
+      req.path.startsWith('/api/projects/admin/') ||
+      req.path.startsWith('/api/menu/admin/')) {
     return next();
   }
 
