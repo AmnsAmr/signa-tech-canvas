@@ -152,7 +152,68 @@ Access the mega menu manager at: **Admin Panel > Menu Management**
 
 ### Database Migration
 
-The system automatically migrates from SQLite to MongoDB. See `MONGODB_MIGRATION.md` for detailed instructions.
+The system automatically migrates from SQLite to MongoDB.
+
+#### MongoDB Setup
+
+1. **Install MongoDB**: Download from https://www.mongodb.com/try/download/community
+2. **Configure Environment**: Update `server/.env`:
+   ```env
+   DB_TYPE=mongodb
+   MONGODB_URI=mongodb://localhost:27017
+   MONGODB_DB_NAME=signatech
+   ```
+3. **Start Services**: Use `start-with-mongodb.bat` or start manually
+
+#### Enhanced Menu Features
+
+- **Flexible Schema**: Dynamic custom fields for categories and products
+- **Rich Content**: Image support, descriptions, and custom attributes
+- **API Endpoints**: Full CRUD operations for menu management
+- **Admin Interface**: Drag-and-drop reordering and hierarchical management
+
+## Admin Panel Guide
+
+### Image Management
+
+The admin panel includes intelligent image management with business rules:
+
+- **Logo Images**: Maximum 1 image (auto-replaces existing)
+- **Hero Images**: Maximum 3 images for homepage
+- **About Images**: Maximum 1 image for about page
+- **Portfolio Images**: Unlimited for project galleries
+
+### Project Management
+
+- **Project Sections**: Organize projects into categories
+- **Projects**: Title, description, and image assignment
+- **Reordering**: Drag-and-drop functionality
+- **Image Integration**: Link with portfolio images
+
+### Menu Management
+
+Access at **Admin Panel > Menu Management**:
+- Create/edit categories and products
+- Upload images and add descriptions
+- Set custom fields and hierarchical structure
+- Real-time preview and drag-and-drop reordering
+
+## Troubleshooting
+
+### MongoDB Issues
+- Ensure MongoDB service is running
+- Check connection string in `.env` file
+- Verify database permissions
+
+### Image Upload Issues
+- Check uploads folder permissions
+- Verify file size limits
+- Ensure category rules compliance
+
+### Vector Analysis Issues
+- Ensure Python service is running on port 5001
+- Check Python dependencies installation
+- Verify file format support (SVG, DXF, PDF, EPS)
 
 ## Can I connect a custom domain to my Lovable project?
 
