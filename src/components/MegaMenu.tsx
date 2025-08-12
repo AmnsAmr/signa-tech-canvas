@@ -9,22 +9,33 @@ import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/api';
 import './MegaMenu.css';
 
-interface Subcategory {
+interface Product {
   id: string;
   name: string;
   imageUrl?: string;
   description?: string;
   customFields?: Record<string, any>;
-  type: 'category' | 'product';
+  type: 'product';
 }
 
-interface Category {
+interface Subdirectory {
   id: string;
   name: string;
   imageUrl?: string;
   description?: string;
   customFields?: Record<string, any>;
-  subcategories: Subcategory[];
+  type: 'category';
+  products: Product[];
+}
+
+interface TopDirectory {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  description?: string;
+  customFields?: Record<string, any>;
+  type: 'category';
+  subdirectories: Subdirectory[];
 }
 
 interface MegaMenuProps {
@@ -32,7 +43,7 @@ interface MegaMenuProps {
 }
 
 const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [topDirectories, setTopDirectories] = useState<TopDirectory[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
@@ -40,9 +51,9 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [error, setError] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [addType, setAddType] = useState<'category' | 'product'>('category');
-  const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
+  const [parentId, setParentId] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const { isAdmin } = useAuth();
@@ -57,10 +68,10 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       setIsLoading(true);
       setError(null);
       const response = await apiClient.get('/api/menu');
-      setCategories(Array.isArray(response.data) ? response.data : []);
+      setTopDirectories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch menu data:', error);
-      setCategories([]);
+      setTopDirectories([]);
     } finally {
       setIsLoading(false);
     }
@@ -88,17 +99,27 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     setExpandedMobileCategory(expandedMobileCategory === categoryId ? null : categoryId);
   };
 
-  const handleAddCategory = (parentId: string | null = null) => {
-    setParentCategoryId(parentId);
+  const handleAddTopDirectory = () => {
+    setParentId(null);
     setAddType('category');
     setNewItemName('');
+    setEditingItem(null);
     setShowAddDialog(true);
   };
 
-  const handleAddProduct = (parentId: string) => {
-    setParentCategoryId(parentId);
+  const handleAddSubdirectory = (topDirId: string) => {
+    setParentId(topDirId);
+    setAddType('category');
+    setNewItemName('');
+    setEditingItem(null);
+    setShowAddDialog(true);
+  };
+
+  const handleAddProduct = (subdirId: string) => {
+    setParentId(subdirId);
     setAddType('product');
     setNewItemName('');
+    setEditingItem(null);
     setShowAddDialog(true);
   };
 
@@ -106,66 +127,70 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     if (!newItemName.trim()) return;
 
     try {
-      if (editingCategory) {
-        await apiClient.put(`/api/menu/admin/categories/${editingCategory.id}`, {
+      if (editingItem) {
+        await apiClient.put(`/api/menu/admin/categories/${editingItem.id}`, {
           name: newItemName.trim(),
-          parentId: editingCategory.subcategories.length > 0 ? null : parentCategoryId,
-          type: addType,
+          parentId: editingItem.parentId,
+          type: editingItem.type,
           displayOrder: 0
         });
         toast({
           title: 'Success',
-          description: 'Category updated successfully'
+          description: `${editingItem.type === 'category' ? 'Directory' : 'Product'} updated successfully`
         });
       } else {
         const data = {
           name: newItemName.trim(),
-          parentId: parentCategoryId,
+          parentId: parentId,
           type: addType,
           displayOrder: 0
         };
         await apiClient.post('/api/menu/admin/categories', data);
         toast({
           title: 'Success',
-          description: `${addType === 'category' ? 'Category' : 'Product'} added successfully`
+          description: `${addType === 'category' ? (parentId ? 'Subdirectory' : 'Top Directory') : 'Product'} added successfully`
         });
       }
       
       setShowAddDialog(false);
       setNewItemName('');
-      setEditingCategory(null);
+      setEditingItem(null);
       fetchMenuData();
     } catch (error) {
       toast({
         title: 'Error',
-        description: editingCategory ? 'Failed to update category' : `Failed to add ${addType}`,
+        description: editingItem ? 'Failed to update item' : `Failed to add ${addType}`,
         variant: 'destructive'
       });
     }
   };
 
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category);
-    setNewItemName(category.name);
-    setAddType('category');
-    setParentCategoryId(null);
+  const handleEditItem = (item: any) => {
+    setEditingItem(item);
+    setNewItemName(item.name);
+    setAddType(item.type);
+    setParentId(item.parentId || null);
     setShowAddDialog(true);
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
-    if (!confirm('Are you sure you want to delete this category? This will also delete all subcategories and products.')) return;
+  const handleDeleteItem = async (itemId: string, itemType: string) => {
+    const confirmMsg = itemType === 'category' 
+      ? 'Are you sure you want to delete this directory? This will also delete all subdirectories and products.' 
+      : 'Are you sure you want to delete this product?';
+    
+    if (!confirm(confirmMsg)) return;
 
     try {
-      await apiClient.delete(`/api/menu/admin/categories/${categoryId}`);
+      await apiClient.delete(`/api/menu/admin/categories/${itemId}`);
       toast({
         title: 'Success',
-        description: 'Category deleted successfully'
+        description: `${itemType === 'category' ? 'Directory' : 'Product'} deleted successfully`
       });
       fetchMenuData();
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to delete category',
+        description: `Failed to delete ${itemType}`,
         variant: 'destructive'
       });
     }
@@ -176,13 +201,11 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     return null;
   }
 
-  // Ensure categories is always an array
-  const safeCategories = Array.isArray(categories) ? categories : [];
+  // Ensure topDirectories is always an array
+  const safeTopDirectories = Array.isArray(topDirectories) ? topDirectories : [];
   
-
-
-  // Don't render if no categories and user is not admin
-  if (safeCategories.length === 0 && !isAdmin) {
+  // Don't render if no directories and user is not admin
+  if (safeTopDirectories.length === 0 && !isAdmin) {
     return null;
   }
 
