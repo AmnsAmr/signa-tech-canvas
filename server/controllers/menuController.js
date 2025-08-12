@@ -299,7 +299,7 @@ class MenuController {
     }
   }
 
-  // Get subdirectory with its products
+  // Get subdirectory with its products without caching for instant updates
   async getCategory(req, res) {
     try {
       const { categoryId } = req.params;
@@ -333,6 +333,13 @@ class MenuController {
         }))
       };
       
+      // Set no-cache headers to prevent browser caching
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       res.json(categoryData);
     } catch (error) {
       console.error('Error in getCategory:', error);
@@ -340,7 +347,7 @@ class MenuController {
     }
   }
 
-  // Get single product
+  // Get single product without caching for instant updates
   async getProduct(req, res) {
     try {
       const { productId } = req.params;
@@ -354,6 +361,13 @@ class MenuController {
       if (!product || product.type !== 'product') {
         return res.status(404).json({ error: 'Product not found' });
       }
+      
+      // Set no-cache headers to prevent browser caching
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
       
       res.json(product);
     } catch (error) {
