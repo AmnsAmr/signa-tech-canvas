@@ -42,45 +42,68 @@ class MenuController {
     }
   }
 
-  // Build hierarchical menu structure from database
+  // Build hierarchical menu structure: Top Directory → Subdirectories → Products
   static async buildMenuFromDatabase() {
     try {
-      const categories = await MenuCategory.find({ isActive: true })
+      const allItems = await MenuCategory.find({ isActive: true })
         .sort({ displayOrder: 1 })
         .lean();
       
-      console.log('All categories from DB:', categories.length, 'items');
+      // Top directories (no parent, type = category)
+      const topDirectories = allItems.filter(item => 
+        item.parentId === null && item.type === 'category'
+      );
       
-      // Build hierarchical structure - only top-level categories appear in main menu
-      const topLevel = categories.filter(cat => cat.parentId === null && cat.type === 'category');
-      console.log('Top level categories:', topLevel.length, 'items');
-      
-      const menuData = topLevel.map(parent => {
-        const subcategories = categories
-          .filter(cat => cat.parentId && cat.parentId.toString() === parent._id.toString())
+      const menuData = topDirectories.map(topDir => {
+        // Get subdirectories for this top directory
+        const subdirectories = allItems
+          .filter(item => 
+            item.parentId && 
+            item.parentId.toString() === topDir._id.toString() && 
+            item.type === 'category'
+          )
           .sort((a, b) => a.displayOrder - b.displayOrder)
-          .map(sub => ({
-            id: sub._id.toString(),
-            name: sub.name,
-            imageUrl: sub.imageUrl,
-            description: sub.description,
-            customFields: sub.customFields,
-            type: sub.type
-          }));
-        
-        console.log(`Category "${parent.name}" has ${subcategories.length} subcategories:`, subcategories.map(s => s.name));
+          .map(subDir => {
+            // Get products for this subdirectory
+            const products = allItems
+              .filter(item => 
+                item.parentId && 
+                item.parentId.toString() === subDir._id.toString() && 
+                item.type === 'product'
+              )
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map(product => ({
+                id: product._id.toString(),
+                name: product.name,
+                imageUrl: product.imageUrl,
+                description: product.description,
+                customFields: product.customFields,
+                type: 'product'
+              }));
+            
+            return {
+              id: subDir._id.toString(),
+              name: subDir.name,
+              imageUrl: subDir.imageUrl,
+              description: subDir.description,
+              customFields: subDir.customFields,
+              type: 'category',
+              products
+            };
+          });
         
         return {
-          id: parent._id.toString(),
-          name: parent.name,
-          imageUrl: parent.imageUrl,
-          description: parent.description,
-          customFields: parent.customFields,
-          subcategories
+          id: topDir._id.toString(),
+          name: topDir.name,
+          imageUrl: topDir.imageUrl,
+          description: topDir.description,
+          customFields: topDir.customFields,
+          type: 'category',
+          subdirectories
         };
       });
       
-      console.log('Final menu data structure:', JSON.stringify(menuData, null, 2));
+      console.log('Menu structure built:', menuData.length, 'top directories');
       return menuData;
     } catch (error) {
       throw error;
@@ -262,7 +285,7 @@ class MenuController {
     }
   }
 
-  // Get single category with products
+  // Get subdirectory with its products
   async getCategory(req, res) {
     try {
       const { categoryId } = req.params;
@@ -271,13 +294,13 @@ class MenuController {
         return res.status(400).json({ error: 'Invalid category ID' });
       }
       
-      const category = await MenuCategory.findById(categoryId).lean();
+      const subdirectory = await MenuCategory.findById(categoryId).lean();
       
-      if (!category) {
-        return res.status(404).json({ error: 'Category not found' });
+      if (!subdirectory || subdirectory.type !== 'category') {
+        return res.status(404).json({ error: 'Subdirectory not found' });
       }
       
-      // Get all products in this category
+      // Get all products in this subdirectory
       const products = await MenuCategory.find({ 
         parentId: categoryId, 
         type: 'product',
@@ -285,7 +308,7 @@ class MenuController {
       }).sort({ displayOrder: 1 }).lean();
       
       const categoryData = {
-        ...category,
+        ...subdirectory,
         products: products.map(product => ({
           _id: product._id,
           name: product.name,
