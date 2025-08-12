@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import CacheInvalidation from '@/utils/cacheInvalidation';
 
 interface ProductVariable {
   id: string;
@@ -80,7 +81,9 @@ const ProductPage = () => {
         description: newDescription
       });
       
-      // Force refresh to get latest data from server
+      // Clear cache and force refresh
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
       await fetchProductData();
       setEditingDescription(false);
       
@@ -118,7 +121,9 @@ const ProductPage = () => {
 
       await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
       
-      // Force refresh to get latest data from server
+      // Clear cache and force refresh
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
       await fetchProductData();
       setShowAddVariable(false);
       setNewVariableName('');
@@ -168,7 +173,9 @@ const ProductPage = () => {
 
       await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
       
-      // Force refresh to get latest data from server
+      // Clear cache and force refresh
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
       await fetchProductData();
       
       toast({
