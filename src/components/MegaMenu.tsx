@@ -217,23 +217,23 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
           <div className="flex flex-wrap gap-2 items-center">
             {isAdmin && (
               <button
-                onClick={() => handleAddCategory()}
+                onClick={handleAddTopDirectory}
                 className="category-card bg-green-100 border-2 border-dashed border-green-300 hover:border-green-500 hover:bg-green-200 transition-all duration-200 rounded-lg p-1 w-[80px] h-[60px] flex items-center justify-center group"
               >
                 <Plus className="h-4 w-4 text-green-600 group-hover:scale-110 transition-transform" />
                 <span className="ml-1 text-xs font-medium text-green-600">Add</span>
               </button>
             )}
-            {safeCategories.map((category) => (
+            {safeTopDirectories.map((topDir) => (
               <div
-                key={category.id}
+                key={topDir.id}
                 className="relative"
-                onMouseEnter={() => handleMouseEnter(category.id)}
+                onMouseEnter={() => handleMouseEnter(topDir.id)}
                 onMouseLeave={handleMouseLeave}
               >
                 <div className="category-card bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-500 hover:shadow-md transition-all duration-200 rounded-lg p-1 w-[80px] h-[60px] flex items-center justify-center cursor-pointer group">
                   <span className="text-xs font-medium text-center leading-tight text-gray-900 group-hover:text-black transition-colors">
-                    {category.name}
+                    {topDir.name}
                   </span>
                   {isAdmin && (
                     <DropdownMenu>
@@ -248,80 +248,132 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 z-50">
-                        <DropdownMenuItem onClick={() => handleEditCategory(category)}>
+                        <DropdownMenuItem onClick={() => handleEditItem(topDir)}>
                           <Edit className="h-4 w-4 mr-2" />
-                          Edit Category
+                          Edit Directory
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAddProduct(category.id)}>
+                        <DropdownMenuItem onClick={() => handleAddSubdirectory(topDir.id)}>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Product
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAddCategory(category.id)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Subcategory
+                          Add Subdirectory
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          onClick={() => handleDeleteCategory(category.id)}
+                          onClick={() => handleDeleteItem(topDir.id, 'category')}
                           className="text-red-600 focus:text-red-600"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Category
+                          Delete Directory
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
                 </div>
 
-                {/* Subcategories Dropdown Menu */}
-                {activeDropdown === category.id && (
+                {/* Subdirectories Dropdown Menu */}
+                {activeDropdown === topDir.id && (
                   <div
                     ref={dropdownRef}
-                    className="absolute top-full left-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-40 min-w-[250px] max-w-[400px]"
-                    onMouseEnter={() => handleMouseEnter(category.id)}
+                    className="absolute top-full left-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-40 min-w-[300px] max-w-[500px]"
+                    onMouseEnter={() => handleMouseEnter(topDir.id)}
                     onMouseLeave={handleMouseLeave}
                   >
                     <div className="p-4">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">{category.name}</h3>
-                      {category.subcategories.length > 0 ? (
-                        <div className="space-y-1">
-                          {category.subcategories.map((subcategory) => (
-                            <a
-                              key={subcategory.id}
-                              href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
-                              className="block p-2 rounded hover:bg-gray-100 transition-colors duration-200"
-                            >
-                              <span className="text-sm font-medium text-gray-800 hover:text-gray-900">
-                                {subcategory.name}
-                              </span>
-                              {subcategory.type === 'product' && (
-                                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
-                                  Product
-                                </span>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">{topDir.name}</h3>
+                      {topDir.subdirectories.length > 0 ? (
+                        <div className="space-y-3">
+                          {topDir.subdirectories.map((subdir) => (
+                            <div key={subdir.id} className="border border-gray-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-sm font-medium text-gray-800">{subdir.name}</h4>
+                                {isAdmin && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                        <MoreVertical className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuItem onClick={() => handleEditItem(subdir)}>
+                                        <Edit className="h-3 w-3 mr-2" />
+                                        Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleAddProduct(subdir.id)}>
+                                        <Plus className="h-3 w-3 mr-2" />
+                                        Add Product
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        onClick={() => handleDeleteItem(subdir.id, 'category')}
+                                        className="text-red-600"
+                                      >
+                                        <Trash2 className="h-3 w-3 mr-2" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                              {subdir.products.length > 0 ? (
+                                <div className="space-y-1">
+                                  {subdir.products.map((product) => (
+                                    <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                      <a
+                                        href={`/product/${product.id}`}
+                                        className="text-sm text-gray-700 hover:text-gray-900 flex-1"
+                                      >
+                                        {product.name}
+                                      </a>
+                                      {isAdmin && (
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 ml-2">
+                                              <MoreVertical className="h-3 w-3" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="w-32">
+                                            <DropdownMenuItem onClick={() => handleEditItem(product)}>
+                                              <Edit className="h-3 w-3 mr-2" />
+                                              Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              onClick={() => handleDeleteItem(product.id, 'product')}
+                                              className="text-red-600"
+                                            >
+                                              <Trash2 className="h-3 w-3 mr-2" />
+                                              Delete
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500">No products yet</p>
                               )}
-                            </a>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleAddProduct(subdir.id)}
+                                  className="w-full text-left p-2 mt-2 text-xs border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded transition-colors"
+                                >
+                                  <Plus className="h-3 w-3 inline mr-2 text-gray-600" />
+                                  Add Product
+                                </button>
+                              )}
+                            </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500">No items yet</p>
+                        <p className="text-sm text-gray-500">No subdirectories yet</p>
                       )}
                       {isAdmin && (
-                        <div className="border-t pt-2 mt-2 space-y-1">
-                          <button
-                            onClick={() => handleAddCategory(category.id)}
-                            className="w-full text-left p-2 rounded border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200"
-                          >
-                            <Plus className="h-3 w-3 inline mr-2 text-gray-600" />
-                            <span className="text-xs text-gray-700">Add Category</span>
-                          </button>
-                          <button
-                            onClick={() => handleAddProduct(category.id)}
-                            className="w-full text-left p-2 rounded border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200"
-                          >
-                            <Plus className="h-3 w-3 inline mr-2 text-gray-600" />
-                            <span className="text-xs text-gray-700">Add Product</span>
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleAddSubdirectory(topDir.id)}
+                          className="w-full text-left p-2 mt-3 text-sm border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded transition-colors"
+                        >
+                          <Plus className="h-3 w-3 inline mr-2 text-gray-600" />
+                          Add Subdirectory
+                        </button>
                       )}
                     </div>
                   </div>
@@ -358,12 +410,12 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-t border-border">
           <div className="container mx-auto px-4 py-2 space-y-2">
-            {isAdmin && safeCategories.length === 0 && (
+            {isAdmin && safeTopDirectories.length === 0 && (
               <div className="text-center py-4">
-                <p className="text-muted-foreground mb-2">No categories yet</p>
-                <Button size="sm" onClick={() => handleAddCategory()}>
+                <p className="text-muted-foreground mb-2">No directories yet</p>
+                <Button size="sm" onClick={handleAddTopDirectory}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add First Category
+                  Add First Directory
                 </Button>
               </div>
             )}
@@ -371,59 +423,59 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleAddCategory()}
+                onClick={handleAddTopDirectory}
                 className="w-full mb-2"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Category
+                Add Top Directory
               </Button>
             )}
-            {safeCategories.map((category) => (
-              <div key={category.id} className="border border-border rounded-lg">
+            {safeTopDirectories.map((topDir) => (
+              <div key={topDir.id} className="border border-border rounded-lg">
                 <button
-                  onClick={() => toggleMobileCategory(category.id)}
+                  onClick={() => toggleMobileCategory(topDir.id)}
                   className="w-full flex items-center justify-between p-3 text-left font-medium hover:bg-primary/5 rounded-lg transition-colors duration-200"
                 >
-                  {category.name}
+                  {topDir.name}
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
-                    expandedMobileCategory === category.id ? 'rotate-180' : ''
+                    expandedMobileCategory === topDir.id ? 'rotate-180' : ''
                   }`} />
                 </button>
 
-                {expandedMobileCategory === category.id && (
-                  <div className="border-t border-border p-3 space-y-1">
-                    {category.subcategories.map((subcategory) => (
-                      <a
-                        key={subcategory.id}
-                        href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
-                        className="block p-2 text-sm hover:bg-primary/5 rounded transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span className="font-medium">{subcategory.name}</span>
-                        {subcategory.type === 'product' && (
-                          <span className="ml-2 text-xs bg-secondary text-secondary-foreground px-1 py-0.5 rounded">
-                            Product
-                          </span>
+                {expandedMobileCategory === topDir.id && (
+                  <div className="border-t border-border p-3 space-y-2">
+                    {topDir.subdirectories.map((subdir) => (
+                      <div key={subdir.id} className="border border-gray-200 rounded p-2">
+                        <div className="font-medium text-sm mb-1">{subdir.name}</div>
+                        {subdir.products.map((product) => (
+                          <a
+                            key={product.id}
+                            href={`/product/${product.id}`}
+                            className="block p-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-primary/5 rounded transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            • {product.name}
+                          </a>
+                        ))}
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleAddProduct(subdir.id)}
+                            className="w-full text-left p-1 mt-1 text-xs border border-dashed border-gray-300 hover:bg-primary/5 rounded transition-colors"
+                          >
+                            <Plus className="h-3 w-3 inline mr-1" />
+                            Add Product
+                          </button>
                         )}
-                      </a>
+                      </div>
                     ))}
                     {isAdmin && (
-                      <div className="border-t pt-2 mt-2 space-y-1">
-                        <button
-                          onClick={() => handleAddCategory(category.id)}
-                          className="w-full text-left p-2 text-sm border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 rounded transition-colors duration-200"
-                        >
-                          <Plus className="h-3 w-3 inline mr-2" />
-                          Add Category
-                        </button>
-                        <button
-                          onClick={() => handleAddProduct(category.id)}
-                          className="w-full text-left p-2 text-sm border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 rounded transition-colors duration-200"
-                        >
-                          <Plus className="h-3 w-3 inline mr-2" />
-                          Add Product
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleAddSubdirectory(topDir.id)}
+                        className="w-full text-left p-2 text-sm border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 rounded transition-colors duration-200"
+                      >
+                        <Plus className="h-3 w-3 inline mr-2" />
+                        Add Subdirectory
+                      </button>
                     )}
                   </div>
                 )}
@@ -433,15 +485,17 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         </div>
       )}
 
-      {/* Add Item Dialog */}
+      {/* Add/Edit Item Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Edit Category' : `Add New ${addType === 'category' ? 'Category' : 'Product'}`}
-              {parentCategoryId && !editingCategory && (
+              {editingItem ? `Edit ${editingItem.type === 'category' ? 'Directory' : 'Product'}` : 
+               `Add New ${addType === 'category' ? (parentId ? 'Subdirectory' : 'Top Directory') : 'Product'}`}
+              {parentId && !editingItem && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
-                  to {categories.find(c => c.id === parentCategoryId)?.name || 'category'}
+                  to {topDirectories.find(d => d.id === parentId)?.name || 
+                      topDirectories.flatMap(d => d.subdirectories).find(s => s.id === parentId)?.name || 'directory'}
                 </span>
               )}
             </DialogTitle>
@@ -449,12 +503,12 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                {addType === 'category' ? 'Category' : 'Product'} Name
+                {addType === 'category' ? (parentId ? 'Subdirectory' : 'Directory') : 'Product'} Name
               </label>
               <Input
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
-                placeholder={`Enter ${addType} name`}
+                placeholder={`Enter ${addType === 'category' ? (parentId ? 'subdirectory' : 'directory') : 'product'} name`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleSubmitNewItem();
@@ -467,7 +521,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                 Cancel
               </Button>
               <Button onClick={handleSubmitNewItem} disabled={!newItemName.trim()}>
-                {editingCategory ? 'Update' : `Add ${addType === 'category' ? 'Category' : 'Product'}`}
+                {editingItem ? 'Update' : 
+                 `Add ${addType === 'category' ? (parentId ? 'Subdirectory' : 'Directory') : 'Product'}`}
               </Button>
             </div>
           </div>
