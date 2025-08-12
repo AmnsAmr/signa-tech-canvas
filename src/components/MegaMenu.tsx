@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/api';
+import CacheInvalidation from '@/utils/cacheInvalidation';
 import './MegaMenu.css';
 
 interface Product {
@@ -156,7 +157,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       setShowAddDialog(false);
       setNewItemName('');
       setEditingItem(null);
-      // Clear any cached data and force immediate refresh
+      // Clear all caches and force immediate refresh
+      CacheInvalidation.clearMenuCache();
       await fetchMenuData();
     } catch (error) {
       toast({
@@ -188,7 +190,13 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         title: 'Success',
         description: `${itemType === 'category' ? 'Directory' : 'Product'} deleted successfully`
       });
-      // Force immediate refresh after deletion
+      // Clear all caches and force immediate refresh after deletion
+      CacheInvalidation.clearMenuCache();
+      if (itemType === 'product') {
+        CacheInvalidation.clearProductCache(itemId);
+      } else {
+        CacheInvalidation.clearCategoryCache(itemId);
+      }
       await fetchMenuData();
     } catch (error) {
       toast({
