@@ -17,7 +17,7 @@ export const API_CONFIG = {
   PYTHON_SERVICE_URL: getEnvVar('VITE_PYTHON_SERVICE_URL'),
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
-  CACHE_ENABLED: true, // Master cache switch
+  CACHE_ENABLED: false, // Disabled to prevent stale menu data
 } as const;
 
 export const API_ENDPOINTS = {

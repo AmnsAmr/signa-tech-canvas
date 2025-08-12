@@ -99,7 +99,7 @@ const ProductPage = () => {
     if (!newVariableName.trim() || !product) return;
 
     try {
-      const variables = product.variables || [];
+      const variables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
       const newVariable: ProductVariable = {
         id: Date.now().toString(),
         name: newVariableName.trim(),
@@ -137,7 +137,7 @@ const ProductPage = () => {
     if (!product) return;
 
     try {
-      const variables = product.customFields?.variables || [];
+      const variables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
       const updatedVariables = variables.map((variable: ProductVariable) => {
         if (variable.id === variableId) {
           return {
@@ -180,10 +180,11 @@ const ProductPage = () => {
   };
 
   const calculateTotalPrice = () => {
-    if (!product?.customFields?.variables) return 0;
+    const vars = product?.customFields?.variables;
+    if (!Array.isArray(vars)) return 0;
     
     let total = 0;
-    product.customFields.variables.forEach((variable: ProductVariable) => {
+    vars.forEach((variable: ProductVariable) => {
       const selectedOptionId = selectedOptions[variable.id];
       if (selectedOptionId) {
         const option = variable.options.find(opt => opt.id === selectedOptionId);
@@ -225,7 +226,7 @@ const ProductPage = () => {
     );
   }
 
-  const variables = product.customFields?.variables || [];
+  const variables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
 
   return (
     <div className="min-h-screen bg-background">
