@@ -55,7 +55,8 @@ const ProductPage = () => {
   const fetchProductData = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/api/menu/product/${productId}`);
+      // Force fresh data by bypassing cache with timestamp
+      const response = await apiClient.get(`/api/menu/product/${productId}?t=${Date.now()}`);
       setProduct(response.data);
       setNewDescription(response.data.description || '');
     } catch (error) {
@@ -79,7 +80,8 @@ const ProductPage = () => {
         description: newDescription
       });
       
-      setProduct({ ...product, description: newDescription });
+      // Force refresh to get latest data from server
+      await fetchProductData();
       setEditingDescription(false);
       
       toast({
@@ -116,7 +118,8 @@ const ProductPage = () => {
 
       await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
       
-      setProduct(updatedProduct);
+      // Force refresh to get latest data from server
+      await fetchProductData();
       setShowAddVariable(false);
       setNewVariableName('');
       
@@ -164,7 +167,9 @@ const ProductPage = () => {
       };
 
       await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
-      setProduct(updatedProduct);
+      
+      // Force refresh to get latest data from server
+      await fetchProductData();
       
       toast({
         title: 'Success',
