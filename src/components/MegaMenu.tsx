@@ -67,7 +67,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await apiClient.get('/api/menu');
+      // Force fresh data by bypassing cache with timestamp
+      const response = await apiClient.get(`/api/menu?t=${Date.now()}`);
       setTopDirectories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch menu data:', error);
@@ -155,7 +156,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       setShowAddDialog(false);
       setNewItemName('');
       setEditingItem(null);
-      fetchMenuData();
+      // Clear any cached data and force immediate refresh
+      await fetchMenuData();
     } catch (error) {
       toast({
         title: 'Error',
@@ -186,7 +188,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         title: 'Success',
         description: `${itemType === 'category' ? 'Directory' : 'Product'} deleted successfully`
       });
-      fetchMenuData();
+      // Force immediate refresh after deletion
+      await fetchMenuData();
     } catch (error) {
       toast({
         title: 'Error',
