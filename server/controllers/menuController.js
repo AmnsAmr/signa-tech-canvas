@@ -49,32 +49,38 @@ class MenuController {
         .sort({ displayOrder: 1 })
         .lean();
       
-      console.log('All categories from DB:', categories);
+      console.log('All categories from DB:', categories.length, 'items');
       
       // Build hierarchical structure - only top-level categories appear in main menu
       const topLevel = categories.filter(cat => cat.parentId === null && cat.type === 'category');
-      console.log('Top level categories:', topLevel);
+      console.log('Top level categories:', topLevel.length, 'items');
       
-      const menuData = topLevel.map(parent => ({
-        id: parent._id,
-        name: parent.name,
-        imageUrl: parent.imageUrl,
-        description: parent.description,
-        customFields: parent.customFields,
-        subcategories: categories
+      const menuData = topLevel.map(parent => {
+        const subcategories = categories
           .filter(cat => cat.parentId && cat.parentId.toString() === parent._id.toString())
           .sort((a, b) => a.displayOrder - b.displayOrder)
           .map(sub => ({
-            id: sub._id,
+            id: sub._id.toString(),
             name: sub.name,
             imageUrl: sub.imageUrl,
             description: sub.description,
             customFields: sub.customFields,
             type: sub.type
-          }))
-      }));
+          }));
+        
+        console.log(`Category "${parent.name}" has ${subcategories.length} subcategories:`, subcategories.map(s => s.name));
+        
+        return {
+          id: parent._id.toString(),
+          name: parent.name,
+          imageUrl: parent.imageUrl,
+          description: parent.description,
+          customFields: parent.customFields,
+          subcategories
+        };
+      });
       
-      console.log('Final menu data:', menuData);
+      console.log('Final menu data structure:', JSON.stringify(menuData, null, 2));
       return menuData;
     } catch (error) {
       throw error;

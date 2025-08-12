@@ -218,13 +218,13 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-300 hover:bg-gray-50"
+                          className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-gray-300 hover:bg-gray-50 z-50"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="h-3 w-3 text-gray-600" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuContent align="end" className="w-48 z-50">
                         <DropdownMenuItem onClick={() => handleEditCategory(category)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit Category
@@ -250,52 +250,56 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                   )}
                 </div>
 
-                {/* Dropdown Menu */}
-                {activeDropdown === category.id && category.subcategories.length > 0 && (
+                {/* Subcategories Dropdown Menu */}
+                {activeDropdown === category.id && (
                   <div
                     ref={dropdownRef}
-                    className="absolute top-full left-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[250px] max-w-[400px]"
+                    className="absolute top-full left-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-40 min-w-[250px] max-w-[400px]"
                     onMouseEnter={() => handleMouseEnter(category.id)}
                     onMouseLeave={handleMouseLeave}
                   >
                     <div className="p-4">
-                      <h3 className="text-sm font-semibold text-primary mb-3">{category.name}</h3>
-                      <div className="space-y-1">
-                        {category.subcategories.map((subcategory) => (
-                          <a
-                            key={subcategory.id}
-                            href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
-                            className="block p-2 rounded hover:bg-primary/5 transition-colors duration-200"
-                          >
-                            <span className="text-sm font-medium hover:text-primary">
-                              {subcategory.name}
-                            </span>
-                            {subcategory.type === 'product' && (
-                              <span className="ml-2 text-xs bg-secondary text-secondary-foreground px-1 py-0.5 rounded">
-                                Product
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">{category.name}</h3>
+                      {category.subcategories.length > 0 ? (
+                        <div className="space-y-1">
+                          {category.subcategories.map((subcategory) => (
+                            <a
+                              key={subcategory.id}
+                              href={subcategory.type === 'category' ? `/category/${subcategory.id}` : `/product/${subcategory.id}`}
+                              className="block p-2 rounded hover:bg-gray-100 transition-colors duration-200"
+                            >
+                              <span className="text-sm font-medium text-gray-800 hover:text-gray-900">
+                                {subcategory.name}
                               </span>
-                            )}
-                          </a>
-                        ))}
-                        {isAdmin && (
-                          <div className="border-t pt-2 mt-2 space-y-1">
-                            <button
-                              onClick={() => handleAddCategory(category.id)}
-                              className="w-full text-left p-2 rounded border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
-                            >
-                              <Plus className="h-3 w-3 inline mr-2" />
-                              <span className="text-xs">Add Category</span>
-                            </button>
-                            <button
-                              onClick={() => handleAddProduct(category.id)}
-                              className="w-full text-left p-2 rounded border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
-                            >
-                              <Plus className="h-3 w-3 inline mr-2" />
-                              <span className="text-xs">Add Product</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                              {subcategory.type === 'product' && (
+                                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
+                                  Product
+                                </span>
+                              )}
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">No items yet</p>
+                      )}
+                      {isAdmin && (
+                        <div className="border-t pt-2 mt-2 space-y-1">
+                          <button
+                            onClick={() => handleAddCategory(category.id)}
+                            className="w-full text-left p-2 rounded border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200"
+                          >
+                            <Plus className="h-3 w-3 inline mr-2 text-gray-600" />
+                            <span className="text-xs text-gray-700">Add Category</span>
+                          </button>
+                          <button
+                            onClick={() => handleAddProduct(category.id)}
+                            className="w-full text-left p-2 rounded border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200"
+                          >
+                            <Plus className="h-3 w-3 inline mr-2 text-gray-600" />
+                            <span className="text-xs text-gray-700">Add Product</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
