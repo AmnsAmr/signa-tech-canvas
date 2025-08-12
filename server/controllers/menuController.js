@@ -28,13 +28,20 @@ const upload = multer({
 });
 
 class MenuController {
-  // Get menu data with caching
+  // Get menu data without caching for instant updates
   async getMenu(req, res) {
     try {
-      console.log('getMenu called');
-      // Skip cache for now to debug
+      console.log('getMenu called - bypassing cache for instant updates');
       const menuData = await MenuController.buildMenuFromDatabase();
-      console.log('Sending menu data:', menuData);
+      console.log('Sending fresh menu data:', menuData.length, 'top directories');
+      
+      // Set no-cache headers to prevent browser caching
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       res.json(menuData);
     } catch (error) {
       console.error('Error fetching menu:', error);
@@ -151,8 +158,9 @@ class MenuController {
       const savedCategory = await category.save();
       console.log('CREATE - Saved successfully:', savedCategory._id);
       
-      // Clear menu cache to refresh the menu
+      // Clear all menu-related caches
       cacheManager.del('menu_data');
+      cacheManager.del('route:GET:/api/menu');
       
       res.json(savedCategory.toObject());
     } catch (error) {
@@ -215,8 +223,9 @@ class MenuController {
       
       console.log('Update successful, returning:', category.toObject());
       
-      // Clear menu cache to refresh the menu
+      // Clear all menu-related caches
       cacheManager.del('menu_data');
+      cacheManager.del('route:GET:/api/menu');
       
       res.json(category.toObject());
     } catch (error) {
@@ -252,6 +261,11 @@ class MenuController {
       }
       
       console.log('DELETE - Success');
+      
+      // Clear all menu-related caches after deletion
+      cacheManager.del('menu_data');
+      cacheManager.del('route:GET:/api/menu');
+      
       res.json({ message: 'Category deleted successfully' });
     } catch (error) {
       console.error('Error in deleteCategory:', error);
