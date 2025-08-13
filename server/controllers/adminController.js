@@ -276,32 +276,39 @@ class AdminController {
       const path = require('path');
       const uploadsDir = path.join(__dirname, '../uploads');
       
-      const files = await new Promise((resolve, reject) => {
-        fs.readdir(uploadsDir, { withFileTypes: true }, (err, entries) => {
-          if (err) {
-            reject(err);
-            return;
+      const scanDirectory = (dirPath, relativePath = '') => {
+        const fileList = [];
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+        
+        entries.forEach(entry => {
+          if (entry.name === '.gitkeep') return;
+          
+          const fullPath = path.join(dirPath, entry.name);
+          const relativeFilePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+          
+          if (entry.isFile()) {
+            const stats = fs.statSync(fullPath);
+            fileList.push({
+              name: relativeFilePath,
+              size: stats.size,
+              created: stats.birthtime,
+              modified: stats.mtime,
+              folder: relativePath || 'root'
+            });
+          } else if (entry.isDirectory()) {
+            // Recursively scan subdirectories
+            const subFiles = scanDirectory(fullPath, relativeFilePath);
+            fileList.push(...subFiles);
           }
-          
-          const fileList = [];
-          entries.forEach(entry => {
-            if (entry.isFile() && entry.name !== '.gitkeep') {
-              const filePath = path.join(uploadsDir, entry.name);
-              const stats = fs.statSync(filePath);
-              fileList.push({
-                name: entry.name,
-                size: stats.size,
-                created: stats.birthtime,
-                modified: stats.mtime
-              });
-            }
-          });
-          
-          // Sort by creation date, newest first
-          fileList.sort((a, b) => new Date(b.created) - new Date(a.created));
-          resolve(fileList);
         });
-      });
+        
+        return fileList;
+      };
+      
+      const files = scanDirectory(uploadsDir);
+      
+      // Sort by creation date, newest first
+      files.sort((a, b) => new Date(b.created) - new Date(a.created));
       
       res.json(files);
     } catch (error) {
@@ -378,8 +385,8 @@ class AdminController {
       const fs = require('fs');
       const path = require('path');
       
-      // Security check - prevent directory traversal
-      if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      // Security check - prevent directory traversal with ..
+      if (filename.includes('..')) {
         return res.status(400).json({ message: 'Invalid filename' });
       }
       
