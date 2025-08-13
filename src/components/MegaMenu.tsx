@@ -211,6 +211,78 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     }
   };
 
+  const handleImageUpload = (item: any) => {
+    setSelectedItemForImage(item);
+    setShowImageDialog(true);
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedItemForImage) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('categoryId', selectedItemForImage.id);
+
+      const response = await apiClient.post('/api/menu/admin/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      toast({
+        title: 'Success',
+        description: 'Image uploaded successfully'
+      });
+
+      setShowImageDialog(false);
+      CacheInvalidation.clearMenuCache();
+      await fetchMenuData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to upload image',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = async (item: any) => {
+    if (!confirm('Are you sure you want to remove this image?')) return;
+
+    try {
+      await apiClient.delete(`/api/menu/admin/remove-image/${item.id}`);
+      toast({
+        title: 'Success',
+        description: 'Image removed successfully'
+      });
+      CacheInvalidation.clearMenuCache();
+      await fetchMenuData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove image',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Don't render anything if still loading
   if (isLoading) {
     return null;
