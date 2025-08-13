@@ -371,20 +371,23 @@ class AdminController {
         });
       });
       
-      // Check MongoDB menu categories
-      try {
-        const MenuCategory = require('../models/MenuCategory');
-        const menuItems = await MenuCategory.find({ imageUrl: filename });
-        
-        menuItems.forEach(item => {
-          usage.push({
-            type: 'menu_item',
-            location: `Menu ${item.type}: ${item.name}`,
-            details: `Menu ID: ${item._id}, Type: ${item.type}`
+      // Check MongoDB menu categories (only for files in Menu folder)
+      if (filename.startsWith('Menu/') || filename.startsWith('Menu\\')) {
+        try {
+          const MenuCategory = require('../models/MenuCategory');
+          const actualFilename = filename.split(/[\/\\]/).pop(); // Get just the filename
+          const menuItems = await MenuCategory.find({ imageUrl: actualFilename });
+          
+          menuItems.forEach(item => {
+            usage.push({
+              type: 'menu_item',
+              location: `Menu ${item.type}: ${item.name}`,
+              details: `Menu ID: ${item._id}, Type: ${item.type}`
+            });
           });
-        });
-      } catch (mongoError) {
-        console.warn('MongoDB menu check failed:', mongoError.message);
+        } catch (mongoError) {
+          console.warn('MongoDB menu check failed:', mongoError.message);
+        }
       }
       
       res.json({ filename, usage, isUsed: usage.length > 0 });
@@ -459,20 +462,23 @@ class AdminController {
           });
         });
         
-        // Check MongoDB menu categories
-        try {
-          const MenuCategory = require('../models/MenuCategory');
-          const menuItems = await MenuCategory.find({ imageUrl: filename });
-          
-          menuItems.forEach(item => {
-            usage.push({
-              type: 'menu_item',
-              location: `Menu ${item.type}: ${item.name}`,
-              details: `Menu ID: ${item._id}`
+        // Check MongoDB menu categories (only for files in Menu folder)
+        if (filename.startsWith('Menu/') || filename.startsWith('Menu\\')) {
+          try {
+            const MenuCategory = require('../models/MenuCategory');
+            const actualFilename = filename.split(/[\/\\]/).pop(); // Get just the filename
+            const menuItems = await MenuCategory.find({ imageUrl: actualFilename });
+            
+            menuItems.forEach(item => {
+              usage.push({
+                type: 'menu_item',
+                location: `Menu ${item.type}: ${item.name}`,
+                details: `Menu ID: ${item._id}`
+              });
             });
-          });
-        } catch (mongoError) {
-          console.warn('MongoDB menu check failed:', mongoError.message);
+          } catch (mongoError) {
+            console.warn('MongoDB menu check failed:', mongoError.message);
+          }
         }
         
         if (usage.length > 0) {
@@ -504,15 +510,18 @@ class AdminController {
           });
         });
         
-        // Clean up MongoDB menu categories
-        try {
-          const MenuCategory = require('../models/MenuCategory');
-          await MenuCategory.updateMany(
-            { imageUrl: filename },
-            { $unset: { imageUrl: '' } }
-          );
-        } catch (mongoError) {
-          console.warn('MongoDB menu cleanup failed:', mongoError.message);
+        // Clean up MongoDB menu categories (only for files in Menu folder)
+        if (filename.startsWith('Menu/') || filename.startsWith('Menu\\')) {
+          try {
+            const MenuCategory = require('../models/MenuCategory');
+            const actualFilename = filename.split(/[\/\\]/).pop(); // Get just the filename
+            await MenuCategory.updateMany(
+              { imageUrl: actualFilename },
+              { $unset: { imageUrl: '' } }
+            );
+          } catch (mongoError) {
+            console.warn('MongoDB menu cleanup failed:', mongoError.message);
+          }
         }
       }
       
