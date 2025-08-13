@@ -390,6 +390,86 @@ class MenuController {
     }
   }
 
+  // Upload image for product/category
+  async uploadImage(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      const { categoryId } = req.body;
+      if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
+        return res.status(400).json({ error: 'Valid category ID is required' });
+      }
+
+      const imagePath = `Menu/${req.file.filename}`;
+      
+      // Update the category/product with the image path
+      const category = await MenuCategory.findByIdAndUpdate(
+        categoryId,
+        { imageUrl: imagePath },
+        { new: true }
+      );
+
+      if (!category) {
+        return res.status(404).json({ error: 'Category/Product not found' });
+      }
+
+      // Clear menu cache
+      cacheManager.del('menu_data');
+      cacheManager.del('route:GET:/api/menu');
+
+      res.json({ 
+        message: 'Image uploaded successfully',
+        imageUrl: imagePath,
+        category: category.toObject()
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      res.status(500).json({ error: 'Failed to upload image' });
+    }
+  }
+
+  // Remove image from product/category
+  async removeImage(req, res) {
+    try {
+      const { categoryId } = req.params;
+      
+      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+
+      const category = await MenuCategory.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({ error: 'Category/Product not found' });
+      }
+
+      // Delete the image file if it exists
+      if (category.imageUrl) {
+        const imagePath = path.join('uploads', category.imageUrl);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+
+      // Update the category to remove image URL
+      category.imageUrl = '';
+      await category.save();
+
+      // Clear menu cache
+      cacheManager.del('menu_data');
+      cacheManager.del('route:GET:/api/menu');
+
+      res.json({ 
+        message: 'Image removed successfully',
+        category: category.toObject()
+      });
+    } catch (error) {
+      console.error('Error removing image:', error);
+      res.status(500).json({ error: 'Failed to remove image' });
+    }
+  }
+
   // Get upload middleware
   getUploadMiddleware() {
     return upload.single('image');
