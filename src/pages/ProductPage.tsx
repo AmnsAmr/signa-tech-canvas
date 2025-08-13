@@ -192,6 +192,70 @@ const ProductPage = () => {
     }
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !product) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('categoryId', product._id);
+
+      const response = await apiClient.request('/api/menu/admin/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      toast({
+        title: 'Success',
+        description: 'Image uploaded successfully'
+      });
+
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
+      await fetchProductData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to upload image',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!product || !confirm('Are you sure you want to remove this image?')) return;
+
+    try {
+      await apiClient.delete(`/api/menu/admin/remove-image/${product._id}`);
+      toast({
+        title: 'Success',
+        description: 'Image removed successfully'
+      });
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
+      await fetchProductData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove image',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const calculateTotalPrice = () => {
     const vars = product?.customFields?.variables;
     if (!Array.isArray(vars)) return 0;
