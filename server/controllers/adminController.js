@@ -459,6 +459,22 @@ class AdminController {
           });
         });
         
+        // Check MongoDB menu categories
+        try {
+          const MenuCategory = require('../models/MenuCategory');
+          const menuItems = await MenuCategory.find({ imageUrl: filename });
+          
+          menuItems.forEach(item => {
+            usage.push({
+              type: 'menu_item',
+              location: `Menu ${item.type}: ${item.name}`,
+              details: `Menu ID: ${item._id}`
+            });
+          });
+        } catch (mongoError) {
+          console.warn('MongoDB menu check failed:', mongoError.message);
+        }
+        
         if (usage.length > 0) {
           return res.status(409).json({ 
             message: 'File is currently in use and cannot be deleted',
