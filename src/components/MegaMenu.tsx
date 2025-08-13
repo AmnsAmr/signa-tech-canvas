@@ -615,6 +615,60 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Image Upload Dialog */}
+      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Manage Image for {selectedItemForImage?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedItemForImage?.imageUrl && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Current Image:</p>
+                <div className="relative">
+                  <img 
+                    src={`/uploads/${selectedItemForImage.imageUrl}`} 
+                    alt={selectedItemForImage.name}
+                    className="w-full h-32 object-cover rounded-lg border"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => handleRemoveImage(selectedItemForImage)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                {selectedItemForImage?.imageUrl ? 'Replace Image:' : 'Upload Image:'}
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="w-full p-2 border rounded-lg"
+                disabled={uploadingImage}
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowImageDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
