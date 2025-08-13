@@ -353,7 +353,7 @@ const FileManager = () => {
                         </TableCell>
                       </TableRow>
                     );
-                  })
+                  })}
                 </TableBody>
               </Table>
             </div>

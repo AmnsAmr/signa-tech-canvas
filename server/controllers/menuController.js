@@ -5,9 +5,14 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 // Configure multer for image uploads
+const fs = require('fs');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const menuDir = path.join('uploads', 'Menu');
+    if (!fs.existsSync(menuDir)) {
+      fs.mkdirSync(menuDir, { recursive: true });
+    }
+    cb(null, menuDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
