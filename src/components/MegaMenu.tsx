@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Menu, X, Plus, Edit, Settings, Trash2, MoreVertical } from 'lucide-react';
+import { ChevronDown, Menu, X, Plus, Edit, Settings, Trash2, MoreVertical, Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -55,8 +55,12 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [parentId, setParentId] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [showImageDialog, setShowImageDialog] = useState(false);
+  const [selectedItemForImage, setSelectedItemForImage] = useState<any>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
