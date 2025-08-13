@@ -201,8 +201,7 @@ const ProductPage = () => {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = async (file: File) => {
     if (!file || !product) return;
 
     if (!file.type.startsWith('image/')) {
@@ -225,18 +224,23 @@ const ProductPage = () => {
         body: formData
       });
 
-      toast({
-        title: 'Success',
-        description: 'Image uploaded successfully'
-      });
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Image uploaded successfully'
+        });
 
-      CacheInvalidation.clearProductCache(product._id);
-      CacheInvalidation.clearMenuCache();
-      await fetchProductData();
+        CacheInvalidation.clearProductCache(product._id);
+        CacheInvalidation.clearMenuCache();
+        await fetchProductData();
+      } else {
+        throw new Error(response.error || 'Upload failed');
+      }
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to upload image',
+        description: error instanceof Error ? error.message : 'Failed to upload image',
         variant: 'destructive'
       });
     } finally {
