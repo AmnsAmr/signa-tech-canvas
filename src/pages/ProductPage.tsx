@@ -44,6 +44,7 @@ const ProductPage = () => {
   const [newVariableName, setNewVariableName] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
