@@ -265,6 +265,34 @@ const ProductPage = () => {
     }
   };
 
+  const handleFrameConfigChange = async (config: ImageFrameConfig) => {
+    if (!product) return;
+
+    try {
+      const updatedProduct = {
+        ...product,
+        frameConfig: config
+      };
+
+      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      
+      toast({
+        title: 'Success',
+        description: 'Frame settings updated successfully'
+      });
+      
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
+      await fetchProductData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update frame settings',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const calculateTotalPrice = () => {
     const vars = product?.customFields?.variables;
     if (!Array.isArray(vars)) return 0;
