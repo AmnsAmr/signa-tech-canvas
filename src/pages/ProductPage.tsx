@@ -311,23 +311,60 @@ const ProductPage = () => {
       <div className="container mx-auto px-4 py-32">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Image */}
-          <div>
+          <div className="relative">
             {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-96 object-cover rounded-lg"
-              />
-            ) : (
-              <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">No image available</p>
+              <div className="relative">
+                <img
+                  src={`/uploads/${product.imageUrl}`}
+                  alt={product.name}
+                  className="w-full h-96 object-cover rounded-lg"
+                />
                 {isAdmin && (
-                  <Button variant="outline" className="ml-4">
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/90 hover:bg-white"
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                      disabled={uploadingImage}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploadingImage ? 'Uploading...' : 'Replace'}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="bg-red-600/90 hover:bg-red-600"
+                      onClick={handleRemoveImage}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="w-full h-96 bg-muted rounded-lg flex flex-col items-center justify-center">
+                <p className="text-muted-foreground mb-4">No image available</p>
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    disabled={uploadingImage}
+                  >
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload Image
+                    {uploadingImage ? 'Uploading...' : 'Upload Image'}
                   </Button>
                 )}
               </div>
+            )}
+            {isAdmin && (
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
             )}
           </div>
 
