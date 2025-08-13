@@ -15,4 +15,8 @@ router.put('/admin/categories/:id', authenticateToken, requireAdmin, menuControl
 router.delete('/admin/categories/:id', authenticateToken, requireAdmin, menuController.deleteCategory);
 router.post('/admin/categories/reorder', authenticateToken, requireAdmin, menuController.reorderCategories);
 
+// Image upload routes
+router.post('/admin/upload-image', authenticateToken, requireAdmin, menuController.getUploadMiddleware(), menuController.uploadImage);
+router.delete('/admin/remove-image/:categoryId', authenticateToken, requireAdmin, menuController.removeImage);
+
 module.exports = router;
