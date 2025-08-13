@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Menu, X, Plus, Edit, Settings, Trash2, MoreVertical, Upload, Image as ImageIcon } from 'lucide-react';
+import { ChevronDown, Menu, X, Plus, Edit, Settings, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -55,12 +55,8 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
   const [parentId, setParentId] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [showImageDialog, setShowImageDialog] = useState(false);
-  const [selectedItemForImage, setSelectedItemForImage] = useState<any>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -211,76 +207,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
     }
   };
 
-  const handleImageUpload = (item: any) => {
-    setSelectedItemForImage(item);
-    setShowImageDialog(true);
-  };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !selectedItemForImage) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Error',
-        description: 'Please select an image file',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('categoryId', selectedItemForImage.id);
-
-      const response = await apiClient.request('/api/menu/admin/upload-image', {
-        method: 'POST',
-        body: formData
-      });
-
-      toast({
-        title: 'Success',
-        description: 'Image uploaded successfully'
-      });
-
-      setShowImageDialog(false);
-      CacheInvalidation.clearMenuCache();
-      await fetchMenuData();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to upload image',
-        variant: 'destructive'
-      });
-    } finally {
-      setUploadingImage(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleRemoveImage = async (item: any) => {
-    if (!confirm('Are you sure you want to remove this image?')) return;
-
-    try {
-      await apiClient.delete(`/api/menu/admin/remove-image/${item.id}`);
-      toast({
-        title: 'Success',
-        description: 'Image removed successfully'
-      });
-      CacheInvalidation.clearMenuCache();
-      await fetchMenuData();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to remove image',
-        variant: 'destructive'
-      });
-    }
-  };
 
   // Don't render anything if still loading
   if (isLoading) {
@@ -338,10 +265,6 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                           <Edit className="h-4 w-4 mr-2" />
                           Edit Directory
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleImageUpload(topDir)}>
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Manage Image
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleAddSubdirectory(topDir.id)}>
                           <Plus className="h-4 w-4 mr-2" />
                           Add Subdirectory
@@ -387,10 +310,6 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                                         <Edit className="h-3 w-3 mr-2" />
                                         Edit
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleImageUpload(subdir)}>
-                                        <ImageIcon className="h-3 w-3 mr-2" />
-                                        Image
-                                      </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => handleAddProduct(subdir.id)}>
                                         <Plus className="h-3 w-3 mr-2" />
                                         Add Product
@@ -428,10 +347,6 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                                             <DropdownMenuItem onClick={() => handleEditItem(product)}>
                                               <Edit className="h-3 w-3 mr-2" />
                                               Edit
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleImageUpload(product)}>
-                                              <ImageIcon className="h-3 w-3 mr-2" />
-                                              Image
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem 
@@ -628,59 +543,7 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Image Upload Dialog */}
-      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
-              Manage Image for {selectedItemForImage?.name}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {selectedItemForImage?.imageUrl && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Current Image:</p>
-                <div className="relative">
-                  <img 
-                    src={`/uploads/${selectedItemForImage.imageUrl}`} 
-                    alt={selectedItemForImage.name}
-                    className="w-full h-32 object-cover rounded-lg border"
-                  />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={() => handleRemoveImage(selectedItemForImage)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <p className="text-sm font-medium">
-                {selectedItemForImage?.imageUrl ? 'Replace Image:' : 'Upload Image:'}
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="w-full p-2 border rounded-lg"
-                disabled={uploadingImage}
-              />
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowImageDialog(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </>
   );
 };
