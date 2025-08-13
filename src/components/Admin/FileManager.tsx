@@ -431,14 +431,18 @@ const FileManager = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Image className="h-5 w-5" />
-              Image Preview: {previewFile}
+              Image Preview: {previewFile ? (previewFile.includes('/') || previewFile.includes('\\') 
+                ? previewFile.split(/[\/\\]/).pop() 
+                : previewFile) : ''}
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
             {previewFile && (
               <img
                 src={`/uploads/${previewFile}`}
-                alt={previewFile}
+                alt={previewFile.includes('/') || previewFile.includes('\\') 
+                  ? previewFile.split(/[\/\\]/).pop() 
+                  : previewFile}
                 className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -468,9 +472,12 @@ const FileManager = () => {
                 variant="outline"
                 onClick={() => {
                   if (previewFile) {
+                    const displayName = previewFile.includes('/') || previewFile.includes('\\') 
+                      ? previewFile.split(/[\/\\]/).pop() || previewFile
+                      : previewFile;
                     const link = document.createElement('a');
                     link.href = `/uploads/${previewFile}`;
-                    link.download = previewFile;
+                    link.download = displayName;
                     link.click();
                   }
                 }}
