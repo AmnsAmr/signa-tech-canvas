@@ -319,7 +319,7 @@ class AdminController {
 
   async checkFileUsage(req, res) {
     try {
-      const { filename } = req.params;
+      const filename = decodeURIComponent(req.params.filename);
       const usage = [];
       
       // Check site_images table
@@ -375,8 +375,7 @@ class AdminController {
       if (filename.startsWith('Menu/') || filename.startsWith('Menu\\')) {
         try {
           const MenuCategory = require('../models/MenuCategory');
-          const actualFilename = filename.split(/[\/\\]/).pop(); // Get just the filename
-          const menuItems = await MenuCategory.find({ imageUrl: actualFilename });
+          const menuItems = await MenuCategory.find({ imageUrl: filename });
           
           menuItems.forEach(item => {
             usage.push({
@@ -399,7 +398,7 @@ class AdminController {
 
   async deleteUploadedFile(req, res) {
     try {
-      const { filename } = req.params;
+      const filename = decodeURIComponent(req.params.filename);
       const { force } = req.query;
       const fs = require('fs');
       const path = require('path');
@@ -466,8 +465,7 @@ class AdminController {
         if (filename.startsWith('Menu/') || filename.startsWith('Menu\\')) {
           try {
             const MenuCategory = require('../models/MenuCategory');
-            const actualFilename = filename.split(/[\/\\]/).pop(); // Get just the filename
-            const menuItems = await MenuCategory.find({ imageUrl: actualFilename });
+            const menuItems = await MenuCategory.find({ imageUrl: filename });
             
             menuItems.forEach(item => {
               usage.push({
@@ -514,9 +512,8 @@ class AdminController {
         if (filename.startsWith('Menu/') || filename.startsWith('Menu\\')) {
           try {
             const MenuCategory = require('../models/MenuCategory');
-            const actualFilename = filename.split(/[\/\\]/).pop(); // Get just the filename
             await MenuCategory.updateMany(
-              { imageUrl: actualFilename },
+              { imageUrl: filename },
               { $unset: { imageUrl: '' } }
             );
           } catch (mongoError) {

@@ -73,7 +73,8 @@ const FileManager = () => {
   const checkFileUsage = async (filename: string) => {
     try {
       const token = localStorage.getItem('token');
-      const url = API_ENDPOINTS.ADMIN.FILE_USAGE(filename);
+      const encodedFilename = encodeURIComponent(filename);
+      const url = API_ENDPOINTS.ADMIN.FILE_USAGE(encodedFilename);
       console.log('Checking file usage for:', filename, 'URL:', url);
       
       const response = await secureApiRequest(url, {
@@ -121,9 +122,10 @@ const FileManager = () => {
 
     try {
       const token = localStorage.getItem('token');
+      const encodedFilename = encodeURIComponent(deleteFile);
       const url = force 
-        ? `${API_ENDPOINTS.ADMIN.FILES}/${deleteFile}?force=true`
-        : `${API_ENDPOINTS.ADMIN.FILES}/${deleteFile}`;
+        ? `${API_ENDPOINTS.ADMIN.FILES}/${encodedFilename}?force=true`
+        : `${API_ENDPOINTS.ADMIN.FILES}/${encodedFilename}`;
       
       const response = await secureApiRequest(url, {
         method: 'DELETE',
