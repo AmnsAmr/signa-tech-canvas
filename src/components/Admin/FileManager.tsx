@@ -220,12 +220,38 @@ const FileManager = () => {
           <CardTitle className="flex items-center gap-2">
             <File className="h-5 w-5" />
             Uploaded Files ({files.length})
-            {files.filter(f => isImageFile(f.name)).length > 0 && (
+            {files.filter(f => {
+              const displayName = f.name.includes('/') || f.name.includes('\\') 
+                ? f.name.split(/[\/\\]/).pop() || f.name 
+                : f.name;
+              return isImageFile(displayName);
+            }).length > 0 && (
               <span className="text-sm text-muted-foreground ml-2">
-                ({files.filter(f => isImageFile(f.name)).length} images)
+                ({files.filter(f => {
+                  const displayName = f.name.includes('/') || f.name.includes('\\') 
+                    ? f.name.split(/[\/\\]/).pop() || f.name 
+                    : f.name;
+                  return isImageFile(displayName);
+                }).length} images)
               </span>
             )}
           </CardTitle>
+          <div className="flex gap-2 mt-2">
+            {Array.from(new Set(files.map(f => f.folder))).map(folder => {
+              const folderFiles = files.filter(f => f.folder === folder);
+              return (
+                <span key={folder} className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  folder === 'root' 
+                    ? 'bg-gray-100 text-gray-700' 
+                    : folder === 'Menu'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  {folder === 'root' ? 'Root' : folder}: {folderFiles.length} files
+                </span>
+              );
+            })}
+          </div>
         </CardHeader>
         <CardContent>
           {files.length === 0 ? (
