@@ -25,12 +25,7 @@ interface ProductVariable {
   }>;
 }
 
-interface ImageFrameConfig {
-  width: number;
-  height: number;
-  objectFit: 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
-  borderRadius: number;
-}
+
 
 interface Product {
   _id: string;
@@ -39,7 +34,6 @@ interface Product {
   description?: string;
   customFields?: Record<string, any>;
   variables?: ProductVariable[];
-  frameConfig?: ImageFrameConfig;
   type: 'product';
 }
 
@@ -269,33 +263,7 @@ const ProductPage = () => {
     }
   };
 
-  const handleFrameConfigChange = async (config: ImageFrameConfig) => {
-    if (!product) return;
 
-    try {
-      const updatedProduct = {
-        ...product,
-        frameConfig: config
-      };
-
-      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
-      
-      toast({
-        title: 'Success',
-        description: 'Frame settings updated successfully'
-      });
-      
-      CacheInvalidation.clearProductCache(product._id);
-      CacheInvalidation.clearMenuCache();
-      await fetchProductData();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update frame settings',
-        variant: 'destructive'
-      });
-    }
-  };
 
   const calculateTotalPrice = () => {
     const vars = product?.customFields?.variables;
@@ -355,8 +323,6 @@ const ProductPage = () => {
           <DynamicImageFrame
             src={product.imageUrl ? `/uploads/${product.imageUrl}` : undefined}
             alt={product.name}
-            config={product.frameConfig}
-            onConfigChange={handleFrameConfigChange}
             onUpload={handleImageUpload}
             onRemove={handleRemoveImage}
             isAdmin={isAdmin}
