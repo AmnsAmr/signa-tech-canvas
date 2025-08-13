@@ -339,6 +339,10 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                           <Edit className="h-4 w-4 mr-2" />
                           Edit Directory
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleImageUpload(topDir)}>
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          Manage Image
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleAddSubdirectory(topDir.id)}>
                           <Plus className="h-4 w-4 mr-2" />
                           Add Subdirectory
