@@ -13,6 +13,7 @@ import { apiClient } from '@/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CacheInvalidation from '@/utils/cacheInvalidation';
+import { DynamicImageFrame } from '@/components/shared/DynamicImageFrame';
 
 interface ProductVariable {
   id: string;
@@ -24,6 +25,13 @@ interface ProductVariable {
   }>;
 }
 
+interface ImageFrameConfig {
+  width: number;
+  height: number;
+  objectFit: 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
+  borderRadius: number;
+}
+
 interface Product {
   _id: string;
   name: string;
@@ -31,6 +39,7 @@ interface Product {
   description?: string;
   customFields?: Record<string, any>;
   variables?: ProductVariable[];
+  frameConfig?: ImageFrameConfig;
   type: 'product';
 }
 
