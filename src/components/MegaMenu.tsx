@@ -235,10 +235,9 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       formData.append('image', file);
       formData.append('categoryId', selectedItemForImage.id);
 
-      const response = await apiClient.post('/api/menu/admin/upload-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await apiClient.request('/api/menu/admin/upload-image', {
+        method: 'POST',
+        body: formData
       });
 
       toast({
@@ -388,6 +387,10 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                                         <Edit className="h-3 w-3 mr-2" />
                                         Edit
                                       </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleImageUpload(subdir)}>
+                                        <ImageIcon className="h-3 w-3 mr-2" />
+                                        Image
+                                      </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => handleAddProduct(subdir.id)}>
                                         <Plus className="h-3 w-3 mr-2" />
                                         Add Product
@@ -426,6 +429,11 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
                                               <Edit className="h-3 w-3 mr-2" />
                                               Edit
                                             </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleImageUpload(product)}>
+                                              <ImageIcon className="h-3 w-3 mr-2" />
+                                              Image
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
                                             <DropdownMenuItem 
                                               onClick={() => handleDeleteItem(product.id, 'product')}
                                               className="text-red-600"
