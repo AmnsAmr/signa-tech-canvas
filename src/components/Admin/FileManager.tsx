@@ -15,6 +15,7 @@ interface UploadedFile {
   size: number;
   created: string;
   modified: string;
+  folder: string;
 }
 
 interface FileUsage {
@@ -177,7 +178,11 @@ const FileManager = () => {
   };
 
   const handlePreviewFile = (filename: string) => {
-    if (isImageFile(filename)) {
+    const displayName = filename.includes('/') || filename.includes('\\') 
+      ? filename.split(/[\/\\]/).pop() || filename 
+      : filename;
+    
+    if (isImageFile(displayName)) {
       setPreviewFile(filename);
     } else {
       toast({
@@ -233,6 +238,7 @@ const FileManager = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Filename (Click to preview)</TableHead>
+                    <TableHead>Folder</TableHead>
                     <TableHead>Size</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Modified</TableHead>
@@ -241,70 +247,87 @@ const FileManager = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {files.map((file) => (
-                    <TableRow key={file.name}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {getFileIcon(file.name)}
-                          <button
-                            onClick={() => handlePreviewFile(file.name)}
-                            className={`truncate max-w-[200px] text-left transition-colors ${
-                              isImageFile(file.name) 
-                                ? 'hover:text-blue-600 hover:underline cursor-pointer' 
-                                : 'cursor-default'
-                            }`}
-                            title={isImageFile(file.name) ? `Click to preview ${file.name}` : file.name}
-                            disabled={!isImageFile(file.name)}
-                          >
-                            {file.name}
-                          </button>
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatFileSize(file.size)}</TableCell>
-                      <TableCell>{formatDate(file.created)}</TableCell>
-                      <TableCell>{formatDate(file.modified)}</TableCell>
-                      <TableCell>
-                        <span className="text-xs text-muted-foreground">
-                          Click delete to check usage
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {isImageFile(file.name) && (
+                  {files.map((file) => {
+                    const displayName = file.name.includes('/') || file.name.includes('\\') 
+                      ? file.name.split(/[\/\\]/).pop() || file.name 
+                      : file.name;
+                    
+                    return (
+                      <TableRow key={file.name}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(displayName)}
+                            <button
+                              onClick={() => handlePreviewFile(file.name)}
+                              className={`truncate max-w-[200px] text-left transition-colors ${
+                                isImageFile(displayName) 
+                                  ? 'hover:text-blue-600 hover:underline cursor-pointer' 
+                                  : 'cursor-default'
+                              }`}
+                              title={isImageFile(displayName) ? `Click to preview ${displayName}` : displayName}
+                              disabled={!isImageFile(displayName)}
+                            >
+                              {displayName}
+                            </button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            file.folder === 'root' 
+                              ? 'bg-gray-100 text-gray-700' 
+                              : file.folder === 'Menu'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            {file.folder === 'root' ? 'Root' : file.folder}
+                          </span>
+                        </TableCell>
+                        <TableCell>{formatFileSize(file.size)}</TableCell>
+                        <TableCell>{formatDate(file.created)}</TableCell>
+                        <TableCell>{formatDate(file.modified)}</TableCell>
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground">
+                            Click delete to check usage
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {isImageFile(displayName) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePreviewFile(file.name)}
+                                title="Preview image"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handlePreviewFile(file.name)}
-                              title="Preview image"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `/uploads/${file.name}`;
+                                link.download = displayName;
+                                link.click();
+                              }}
+                              title="Download file"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = `/uploads/${file.name}`;
-                              link.download = file.name;
-                              link.click();
-                            }}
-                            title="Download file"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleInitiateDelete(file.name)}
-                            title="Delete file"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleInitiateDelete(file.name)}
+                              title="Delete file"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 </TableBody>
               </Table>
             </div>
