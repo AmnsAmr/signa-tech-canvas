@@ -207,17 +207,48 @@ const createProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, image_filename, display_order, is_active } = req.body;
+    const updateData = req.body;
+    
+    // Build dynamic query for partial updates
+    const fields = [];
+    const values = [];
+    
+    if (updateData.title !== undefined) {
+      fields.push('title = ?');
+      values.push(updateData.title);
+    }
+    if (updateData.description !== undefined) {
+      fields.push('description = ?');
+      values.push(updateData.description);
+    }
+    if (updateData.image_filename !== undefined) {
+      fields.push('image_filename = ?');
+      values.push(updateData.image_filename);
+    }
+    if (updateData.display_order !== undefined) {
+      fields.push('display_order = ?');
+      values.push(updateData.display_order);
+    }
+    if (updateData.is_active !== undefined) {
+      fields.push('is_active = ?');
+      values.push(updateData.is_active);
+    }
+    
+    if (fields.length === 0) {
+      return res.status(400).json({ message: 'No fields to update' });
+    }
+    
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+    
+    const query = `UPDATE projects SET ${fields.join(', ')} WHERE id = ?`;
+    console.log('Update query:', query, 'Values:', values);
     
     const changes = await new Promise((resolve, reject) => {
-      db.run(
-        "UPDATE projects SET title = ?, description = ?, image_filename = ?, display_order = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-        [title, description, image_filename, display_order, is_active, id],
-        function(err) {
-          if (err) reject(err);
-          else resolve(this.changes);
-        }
-      );
+      db.run(query, values, function(err) {
+        if (err) reject(err);
+        else resolve(this.changes);
+      });
     });
 
     if (changes === 0) {
@@ -275,6 +306,14 @@ const updateProjectImage = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    const filename = req.file.filename;
+    const newFilePath = path.join(__dirname, '../uploads', filename);
+    
+    // Verify the uploaded file actually exists
+    if (!fs.existsSync(newFilePath)) {
+      return res.status(400).json({ message: 'Uploaded file not found on server' });
+    }
+
     // Delete old image file if it exists
     if (currentProject.image_filename) {
       const oldFilePath = path.join(__dirname, '../uploads', currentProject.image_filename);
@@ -282,8 +321,6 @@ const updateProjectImage = async (req, res) => {
         if (fsErr) console.error('Failed to delete old project image:', fsErr);
       });
     }
-
-    const filename = req.file.filename;
     
     const changes = await new Promise((resolve, reject) => {
       db.run(
