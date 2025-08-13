@@ -62,8 +62,8 @@ const ProductPage = () => {
       setLoading(true);
       // Force fresh data by bypassing cache with timestamp
       const response = await apiClient.get(`/api/menu/product/${productId}?t=${Date.now()}`);
-      setProduct(response.data);
-      setNewDescription(response.data.description || '');
+      setProduct(response.data as Product);
+      setNewDescription((response.data as Product).description || '');
     } catch (error) {
       console.error('Failed to fetch product:', error);
       toast({

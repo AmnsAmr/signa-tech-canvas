@@ -371,6 +371,22 @@ class AdminController {
         });
       });
       
+      // Check MongoDB menu categories
+      try {
+        const MenuCategory = require('../models/MenuCategory');
+        const menuItems = await MenuCategory.find({ imageUrl: filename });
+        
+        menuItems.forEach(item => {
+          usage.push({
+            type: 'menu_item',
+            location: `Menu ${item.type}: ${item.name}`,
+            details: `Menu ID: ${item._id}, Type: ${item.type}`
+          });
+        });
+      } catch (mongoError) {
+        console.warn('MongoDB menu check failed:', mongoError.message);
+      }
+      
       res.json({ filename, usage, isUsed: usage.length > 0 });
     } catch (error) {
       console.error('Check file usage error:', error);
