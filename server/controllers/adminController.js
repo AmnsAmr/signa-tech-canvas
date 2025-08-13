@@ -503,6 +503,17 @@ class AdminController {
             });
           });
         });
+        
+        // Clean up MongoDB menu categories
+        try {
+          const MenuCategory = require('../models/MenuCategory');
+          await MenuCategory.updateMany(
+            { imageUrl: filename },
+            { $unset: { imageUrl: '' } }
+          );
+        } catch (mongoError) {
+          console.warn('MongoDB menu cleanup failed:', mongoError.message);
+        }
       }
       
       // Delete the file
