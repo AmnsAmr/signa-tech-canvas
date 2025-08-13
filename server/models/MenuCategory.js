@@ -27,6 +27,12 @@ const menuCategorySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: {}
   },
+  frameConfig: {
+    width: { type: Number, default: 384 },
+    height: { type: Number, default: 384 },
+    objectFit: { type: String, enum: ['cover', 'contain', 'fill', 'scale-down', 'none'], default: 'cover' },
+    borderRadius: { type: Number, default: 8 }
+  },
   type: {
     type: String,
     enum: ['category', 'product'],
