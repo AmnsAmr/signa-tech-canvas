@@ -154,10 +154,11 @@ const ProductPage = () => {
       const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
       const updatedVariables = variables.map((variable: ProductVariable) => {
         if (variable.id === variableId) {
+          const currentOptions = Array.isArray(variable.options) ? variable.options : [];
           return {
             ...variable,
             options: [
-              ...variable.options,
+              ...currentOptions,
               {
                 id: Date.now().toString(),
                 value,
@@ -169,6 +170,7 @@ const ProductPage = () => {
         return variable;
       });
 
+      console.log('Sending updated variables:', updatedVariables);
       const updatedProduct = {
         ...product,
         customFields: {
@@ -274,7 +276,7 @@ const ProductPage = () => {
     let total = 0;
     variablesArray.forEach((variable: ProductVariable) => {
       const selectedOptionId = selectedOptions[variable.id];
-      if (selectedOptionId) {
+      if (selectedOptionId && Array.isArray(variable.options)) {
         const option = variable.options.find(opt => opt.id === selectedOptionId);
         if (option) {
           total += option.price;
@@ -316,6 +318,11 @@ const ProductPage = () => {
 
   const vars = product.customFields?.variables;
   const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+  // Convert options objects to arrays
+  const processedVariables = variables.map((variable: any) => ({
+    ...variable,
+    options: Array.isArray(variable.options) ? variable.options : (variable.options && typeof variable.options === 'object' ? Object.values(variable.options) : [])
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -378,14 +385,14 @@ const ProductPage = () => {
 
             {/* Variables/Options */}
             <div className="space-y-6">
-              {variables.map((variable: ProductVariable) => (
+              {processedVariables.map((variable: ProductVariable) => (
                 <Card key={variable.id}>
                   <CardHeader>
                     <CardTitle className="text-lg">{variable.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-2">
-                      {variable.options.map((option) => (
+                      {(Array.isArray(variable.options) ? variable.options : []).map((option) => (
                         <Button
                           key={option.id}
                           variant={selectedOptions[variable.id] === option.id ? "default" : "outline"}
@@ -436,7 +443,7 @@ const ProductPage = () => {
                 />
               </div>
               
-              {variables.length > 0 && (
+              {processedVariables.length > 0 && (
                 <div className="text-2xl font-bold">
                   Total: ${calculateTotalPrice().toFixed(2)}
                 </div>
