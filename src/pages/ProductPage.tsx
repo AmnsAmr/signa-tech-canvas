@@ -48,6 +48,8 @@ const ProductPage = () => {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [editingVariable, setEditingVariable] = useState<string | null>(null);
+  const [editVariableName, setEditVariableName] = useState('');
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -170,7 +172,6 @@ const ProductPage = () => {
         return variable;
       });
 
-      console.log('Sending updated variables:', updatedVariables);
       const updatedProduct = {
         ...product,
         customFields: {
@@ -181,7 +182,6 @@ const ProductPage = () => {
 
       await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
       
-      // Clear cache and force refresh
       CacheInvalidation.clearProductCache(product._id);
       CacheInvalidation.clearMenuCache();
       await fetchProductData();
@@ -194,6 +194,123 @@ const ProductPage = () => {
       toast({
         title: 'Error',
         description: 'Failed to add option',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteVariable = async (variableId: string) => {
+    if (!product || !confirm('Are you sure you want to delete this variable?')) return;
+
+    try {
+      const vars = product.customFields?.variables;
+      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+      const updatedVariables = variables.filter((variable: ProductVariable) => variable.id !== variableId);
+
+      const updatedProduct = {
+        ...product,
+        customFields: {
+          ...product.customFields,
+          variables: updatedVariables
+        }
+      };
+
+      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
+      await fetchProductData();
+      
+      toast({
+        title: 'Success',
+        description: 'Variable deleted successfully'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete variable',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleEditVariable = async (variableId: string, newName: string) => {
+    if (!product || !newName.trim()) return;
+
+    try {
+      const vars = product.customFields?.variables;
+      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+      const updatedVariables = variables.map((variable: ProductVariable) => 
+        variable.id === variableId ? { ...variable, name: newName.trim() } : variable
+      );
+
+      const updatedProduct = {
+        ...product,
+        customFields: {
+          ...product.customFields,
+          variables: updatedVariables
+        }
+      };
+
+      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
+      await fetchProductData();
+      setEditingVariable(null);
+      
+      toast({
+        title: 'Success',
+        description: 'Variable updated successfully'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update variable',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteOption = async (variableId: string, optionId: string) => {
+    if (!product || !confirm('Are you sure you want to delete this option?')) return;
+
+    try {
+      const vars = product.customFields?.variables;
+      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+      const updatedVariables = variables.map((variable: ProductVariable) => {
+        if (variable.id === variableId) {
+          const currentOptions = Array.isArray(variable.options) ? variable.options : [];
+          return {
+            ...variable,
+            options: currentOptions.filter(option => option.id !== optionId)
+          };
+        }
+        return variable;
+      });
+
+      const updatedProduct = {
+        ...product,
+        customFields: {
+          ...product.customFields,
+          variables: updatedVariables
+        }
+      };
+
+      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      
+      CacheInvalidation.clearProductCache(product._id);
+      CacheInvalidation.clearMenuCache();
+      await fetchProductData();
+      
+      toast({
+        title: 'Success',
+        description: 'Option deleted successfully'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete option',
         variant: 'destructive'
       });
     }
@@ -385,23 +502,75 @@ const ProductPage = () => {
               {processedVariables.map((variable: ProductVariable) => (
                 <Card key={variable.id}>
                   <CardHeader>
-                    <CardTitle className="text-lg">{variable.name}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      {editingVariable === variable.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Input
+                            value={editVariableName}
+                            onChange={(e) => setEditVariableName(e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button size="sm" onClick={() => handleEditVariable(variable.id, editVariableName)}>
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingVariable(null)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <CardTitle className="text-lg">{variable.name}</CardTitle>
+                          {isAdmin && (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingVariable(variable.id);
+                                  setEditVariableName(variable.name);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteVariable(variable.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-2">
                       {(Array.isArray(variable.options) ? variable.options : []).map((option) => (
-                        <Button
-                          key={option.id}
-                          variant={selectedOptions[variable.id] === option.id ? "default" : "outline"}
-                          onClick={() => setSelectedOptions({
-                            ...selectedOptions,
-                            [variable.id]: option.id
-                          })}
-                          className="justify-between"
-                        >
-                          <span>{option.value}</span>
-                          <Badge variant="secondary">${option.price}</Badge>
-                        </Button>
+                        <div key={option.id} className="relative group">
+                          <Button
+                            variant={selectedOptions[variable.id] === option.id ? "default" : "outline"}
+                            onClick={() => setSelectedOptions({
+                              ...selectedOptions,
+                              [variable.id]: option.id
+                            })}
+                            className="justify-between w-full"
+                          >
+                            <span>{option.value}</span>
+                            <Badge variant="secondary">MAD {option.price}</Badge>
+                          </Button>
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-destructive text-destructive-foreground"
+                              onClick={() => handleDeleteOption(variable.id, option.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       ))}
                     </div>
                     {isAdmin && (
@@ -442,7 +611,7 @@ const ProductPage = () => {
               
               {processedVariables.length > 0 && (
                 <div className="text-2xl font-bold">
-                  Total: ${calculateTotalPrice().toFixed(2)}
+                  Total: MAD {calculateTotalPrice().toFixed(2)}
                 </div>
               )}
 
