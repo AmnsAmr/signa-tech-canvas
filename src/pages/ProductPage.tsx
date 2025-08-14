@@ -119,6 +119,9 @@ const ProductPage = () => {
         options: []
       };
 
+      console.log('Adding variable:', newVariable);
+      console.log('Current variables:', variables);
+
       const updatedProduct = {
         ...product,
         customFields: {
@@ -127,7 +130,10 @@ const ProductPage = () => {
         }
       };
 
-      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('Sending updated product:', JSON.stringify(updatedProduct, null, 2));
+      const response = await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('API response:', response);
+      console.log('Response data:', JSON.stringify(response.data, null, 2));
       
       // Clear cache and force refresh
       CacheInvalidation.clearProductCache(product._id);
@@ -141,6 +147,7 @@ const ProductPage = () => {
         description: 'Variable added successfully'
       });
     } catch (error) {
+      console.error('Error adding variable:', error);
       toast({
         title: 'Error',
         description: 'Failed to add variable',
@@ -155,33 +162,40 @@ const ProductPage = () => {
     try {
       const vars = product.customFields?.variables;
       const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+      
+      console.log('Adding option to variable:', variableId, 'value:', value, 'price:', price);
+      console.log('Current variables:', variables);
+      
       const updatedVariables = variables.map((variable: ProductVariable) => {
         if (variable.id === variableId) {
           const currentOptions = Array.isArray(variable.options) ? variable.options : [];
+          const newOption = {
+            id: Date.now().toString(),
+            value,
+            price
+          };
+          console.log('Adding option:', newOption, 'to variable:', variable.name);
           return {
             ...variable,
-            options: [
-              ...currentOptions,
-              {
-                id: Date.now().toString(),
-                value,
-                price
-              }
-            ]
+            options: Array.from([...currentOptions, newOption])
           };
         }
         return variable;
       });
 
+      console.log('Updated variables:', updatedVariables);
+
       const updatedProduct = {
         ...product,
         customFields: {
           ...product.customFields,
-          variables: updatedVariables
+          variables: Array.from(updatedVariables)
         }
       };
 
-      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('Sending updated product:', updatedProduct);
+      const response = await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('API response:', response);
       
       CacheInvalidation.clearProductCache(product._id);
       CacheInvalidation.clearMenuCache();
@@ -192,6 +206,7 @@ const ProductPage = () => {
         description: 'Option added successfully'
       });
     } catch (error) {
+      console.error('Error adding option:', error);
       toast({
         title: 'Error',
         description: 'Failed to add option',
