@@ -226,7 +226,6 @@ const ProductPage = () => {
       const updatedProduct = {
         ...product,
         customFields: {
-          ...product.customFields,
           variables: updatedVariables
         }
       };
@@ -263,7 +262,6 @@ const ProductPage = () => {
       const updatedProduct = {
         ...product,
         customFields: {
-          ...product.customFields,
           variables: updatedVariables
         }
       };
@@ -308,7 +306,6 @@ const ProductPage = () => {
       const updatedProduct = {
         ...product,
         customFields: {
-          ...product.customFields,
           variables: updatedVariables
         }
       };
