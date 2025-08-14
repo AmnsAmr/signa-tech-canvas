@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 const MenuCategory = require('../models/MenuCategory');
 
-async function up() {
+async function fixVariablesArrays() {
   try {
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/signatech');
+    console.log('Connected to MongoDB');
+    
     console.log('Starting variables array migration...');
     
     const categories = await MenuCategory.find({
@@ -46,10 +50,11 @@ async function up() {
     }
     
     console.log(`Migration completed. Fixed ${fixedCount} categories.`);
+    process.exit(0);
   } catch (error) {
     console.error('Migration failed:', error);
-    throw error;
+    process.exit(1);
   }
 }
 
-module.exports = { up };
+fixVariablesArrays();

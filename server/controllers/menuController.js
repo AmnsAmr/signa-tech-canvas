@@ -153,7 +153,7 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: this.ensureArrayStructure(customFields),
+        customFields: MenuController.ensureArrayStructure(customFields),
         type: type || 'category',
         imageUrl: imageUrl || ''
       };
@@ -208,7 +208,7 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: this.ensureArrayStructure(customFields),
+        customFields: MenuController.ensureArrayStructure(customFields),
         type: type || 'category',
         isActive: isActive !== undefined ? isActive : true
       };
@@ -477,7 +477,7 @@ class MenuController {
   }
 
   // Helper method to ensure array structure
-  ensureArrayStructure(customFields) {
+  static ensureArrayStructure(customFields) {
     if (!customFields) return {};
     
     const result = { ...customFields };
