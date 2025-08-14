@@ -108,7 +108,8 @@ const ProductPage = () => {
     if (!newVariableName.trim() || !product) return;
 
     try {
-      const variables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
+      const vars = product.customFields?.variables;
+      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
       const newVariable: ProductVariable = {
         id: Date.now().toString(),
         name: newVariableName.trim(),
@@ -149,7 +150,8 @@ const ProductPage = () => {
     if (!product) return;
 
     try {
-      const variables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
+      const vars = product.customFields?.variables;
+      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
       const updatedVariables = variables.map((variable: ProductVariable) => {
         if (variable.id === variableId) {
           return {
@@ -267,10 +269,10 @@ const ProductPage = () => {
 
   const calculateTotalPrice = () => {
     const vars = product?.customFields?.variables;
-    if (!Array.isArray(vars)) return 0;
+    const variablesArray = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
     
     let total = 0;
-    vars.forEach((variable: ProductVariable) => {
+    variablesArray.forEach((variable: ProductVariable) => {
       const selectedOptionId = selectedOptions[variable.id];
       if (selectedOptionId) {
         const option = variable.options.find(opt => opt.id === selectedOptionId);
@@ -312,7 +314,8 @@ const ProductPage = () => {
     );
   }
 
-  const variables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
+  const vars = product.customFields?.variables;
+  const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
 
   return (
     <div className="min-h-screen bg-background">
