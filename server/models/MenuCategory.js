@@ -24,8 +24,17 @@ const menuCategorySchema = new mongoose.Schema({
     default: ''
   },
   customFields: {
+    variables: [{
+      id: { type: String, required: true },
+      name: { type: String, required: true },
+      options: [{
+        id: { type: String, required: true },
+        value: { type: String, required: true },
+        price: { type: Number, required: true }
+      }]
+    }],
     type: mongoose.Schema.Types.Mixed,
-    default: {}
+    default: { variables: [] }
   },
   frameConfig: {
     width: { type: Number, default: 384 },

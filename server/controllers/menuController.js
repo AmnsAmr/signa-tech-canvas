@@ -153,7 +153,10 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: customFields || {},
+        customFields: {
+          ...customFields,
+          variables: Array.isArray(customFields?.variables) ? customFields.variables : []
+        },
         type: type || 'category',
         imageUrl: imageUrl || ''
       };
@@ -208,7 +211,10 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: customFields || {},
+        customFields: {
+          ...customFields,
+          variables: Array.isArray(customFields?.variables) ? customFields.variables : []
+        },
         type: type || 'category',
         isActive: isActive !== undefined ? isActive : true
       };
