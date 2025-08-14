@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Plus, Save, X, Trash2, Upload } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -546,32 +547,49 @@ const ProductPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(Array.isArray(variable.options) ? variable.options : []).map((option) => (
-                        <div key={option.id} className="relative group">
-                          <Button
-                            variant={selectedOptions[variable.id] === option.id ? "default" : "outline"}
-                            onClick={() => setSelectedOptions({
-                              ...selectedOptions,
-                              [variable.id]: option.id
-                            })}
-                            className="justify-between w-full"
-                          >
-                            <span>{option.value}</span>
-                            <Badge variant="secondary">MAD {option.price}</Badge>
-                          </Button>
-                          {isAdmin && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-destructive text-destructive-foreground"
-                              onClick={() => handleDeleteOption(variable.id, option.id)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          )}
+                    <div className="space-y-4">
+                      <Select
+                        value={selectedOptions[variable.id] || ""}
+                        onValueChange={(value) => setSelectedOptions({
+                          ...selectedOptions,
+                          [variable.id]: value
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={`Select ${variable.name.toLowerCase()}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(Array.isArray(variable.options) ? variable.options : []).map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              <div className="flex justify-between items-center w-full">
+                                <span>{option.value}</span>
+                                <Badge variant="secondary" className="ml-2">MAD {option.price}</Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {isAdmin && (Array.isArray(variable.options) ? variable.options : []).length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">Manage Options:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(Array.isArray(variable.options) ? variable.options : []).map((option) => (
+                              <div key={option.id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded">
+                                <span className="text-sm">{option.value} (MAD {option.price})</span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                  onClick={() => handleDeleteOption(variable.id, option.id)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                     {isAdmin && (
                       <div className="mt-4 pt-4 border-t">
