@@ -476,6 +476,40 @@ class MenuController {
     }
   }
 
+  // Helper method to ensure array structure
+  ensureArrayStructure(customFields) {
+    if (!customFields) return {};
+    
+    const result = { ...customFields };
+    
+    if (result.variables) {
+      // Convert object with numeric keys to array
+      if (!Array.isArray(result.variables)) {
+        const keys = Object.keys(result.variables).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
+        if (keys.length > 0) {
+          result.variables = keys.map(k => result.variables[k]);
+        } else {
+          result.variables = [];
+        }
+      }
+      
+      // Ensure each variable's options is an array
+      result.variables = result.variables.map(variable => {
+        if (variable.options && !Array.isArray(variable.options)) {
+          const optionKeys = Object.keys(variable.options).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
+          if (optionKeys.length > 0) {
+            variable.options = optionKeys.map(k => variable.options[k]);
+          } else {
+            variable.options = [];
+          }
+        }
+        return variable;
+      });
+    }
+    
+    return result;
+  }
+
   // Get upload middleware
   getUploadMiddleware() {
     return upload.single('image');
