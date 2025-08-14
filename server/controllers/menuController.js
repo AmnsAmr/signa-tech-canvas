@@ -223,9 +223,15 @@ class MenuController {
         updateData.imageUrl = imageUrl;
       }
       
-      console.log('Executing update with data:', updateData);
-      const category = await MenuCategory.findByIdAndUpdate(id, updateData, { new: true });
-      console.log('Update result:', category);
+      console.log('Executing update with data:', JSON.stringify(updateData, null, 2));
+      
+      // Use $set to ensure proper array structure
+      const category = await MenuCategory.findByIdAndUpdate(
+        id, 
+        { $set: updateData }, 
+        { new: true, runValidators: true }
+      );
+      console.log('Update result:', JSON.stringify(category.toObject(), null, 2));
       
       if (!category) {
         console.log('Category not found for ID:', id);
