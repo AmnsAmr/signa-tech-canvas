@@ -1,64 +1,68 @@
 import React, { useState, useCallback } from 'react';
-import LazyImage from './shared/LazyImage';
+import { apiClient } from '@/api/client';
 
 interface ImageLoaderProps {
-  src?: string;
+  filename?: string;
   alt: string;
   className?: string;
-  critical?: boolean;
-  style?: React.CSSProperties;
-  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-  filename?: string;
-  priority?: boolean;
-
+  fallbackSrc?: string;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
-const ImageLoader: React.FC<ImageLoaderProps> = ({ 
-  src, 
+const ImageLoader: React.FC<ImageLoaderProps> = ({
   filename,
-  alt, 
-  className = '', 
-  critical = false, 
-  priority = false,
-  style = {},
+  alt,
+  className = '',
+  fallbackSrc = '/placeholder.svg',
+  onLoad,
   onError
 }) => {
-  const [hasError, setHasError] = React.useState(false);
-  
-  const imageSource = src || (filename ? `/uploads/${filename}` : '/placeholder.svg');
-  
-  const handleError = React.useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoad = useCallback(() => {
+    setIsLoading(false);
+    onLoad?.();
+  }, [onLoad]);
+
+  const handleError = useCallback(() => {
     setHasError(true);
-    (e.target as HTMLImageElement).src = '/placeholder.svg';
-    onError?.(e);
+    setIsLoading(false);
+    onError?.();
   }, [onError]);
 
-  if (critical || priority) {
+  // If no filename provided or error occurred, show fallback
+  if (!filename || hasError) {
     return (
       <img
-        src={hasError ? '/placeholder.svg' : imageSource}
+        src={fallbackSrc}
         alt={alt}
-        className={`${className} gpu-accelerated`}
-        style={{
-          ...style,
-          contentVisibility: 'auto'
-        }}
-        onError={handleError}
-        loading="eager"
-        fetchPriority="high"
-        decoding="sync"
+        className={className}
+        onLoad={handleLoad}
       />
     );
   }
 
+  // Use direct URL path for better reliability
+  const imageUrl = `/uploads/${filename}`;
+
   return (
-    <LazyImage
-      src={hasError ? '/placeholder.svg' : imageSource}
-      alt={alt}
-      className={className}
-      onError={() => setHasError(true)}
-    />
+    <>
+      {isLoading && (
+        <div className={`${className} bg-gray-200 animate-pulse flex items-center justify-center`}>
+          <div className="text-gray-400 text-sm">Loading...</div>
+        </div>
+      )}
+      <img
+        src={imageUrl}
+        alt={alt}
+        className={`${className} ${isLoading ? 'hidden' : ''}`}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </>
   );
 };
 
-export default React.memo(ImageLoader);
+export default ImageLoader;

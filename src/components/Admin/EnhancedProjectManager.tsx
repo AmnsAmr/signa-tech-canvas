@@ -300,23 +300,48 @@ const EnhancedProjectManager: React.FC = () => {
   };
 
   const handleImageUpload = async (projectId: number, file: File) => {
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
       setLoading(true);
-      const response = await ProjectsApi.updateProjectImage(projectId, formData);
-
-      if (response.success) {
-        fetchSections();
-        toast({
-          title: "Success",
-          description: "Project image updated successfully"
+      
+      // Upload to gallery first
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('category', 'portfolio');
+      
+      const uploadResponse = await ImagesApi.adminUpload(formData);
+      
+      if (uploadResponse.success) {
+        // Update project with filename using direct API call
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/projects/admin/projects/${projectId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image_filename: uploadResponse.data.filename
+          })
         });
+        
+        if (response.ok) {
+          fetchSections();
+          fetchAvailableImages();
+          toast({
+            title: "Success",
+            description: "Project image updated successfully"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to update project",
+            variant: "destructive"
+          });
+        }
       } else {
         toast({
           title: "Error",
-          description: response.error || "Failed to update image",
+          description: uploadResponse.error || "Failed to upload image",
           variant: "destructive"
         });
       }
@@ -610,9 +635,12 @@ const EnhancedProjectManager: React.FC = () => {
                     <div className="aspect-video bg-gray-100 relative group">
                       {project.image_filename ? (
                         <img
-                          src={ImagesApi.getImageUrl(project.image_filename)}
+                          src={`/uploads/${project.image_filename}`}
                           alt={project.title}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">

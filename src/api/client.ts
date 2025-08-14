@@ -211,7 +211,9 @@ class ApiClient {
   }
 
   buildUploadUrl(filename: string): string {
-    if (!filename) return '';
+    if (!filename || filename.trim() === '') {
+      return '/placeholder.svg';
+    }
     
     if (filename.startsWith('http://') || filename.startsWith('https://')) {
       return filename;

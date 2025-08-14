@@ -21,7 +21,7 @@ import '@/components/Admin/admin-improvements.css';
 
 // Lazy load components
 const OrganizedImageManager = lazy(() => import('@/components/Admin/OrganizedImageManager'));
-const ProjectManager = lazy(() => import('@/components/Admin/ProjectManager'));
+const ProjectManager = lazy(() => import('@/components/Admin/EnhancedProjectManager'));
 const FileManager = lazy(() => import('@/components/Admin/FileManager'));
 const AdminRatings = lazy(() => import('@/components/Admin/AdminRatings'));
 const ContactSettings = lazy(() => import('@/components/Admin/ContactSettings'));
