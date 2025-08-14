@@ -4,6 +4,40 @@ const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
 
+// Helper function to ensure array structure
+function ensureArrayStructure(customFields) {
+  if (!customFields) return {};
+  
+  const result = { ...customFields };
+  
+  if (result.variables) {
+    // Convert object with numeric keys to array
+    if (!Array.isArray(result.variables)) {
+      const keys = Object.keys(result.variables).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
+      if (keys.length > 0) {
+        result.variables = keys.map(k => result.variables[k]);
+      } else {
+        result.variables = [];
+      }
+    }
+    
+    // Ensure each variable's options is an array
+    result.variables = result.variables.map(variable => {
+      if (variable.options && !Array.isArray(variable.options)) {
+        const optionKeys = Object.keys(variable.options).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
+        if (optionKeys.length > 0) {
+          variable.options = optionKeys.map(k => variable.options[k]);
+        } else {
+          variable.options = [];
+        }
+      }
+      return variable;
+    });
+  }
+  
+  return result;
+}
+
 // Configure multer for image uploads
 const fs = require('fs');
 const storage = multer.diskStorage({
@@ -153,7 +187,7 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: MenuController.ensureArrayStructure(customFields),
+        customFields: ensureArrayStructure(customFields),
         type: type || 'category',
         imageUrl: imageUrl || ''
       };
@@ -208,7 +242,7 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: MenuController.ensureArrayStructure(customFields),
+        customFields: ensureArrayStructure(customFields),
         type: type || 'category',
         isActive: isActive !== undefined ? isActive : true
       };
@@ -474,40 +508,6 @@ class MenuController {
       console.error('Error removing image:', error);
       res.status(500).json({ error: 'Failed to remove image' });
     }
-  }
-
-  // Helper method to ensure array structure
-  static ensureArrayStructure(customFields) {
-    if (!customFields) return {};
-    
-    const result = { ...customFields };
-    
-    if (result.variables) {
-      // Convert object with numeric keys to array
-      if (!Array.isArray(result.variables)) {
-        const keys = Object.keys(result.variables).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
-        if (keys.length > 0) {
-          result.variables = keys.map(k => result.variables[k]);
-        } else {
-          result.variables = [];
-        }
-      }
-      
-      // Ensure each variable's options is an array
-      result.variables = result.variables.map(variable => {
-        if (variable.options && !Array.isArray(variable.options)) {
-          const optionKeys = Object.keys(variable.options).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
-          if (optionKeys.length > 0) {
-            variable.options = optionKeys.map(k => variable.options[k]);
-          } else {
-            variable.options = [];
-          }
-        }
-        return variable;
-      });
-    }
-    
-    return result;
   }
 
   // Get upload middleware
