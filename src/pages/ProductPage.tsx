@@ -270,13 +270,10 @@ const ProductPage = () => {
 
 
   const calculateTotalPrice = () => {
-    const vars = product?.customFields?.variables;
-    const variablesArray = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
-    
     let total = 0;
-    variablesArray.forEach((variable: ProductVariable) => {
+    processedVariables.forEach((variable: ProductVariable) => {
       const selectedOptionId = selectedOptions[variable.id];
-      if (selectedOptionId && Array.isArray(variable.options)) {
+      if (selectedOptionId) {
         const option = variable.options.find(opt => opt.id === selectedOptionId);
         if (option) {
           total += option.price;
