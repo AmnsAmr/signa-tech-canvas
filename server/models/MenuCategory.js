@@ -25,26 +25,7 @@ const menuCategorySchema = new mongoose.Schema({
   },
   customFields: {
     type: mongoose.Schema.Types.Mixed,
-    default: {},
-    set: function(value) {
-      if (value && value.variables && !Array.isArray(value.variables)) {
-        // Convert object with numeric keys back to array
-        const keys = Object.keys(value.variables).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
-        if (keys.length > 0) {
-          value.variables = keys.map(k => {
-            const variable = value.variables[k];
-            if (variable.options && !Array.isArray(variable.options)) {
-              const optionKeys = Object.keys(variable.options).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
-              if (optionKeys.length > 0) {
-                variable.options = optionKeys.map(k => variable.options[k]);
-              }
-            }
-            return variable;
-          });
-        }
-      }
-      return value;
-    }
+    default: {}
   },
   frameConfig: {
     width: { type: Number, default: 384 },

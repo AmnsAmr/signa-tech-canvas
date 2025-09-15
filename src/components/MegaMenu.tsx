@@ -70,7 +70,21 @@ const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
       setError(null);
       // Force fresh data by bypassing cache with timestamp
       const response = await apiClient.get(`/api/menu?t=${Date.now()}`);
-      setTopDirectories(Array.isArray(response.data) ? response.data : []);
+      const menuData = Array.isArray(response.data) ? response.data : [];
+      
+      console.log('=== MENU DATA DEBUG ===');
+      console.log('Total top directories:', menuData.length);
+      menuData.forEach((topDir, topIndex) => {
+        console.log(`Top Dir ${topIndex}:`, topDir.name);
+        topDir.subdirectories?.forEach((subdir, subIndex) => {
+          console.log(`  Subdir ${subIndex}:`, subdir.name, 'Products:', subdir.products?.length || 0);
+          subdir.products?.forEach((product, prodIndex) => {
+            console.log(`    Product ${prodIndex}:`, product.name, 'ID:', product.id);
+          });
+        });
+      });
+      
+      setTopDirectories(menuData);
     } catch (error) {
       console.error('Failed to fetch menu data:', error);
       setTopDirectories([]);

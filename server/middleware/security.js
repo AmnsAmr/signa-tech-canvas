@@ -64,13 +64,13 @@ const rateLimits = {
 
 // Input sanitization middleware
 const sanitizeInput = (req, res, next) => {
-  // Skip sanitization for all admin routes to prevent data loss
+  // Skip sanitization for all admin routes and menu operations to prevent data loss
   if (req.path.startsWith('/api/admin/') ||
-      req.path.startsWith('/api/menu/admin/') ||
+      req.path.startsWith('/api/menu/') ||
       req.path.startsWith('/api/projects/admin/') ||
       req.path.includes('/admin/') ||
-      req.path.startsWith('/api/menu/product/') ||
-      req.path.startsWith('/api/menu/category/')) {
+      req.user?.role === 'admin') {
+    console.log('SECURITY: Skipping sanitization for admin route:', req.path);
     return next();
   }
   

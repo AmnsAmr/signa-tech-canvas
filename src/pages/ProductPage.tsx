@@ -160,13 +160,14 @@ const ProductPage = () => {
     if (!product) return;
 
     try {
-      const vars = product.customFields?.variables;
-      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+      const currentVariables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
       
-      console.log('Adding option to variable:', variableId, 'value:', value, 'price:', price);
-      console.log('Current variables:', variables);
+      console.log('=== ADD OPTION DEBUG ===');
+      console.log('Product ID:', product._id);
+      console.log('Variable ID:', variableId);
+      console.log('Current variables from product:', JSON.stringify(currentVariables, null, 2));
       
-      const updatedVariables = variables.map((variable: ProductVariable) => {
+      const updatedVariables = currentVariables.map((variable: ProductVariable) => {
         if (variable.id === variableId) {
           const currentOptions = Array.isArray(variable.options) ? variable.options : [];
           const newOption = {
@@ -174,28 +175,34 @@ const ProductPage = () => {
             value,
             price
           };
-          console.log('Adding option:', newOption, 'to variable:', variable.name);
+          console.log('Adding option to variable:', variable.name, 'New option:', newOption);
+          console.log('Current options:', currentOptions);
           return {
             ...variable,
-            options: Array.from([...currentOptions, newOption])
+            options: [...currentOptions, newOption]
           };
         }
         return variable;
       });
 
-      console.log('Updated variables:', updatedVariables);
+      console.log('Updated variables after adding option:', JSON.stringify(updatedVariables, null, 2));
 
       const updatedProduct = {
-        ...product,
+        name: product.name,
+        parentId: product.customFields?.parentId || null,
+        type: product.type,
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
         customFields: {
           ...product.customFields,
-          variables: Array.from(updatedVariables)
+          variables: updatedVariables
         }
       };
 
-      console.log('Sending updated product:', updatedProduct);
+      console.log('Final payload being sent:', JSON.stringify(updatedProduct, null, 2));
       const response = await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
-      console.log('API response:', response);
+      console.log('API response status:', response.status);
+      console.log('API response data:', JSON.stringify(response.data, null, 2));
       
       CacheInvalidation.clearProductCache(product._id);
       CacheInvalidation.clearMenuCache();
@@ -219,19 +226,29 @@ const ProductPage = () => {
     if (!product || !confirm('Are you sure you want to delete this variable?')) return;
 
     try {
-      const vars = product.customFields?.variables;
-      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
-      const updatedVariables = variables.filter((variable: ProductVariable) => variable.id !== variableId);
+      const currentVariables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
+      console.log('=== DELETE VARIABLE DEBUG ===');
+      console.log('Deleting variable ID:', variableId);
+      console.log('Current variables:', JSON.stringify(currentVariables, null, 2));
+      
+      const updatedVariables = currentVariables.filter((variable: ProductVariable) => variable.id !== variableId);
+      console.log('Variables after deletion:', JSON.stringify(updatedVariables, null, 2));
 
       const updatedProduct = {
-        ...product,
+        name: product.name,
+        parentId: product.customFields?.parentId || null,
+        type: product.type,
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
         customFields: {
           ...product.customFields,
           variables: updatedVariables
         }
       };
 
-      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('Delete payload:', JSON.stringify(updatedProduct, null, 2));
+      const response = await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('Delete response:', JSON.stringify(response.data, null, 2));
       
       CacheInvalidation.clearProductCache(product._id);
       CacheInvalidation.clearMenuCache();
@@ -254,21 +271,31 @@ const ProductPage = () => {
     if (!product || !newName.trim()) return;
 
     try {
-      const vars = product.customFields?.variables;
-      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
-      const updatedVariables = variables.map((variable: ProductVariable) => 
+      const currentVariables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
+      console.log('=== EDIT VARIABLE DEBUG ===');
+      console.log('Editing variable ID:', variableId, 'New name:', newName);
+      console.log('Current variables:', JSON.stringify(currentVariables, null, 2));
+      
+      const updatedVariables = currentVariables.map((variable: ProductVariable) => 
         variable.id === variableId ? { ...variable, name: newName.trim() } : variable
       );
+      console.log('Variables after edit:', JSON.stringify(updatedVariables, null, 2));
 
       const updatedProduct = {
-        ...product,
+        name: product.name,
+        parentId: product.customFields?.parentId || null,
+        type: product.type,
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
         customFields: {
           ...product.customFields,
           variables: updatedVariables
         }
       };
 
-      await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('Edit payload:', JSON.stringify(updatedProduct, null, 2));
+      const response = await apiClient.put(`/api/menu/admin/categories/${product._id}`, updatedProduct);
+      console.log('Edit response:', JSON.stringify(response.data, null, 2));
       
       CacheInvalidation.clearProductCache(product._id);
       CacheInvalidation.clearMenuCache();

@@ -8,31 +8,19 @@ const mongoose = require('mongoose');
 function ensureArrayStructure(customFields) {
   if (!customFields) return {};
   
+  // Just return the customFields as-is if variables is already an array
+  if (customFields.variables && Array.isArray(customFields.variables)) {
+    return customFields;
+  }
+  
   const result = { ...customFields };
   
-  if (result.variables) {
-    // Convert object with numeric keys to array
-    if (!Array.isArray(result.variables)) {
-      const keys = Object.keys(result.variables).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
-      if (keys.length > 0) {
-        result.variables = keys.map(k => result.variables[k]);
-      } else {
-        result.variables = [];
-      }
+  if (result.variables && !Array.isArray(result.variables)) {
+    // Only convert if it's actually an object with numeric keys
+    const keys = Object.keys(result.variables).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
+    if (keys.length > 0) {
+      result.variables = keys.map(k => result.variables[k]);
     }
-    
-    // Ensure each variable's options is an array
-    result.variables = result.variables.map(variable => {
-      if (variable.options && !Array.isArray(variable.options)) {
-        const optionKeys = Object.keys(variable.options).filter(k => !isNaN(k)).sort((a, b) => parseInt(a) - parseInt(b));
-        if (optionKeys.length > 0) {
-          variable.options = optionKeys.map(k => variable.options[k]);
-        } else {
-          variable.options = [];
-        }
-      }
-      return variable;
-    });
   }
   
   return result;
@@ -247,7 +235,7 @@ class MenuController {
         parentId: parentId && parentId !== '' ? parentId : null,
         displayOrder: displayOrder || 0,
         description: description || '',
-        customFields: ensureArrayStructure(customFields),
+        customFields: customFields || {},
         type: type || 'category',
         isActive: isActive !== undefined ? isActive : true
       };
@@ -257,6 +245,7 @@ class MenuController {
       }
       
       console.log('Executing update with data:', JSON.stringify(updateData, null, 2));
+      console.log('UPDATE - Variables being saved:', JSON.stringify(updateData.customFields?.variables, null, 2));
       
       // Use $set to ensure proper array structure
       const category = await MenuCategory.findByIdAndUpdate(
@@ -265,6 +254,7 @@ class MenuController {
         { new: true, runValidators: true }
       );
       console.log('Update result:', JSON.stringify(category.toObject(), null, 2));
+      console.log('UPDATE - Variables after save:', JSON.stringify(category.customFields?.variables, null, 2));
       
       if (!category) {
         console.log('Category not found for ID:', id);

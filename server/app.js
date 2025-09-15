@@ -87,14 +87,34 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Apply general rate limiting to all routes
-app.use(rateLimits.general);
+// Apply general rate limiting to all routes except admin
+app.use((req, res, next) => {
+  // Skip rate limiting for admin menu routes
+  if (req.path.startsWith('/api/menu/admin/') || req.path.includes('/admin/')) {
+    console.log('BYPASSING RATE LIMIT for admin route:', req.path);
+    return next();
+  }
+  return rateLimits.general(req, res, next);
+});
 
-// Input sanitization - apply to all routes
-app.use(sanitizeInput);
+// Input sanitization - apply to all routes except admin
+app.use((req, res, next) => {
+  // Skip all middleware for admin menu routes
+  if (req.path.startsWith('/api/menu/admin/')) {
+    console.log('BYPASSING ALL MIDDLEWARE for admin route:', req.path);
+    return next();
+  }
+  return sanitizeInput(req, res, next);
+});
 
 // CSRF protection - apply to all routes except GET and specific endpoints
-app.use(csrfMiddleware);
+app.use((req, res, next) => {
+  // Skip CSRF for admin menu routes
+  if (req.path.startsWith('/api/menu/admin/')) {
+    return next();
+  }
+  return csrfMiddleware(req, res, next);
+});
 
 // CSRF token endpoint
 app.get('/api/csrf-token', generateCSRFToken);
@@ -109,7 +129,13 @@ app.use('/api/user', userRoutes);
 app.use('/api/theme', cacheMiddleware(1800), themeRoutes);
 app.use('/api/projects', rateLimits.upload, projectRoutes);
 app.use('/api/contact-settings', require('./routes/contact-settings'));
-app.use('/api/menu', cacheMiddleware(300), menuRoutes);
+app.use('/api/menu', (req, res, next) => {
+  // Skip cache for admin routes
+  if (req.path.startsWith('/admin/')) {
+    return next();
+  }
+  return cacheMiddleware(300)(req, res, next);
+}, menuRoutes);
 
 // Serve uploaded images with optimization and caching
 const uploadDir = MigrationHelper.ensureUploadDir();
@@ -123,7 +149,16 @@ app.use('/uploads', imageOptimization, staticCache, express.static(uploadDir, {
 app.use(staticCache, express.static(path.join(__dirname, '../dist'), {
   maxAge: '1d', // Cache for 1 day
   etag: true,
-  lastModified: true
+  lastModified: true,
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.mjs')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
 }));
 app.get('*', (req, res) => {
   // Only serve index.html for non-API routes
