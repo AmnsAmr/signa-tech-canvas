@@ -64,6 +64,11 @@ const rateLimits = {
 
 // Input sanitization middleware
 const sanitizeInput = (req, res, next) => {
+  // Skip sanitization for admin menu routes to prevent data loss
+  if (req.path.startsWith('/api/menu/admin/')) {
+    return next();
+  }
+  
   // Lazy load DOMPurify
   if (!DOMPurify) {
     DOMPurify = require('dompurify');

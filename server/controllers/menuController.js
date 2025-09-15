@@ -174,7 +174,10 @@ class MenuController {
   // Admin: Create category
   async createCategory(req, res) {
     try {
-      console.log('CREATE - Body:', req.body);
+      console.log('CREATE - Original body before processing:', JSON.stringify(req.body, null, 2));
+      console.log('CREATE - Headers:', req.headers);
+      console.log('CREATE - User:', req.user);
+      
       const { name, parentId, displayOrder, description, customFields, type, imageUrl } = req.body;
       
       if (!name || name.trim() === '') {
@@ -192,10 +195,12 @@ class MenuController {
         imageUrl: imageUrl || ''
       };
       
-      console.log('CREATE - Data to save:', categoryData);
+      console.log('CREATE - About to save category:', JSON.stringify(categoryData, null, 2));
       const category = new MenuCategory(categoryData);
+      console.log('CREATE - Category object before save:', category);
+      
       const savedCategory = await category.save();
-      console.log('CREATE - Saved successfully:', savedCategory._id);
+      console.log('CREATE - Save completed, result:', JSON.stringify(savedCategory.toObject(), null, 2));
       
       // Clear all menu-related caches
       cacheManager.del('menu_data');
