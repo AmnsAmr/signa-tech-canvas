@@ -64,8 +64,13 @@ const rateLimits = {
 
 // Input sanitization middleware
 const sanitizeInput = (req, res, next) => {
-  // Skip sanitization for admin menu routes to prevent data loss
-  if (req.path.startsWith('/api/menu/admin/')) {
+  // Skip sanitization for all admin routes to prevent data loss
+  if (req.path.startsWith('/api/admin/') ||
+      req.path.startsWith('/api/menu/admin/') ||
+      req.path.startsWith('/api/projects/admin/') ||
+      req.path.includes('/admin/') ||
+      req.path.startsWith('/api/menu/product/') ||
+      req.path.startsWith('/api/menu/category/')) {
     return next();
   }
   
@@ -142,7 +147,10 @@ const csrfMiddleware = (req, res, next) => {
       req.path.startsWith('/api/auth/google') || 
       req.path.startsWith('/api/admin/') ||
       req.path.startsWith('/api/projects/admin/') ||
-      req.path.startsWith('/api/menu/admin/')) {
+      req.path.startsWith('/api/menu/admin/') ||
+      req.path.includes('/admin/') ||
+      req.path.startsWith('/api/menu/product/') ||
+      req.path.startsWith('/api/menu/category/')) {
     return next();
   }
 

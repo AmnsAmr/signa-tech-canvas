@@ -111,22 +111,22 @@ const ProductPage = () => {
     if (!newVariableName.trim() || !product) return;
 
     try {
-      const vars = product.customFields?.variables;
-      const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
+      const currentVariables = Array.isArray(product.customFields?.variables) ? product.customFields.variables : [];
       const newVariable: ProductVariable = {
         id: Date.now().toString(),
         name: newVariableName.trim(),
         options: []
       };
 
-      console.log('Adding variable:', newVariable);
-      console.log('Current variables:', variables);
-
       const updatedProduct = {
-        ...product,
+        name: product.name,
+        parentId: product.customFields?.parentId || null,
+        type: product.type,
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
         customFields: {
           ...product.customFields,
-          variables: [...variables, newVariable]
+          variables: [...currentVariables, newVariable]
         }
       };
 
@@ -446,12 +446,10 @@ const ProductPage = () => {
     );
   }
 
-  const vars = product.customFields?.variables;
-  const variables = Array.isArray(vars) ? vars : (vars && typeof vars === 'object' ? Object.values(vars) : []);
-  // Convert options objects to arrays
-  const processedVariables = variables.map((variable: any) => ({
+  const vars = product.customFields?.variables || [];
+  const processedVariables = (Array.isArray(vars) ? vars : []).map((variable: any) => ({
     ...variable,
-    options: Array.isArray(variable.options) ? variable.options : (variable.options && typeof variable.options === 'object' ? Object.values(variable.options) : [])
+    options: Array.isArray(variable.options) ? variable.options : []
   }));
 
   return (
