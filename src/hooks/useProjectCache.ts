@@ -21,12 +21,18 @@ interface Project {
 // Global cache to prevent duplicate requests
 const projectCache = new Map<string, any>();
 const loadingStates = new Map<string, boolean>();
+const cacheEnabled = import.meta.env.VITE_ENABLE_CACHE !== 'false';
 
 export const useProjectCache = (type: 'sections' | 'projects', sectionId?: number) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
+
+  // Log cache status on first use
+  useEffect(() => {
+    console.log(`[useProjectCache] Cache ${cacheEnabled ? 'enabled' : 'disabled'}`);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -40,8 +46,8 @@ export const useProjectCache = (type: 'sections' | 'projects', sectionId?: numbe
     console.log(`[useProjectCache] Effect triggered for type: ${type}, sectionId: ${sectionId}`);
     console.log(`[useProjectCache] Cache key: ${cacheKey}`);
     
-    // Check cache first
-    if (projectCache.has(cacheKey)) {
+    // Check cache first (only if caching is enabled)
+    if (cacheEnabled && projectCache.has(cacheKey)) {
       console.log(`[useProjectCache] Found cached data for ${cacheKey}`);
       setData(projectCache.get(cacheKey) || []);
       setLoading(false);
@@ -49,7 +55,7 @@ export const useProjectCache = (type: 'sections' | 'projects', sectionId?: numbe
     }
 
     // Check if already loading
-    if (loadingStates.get(cacheKey)) {
+    if (cacheEnabled && loadingStates.get(cacheKey)) {
       console.log(`[useProjectCache] Already loading ${cacheKey}, waiting...`);
       const checkLoading = () => {
         if (!loadingStates.get(cacheKey) && projectCache.has(cacheKey)) {
@@ -107,7 +113,9 @@ export const useProjectCache = (type: 'sections' | 'projects', sectionId?: numbe
       
       if (response.success && response.data) {
         console.log(`[useProjectCache] Successfully fetched ${response.data.length} items:`, response.data);
-        projectCache.set(cacheKey, response.data);
+        if (cacheEnabled) {
+          projectCache.set(cacheKey, response.data);
+        }
         
         if (mountedRef.current) {
           setData(response.data);

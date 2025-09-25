@@ -44,6 +44,12 @@ interface MegaMenuProps {
 }
 
 const MegaMenu = ({ isScrolled }: MegaMenuProps) => {
+  const hideMegaMenu = import.meta.env.VITE_HIDE_MEGA_MENU === 'true';
+  
+  if (hideMegaMenu) {
+    return null;
+  }
+
   const [topDirectories, setTopDirectories] = useState<TopDirectory[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

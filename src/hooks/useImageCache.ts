@@ -15,12 +15,18 @@ interface SiteImage {
 // Global cache to prevent duplicate requests
 const imageCache = new Map<string, SiteImage[]>();
 const loadingStates = new Map<string, boolean>();
+const cacheEnabled = import.meta.env.VITE_ENABLE_CACHE !== 'false';
 
 export const useImageCache = (category?: string) => {
   const [images, setImages] = useState<SiteImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
+
+  // Log cache status on first use
+  useEffect(() => {
+    console.log(`[useImageCache] Cache ${cacheEnabled ? 'enabled' : 'disabled'}`);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -34,8 +40,8 @@ export const useImageCache = (category?: string) => {
     console.log(`[useImageCache] Effect triggered for category: ${category}`);
     console.log(`[useImageCache] Cache key: ${cacheKey}`);
     
-    // Check cache first
-    if (imageCache.has(cacheKey)) {
+    // Check cache first (only if caching is enabled)
+    if (cacheEnabled && imageCache.has(cacheKey)) {
       console.log(`[useImageCache] Found cached data for ${cacheKey}`);
       setImages(imageCache.get(cacheKey) || []);
       setLoading(false);
@@ -43,7 +49,7 @@ export const useImageCache = (category?: string) => {
     }
 
     // Check if already loading
-    if (loadingStates.get(cacheKey)) {
+    if (cacheEnabled && loadingStates.get(cacheKey)) {
       console.log(`[useImageCache] Already loading ${cacheKey}, waiting...`);
       const checkLoading = () => {
         if (!loadingStates.get(cacheKey) && imageCache.has(cacheKey)) {
@@ -98,7 +104,9 @@ export const useImageCache = (category?: string) => {
       
       if (response.success && response.data) {
         console.log(`[useImageCache] Successfully fetched ${response.data.length} images:`, response.data);
-        imageCache.set(cacheKey, response.data);
+        if (cacheEnabled) {
+          imageCache.set(cacheKey, response.data);
+        }
         
         if (mountedRef.current) {
           setImages(response.data);

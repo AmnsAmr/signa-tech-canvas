@@ -86,6 +86,12 @@ const cacheManager = new CacheManager();
 // Cache middleware for Express routes
 const cacheMiddleware = (ttl = 300) => {
   return async (req, res, next) => {
+    // Skip caching if disabled via environment variable
+    if (process.env.ENABLE_CACHE === 'false') {
+      console.log(`[CacheManager] Skipping cache for ${req.originalUrl} - caching disabled`);
+      return next();
+    }
+
     const key = `route:${req.method}:${req.originalUrl}`;
     
     try {

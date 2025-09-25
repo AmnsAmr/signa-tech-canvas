@@ -19,6 +19,12 @@ const generateETag = (content) => {
 // Cache middleware
 const cacheMiddleware = (ttl = CACHE_CONFIG.DYNAMIC) => {
   return (req, res, next) => {
+    // Skip caching if disabled via environment variable
+    if (process.env.ENABLE_CACHE === 'false') {
+      console.log(`[Cache] Skipping cache for ${req.originalUrl} - caching disabled`);
+      return next();
+    }
+
     // Skip caching for non-GET requests
     if (req.method !== 'GET') {
       return next();
@@ -84,6 +90,11 @@ const clearCache = (pattern) => {
 
 // Static file caching
 const staticCache = (req, res, next) => {
+  // Skip caching if disabled via environment variable
+  if (process.env.ENABLE_CACHE === 'false') {
+    return next();
+  }
+
   // Set long cache for static assets
   if (req.url.match(/\.(jpg|jpeg|png|gif|ico|css|js|woff|woff2)$/)) {
     res.set({

@@ -3,8 +3,15 @@ import { CacheEntry } from './types';
 class ApiCache {
   private cache = new Map<string, CacheEntry<any>>();
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly cacheEnabled = import.meta.env.VITE_ENABLE_CACHE !== 'false';
+
+  constructor() {
+    console.log(`[ApiCache] Cache ${this.cacheEnabled ? 'enabled' : 'disabled'}`);
+  }
 
   set<T>(key: string, data: T, ttl: number = this.DEFAULT_TTL, etag?: string): void {
+    if (!this.cacheEnabled) return;
+    
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -16,6 +23,8 @@ class ApiCache {
   }
 
   get<T>(key: string, maxAge: number = this.DEFAULT_TTL): T | null {
+    if (!this.cacheEnabled) return null;
+    
     const entry = this.cache.get(key);
     if (!entry) return null;
     
@@ -28,6 +37,8 @@ class ApiCache {
   }
 
   getWithEtag<T>(key: string, maxAge: number = this.DEFAULT_TTL): { data: T; etag?: string } | null {
+    if (!this.cacheEnabled) return null;
+    
     const entry = this.cache.get(key);
     if (!entry) return null;
     

@@ -165,6 +165,33 @@ The system automatically migrates from SQLite to MongoDB.
    ```
 3. **Start Services**: Use `start-with-mongodb.bat` or start manually
 
+#### Cache Configuration
+
+The application includes comprehensive caching that can be toggled via environment variables:
+
+**Server-side caching** (`server/.env`):
+```env
+ENABLE_CACHE=true  # Set to 'false' to disable all server-side caching
+```
+
+**Frontend caching** (`.env`):
+```env
+VITE_ENABLE_CACHE=true  # Set to 'false' to disable all frontend caching
+```
+
+**What gets cached when enabled:**
+- API responses (5-30 minutes TTL)
+- Static assets (1 year TTL)
+- Image metadata (1 hour TTL)
+- Settings and configurations (15 minutes TTL)
+- Frontend component data caching
+
+**When to disable caching:**
+- Development debugging
+- Real-time data requirements
+- Testing cache invalidation
+- Troubleshooting data consistency issues
+
 #### Enhanced Menu Features
 
 - **Flexible Schema**: Dynamic custom fields for categories and products
